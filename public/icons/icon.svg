@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="96" fill="#000000"/>
+  <text x="256" y="200" text-anchor="middle" font-family="Arial, sans-serif" font-weight="bold" font-size="120" fill="#F40000">RCP</text>
+  <text x="256" y="340" text-anchor="middle" font-family="Arial, sans-serif" font-weight="bold" font-size="72" fill="#F8F8F8">TIME</text>
+  <rect x="156" y="370" width="200" height="6" rx="3" fill="#F40000"/>
+</svg>
