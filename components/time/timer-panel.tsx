@@ -120,25 +120,25 @@ export function TimerPanel({
     <div className="space-y-3 sm:space-y-4">
       {/* Timer display + current project */}
       <div>
-        <div className="text-[10px] sm:text-xs uppercase tracking-wider text-[#808080]">Current timer</div>
-        <div className="mt-1 sm:mt-2 text-xl sm:text-2xl font-bold tracking-tight tabular-nums">
+        <div className="text-xs sm:text-sm uppercase tracking-wider text-[#808080]">Current timer</div>
+        <div className="mt-1 sm:mt-2 text-2xl sm:text-3xl font-bold tracking-tight tabular-nums">
           {formatSeconds(elapsedSeconds)}
         </div>
-        <div className="mt-1 sm:mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs sm:text-sm">
+        <div className="mt-1 sm:mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm">
           {hasSession ? (
             <>
               <span className={isRunning ? "text-[#F40000]" : "text-[#808080]"}>●</span>
               <span className="text-[#D9D9D9]">{isRunning ? "Running" : "Paused"}</span>
               <span className="text-[#808080]">—</span>
               <span className="font-bold text-[#F8F8F8]">{selectedProject?.projectName ?? "—"}</span>
-              <span className="text-[#808080] text-[10px] sm:text-xs">({projectId})</span>
+              <span className="text-[#808080] text-xs sm:text-sm">({projectId})</span>
             </>
           ) : (
             <span className="text-[#D9D9D9]">No active timer</span>
           )}
         </div>
         {lastAutosaved && hasSession && (
-          <div className="mt-1 text-[10px] text-[#808080]/60">
+          <div className="mt-1 text-xs text-[#808080]/60">
             Last autosaved: {lastAutosaved.toLocaleTimeString()}
           </div>
         )}
@@ -146,11 +146,11 @@ export function TimerPanel({
 
       {/* Project selector */}
       <div className="space-y-1">
-        <label className="text-xs sm:text-sm font-medium text-[#D9D9D9]">Project</label>
+        <label className="text-sm font-medium text-[#D9D9D9]">Project</label>
         <select
           value={projectId}
           onChange={(e) => handleProjectChange(e.target.value)}
-          className="w-full rounded-xl border border-[#808080]/30 bg-black px-3 py-2 text-xs sm:text-sm focus:border-[#F40000] focus:outline-none"
+          className="w-full rounded-xl border border-[#808080]/30 bg-black px-3 py-2 text-sm focus:border-[#F40000] focus:outline-none"
         >
           {projects.map((project) => (
             <option key={project.projectId} value={project.projectId}>
@@ -162,20 +162,20 @@ export function TimerPanel({
 
       {/* Notes (required) */}
       <div className="space-y-1">
-        <label className="text-xs sm:text-sm font-medium text-[#D9D9D9]">
+        <label className="text-sm font-medium text-[#D9D9D9]">
           Notes <span className="text-[#F40000]">*</span>
         </label>
         <textarea
           value={notesDraft}
           onChange={(e) => { setNotesDraft(e.target.value); setNotesError(""); }}
           rows={2}
-          className={`w-full rounded-xl border bg-black px-3 py-2 text-xs sm:text-sm focus:border-[#F40000] focus:outline-none ${
+          className={`w-full rounded-xl border bg-black px-3 py-2 text-sm focus:border-[#F40000] focus:outline-none ${
             notesError ? "border-[#F40000]" : "border-[#808080]/30"
           }`}
           placeholder="What are you working on? (required)"
         />
         {notesError && (
-          <p className="text-[10px] sm:text-xs text-[#F40000]">{notesError}</p>
+          <p className="text-xs sm:text-sm text-[#F40000]">{notesError}</p>
         )}
       </div>
 
@@ -207,7 +207,7 @@ export function TimerPanel({
               });
             })
           }
-          className="rounded-xl bg-[#F40000] px-3 py-2 text-xs sm:text-sm font-bold text-[#F8F8F8] hover:opacity-90 transition-opacity disabled:opacity-40"
+          className="rounded-xl bg-[#F40000] px-3 py-2 text-sm font-bold text-[#F8F8F8] hover:opacity-90 transition-opacity disabled:opacity-40"
         >
           {getStartLabel()}
         </button>
@@ -220,7 +220,7 @@ export function TimerPanel({
               await pauseSession({ sessionId: session!.id, elapsedSeconds, notesDraft });
             })
           }
-          className="rounded-xl border border-[#808080]/30 px-3 py-2 text-xs sm:text-sm font-medium text-[#D9D9D9] hover:text-[#F8F8F8] transition-colors disabled:opacity-40"
+          className="rounded-xl border border-[#808080]/30 px-3 py-2 text-sm font-medium text-[#D9D9D9] hover:text-[#F8F8F8] transition-colors disabled:opacity-40"
         >
           <span className="text-[1em]">⏸</span> Pause
         </button>
@@ -238,7 +238,7 @@ export function TimerPanel({
               await finalizeSession({ sessionId: sid, projectId, elapsedSeconds, notesDraft, workDate: localDateInputValue() });
             });
           }}
-          className="rounded-xl border border-[#808080]/30 px-3 py-2 text-xs sm:text-sm font-bold text-[#F8F8F8] hover:border-[#D9D9D9] transition-colors disabled:opacity-40"
+          className="rounded-xl border border-[#808080]/30 px-3 py-2 text-sm font-bold text-[#F8F8F8] hover:border-[#D9D9D9] transition-colors disabled:opacity-40"
         >
           <span className="text-[1em]">💾</span> Save tracked time
         </button>
@@ -256,7 +256,7 @@ export function TimerPanel({
               await discardSession({ sessionId: sid, elapsedSeconds, notesDraft });
             });
           }}
-          className="rounded-xl border border-[#808080]/30 px-3 py-2 text-xs sm:text-sm font-medium text-[#F40000] hover:opacity-80 transition-opacity disabled:opacity-40"
+          className="rounded-xl border border-[#808080]/30 px-3 py-2 text-sm font-medium text-[#F40000] hover:opacity-80 transition-opacity disabled:opacity-40"
         >
           <span className="text-[1em]">🗑</span> Discard
         </button>

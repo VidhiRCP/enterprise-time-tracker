@@ -55,13 +55,13 @@ function EventRow({
         <div className="flex items-center gap-2">
           <span className="text-xs sm:text-sm font-bold truncate">{event.subject}</span>
           {event.isAllDay && (
-            <span className="text-[10px] uppercase tracking-wider text-[#808080] border border-[#808080]/30 px-1.5 py-0.5 rounded">
+            <span className="text-xs uppercase tracking-wider text-[#808080] border border-[#808080]/30 px-1.5 py-0.5 rounded">
               All day
             </span>
           )}
         </div>
 
-        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[10px] sm:text-xs text-[#808080]">
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs sm:text-sm text-[#808080]">
           {!event.isAllDay && (
             <span className="text-[#D9D9D9]">
               {formatTime(event.start)} – {formatTime(event.end)}
@@ -78,13 +78,13 @@ function EventRow({
 
         {hasSuggestion && (
           <div className="flex items-center gap-2 mt-1">
-            <span className="text-[10px] sm:text-xs text-yellow-400/80">
+            <span className="text-xs sm:text-sm text-yellow-400/80">
               ✨ Suggested: <span className="font-bold">{event.suggestedProjectName}</span>
             </span>
             <button
               onClick={handleAcceptSuggestion}
               disabled={isPending}
-              className="text-[10px] sm:text-xs text-[#F40000] hover:text-[#F40000]/80 font-medium disabled:opacity-40"
+              className="text-xs sm:text-sm text-[#F40000] hover:text-[#F40000]/80 font-medium disabled:opacity-40"
             >
               Accept
             </button>
@@ -143,7 +143,7 @@ export function TimesheetPanel({
         <p className="text-xs sm:text-sm text-[#808080]">
           No calendar events found for this week.
         </p>
-        <p className="mt-1 text-[10px] sm:text-xs text-[#808080]/60">
+        <p className="mt-1 text-xs sm:text-sm text-[#808080]/60">
           Make sure your Outlook calendar has events this week (Mon–Sun).
         </p>
       </div>
@@ -177,7 +177,7 @@ export function TimesheetPanel({
               {format(new Date(group.date + "T12:00:00"), "EEEE, dd-MM-yyyy")}
             </h3>
             <div className="flex-1 border-t border-[#808080]/20" />
-            <span className="text-[10px] sm:text-xs text-[#808080]">
+            <span className="text-xs sm:text-sm text-[#808080]">
               {group.events.length} event{group.events.length !== 1 ? "s" : ""}
             </span>
           </div>

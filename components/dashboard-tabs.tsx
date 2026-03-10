@@ -36,7 +36,7 @@ export function DashboardTabs({
             key={tab.key}
             onClick={() => setActive(tab.key)}
             className={`
-              whitespace-nowrap px-3 py-2 sm:px-4 sm:py-2.5 text-xs sm:text-sm font-medium transition-colors
+              whitespace-nowrap px-3 py-2 sm:px-4 sm:py-2.5 text-sm sm:text-base font-medium transition-colors
               ${
                 active === tab.key
                   ? "text-[#F8F8F8] border-b-2 border-[#F40000]"

@@ -34,7 +34,7 @@ export function SidebarCalendar({ entryDates }: { entryDates: string[] }) {
         >
           ‹
         </button>
-        <span className="text-[10px] font-bold uppercase tracking-wider">
+        <span className="text-xs font-bold uppercase tracking-wider">
           {format(month, "MMMM yyyy")}
         </span>
         <button
@@ -48,7 +48,7 @@ export function SidebarCalendar({ entryDates }: { entryDates: string[] }) {
       {/* Day-of-week headers */}
       <div className="grid grid-cols-7 mb-0.5">
         {["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"].map((d) => (
-          <div key={d} className="text-[9px] text-center text-[#808080] font-bold py-0.5">
+          <div key={d} className="text-[11px] text-center text-[#808080] font-bold py-0.5">
             {d}
           </div>
         ))}
@@ -65,7 +65,7 @@ export function SidebarCalendar({ entryDates }: { entryDates: string[] }) {
           return (
             <div
               key={key}
-              className={`relative text-[10px] text-center py-1 rounded transition-colors ${
+              className={`relative text-xs text-center py-1 rounded transition-colors ${
                 !inMonth
                   ? "text-[#808080]/20"
                   : today

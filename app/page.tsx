@@ -169,8 +169,8 @@ export default async function HomePage() {
         {/* Header */}
         <div className="flex flex-col gap-2 rounded-2xl border border-[#808080]/30 p-3 sm:p-4 md:flex-row md:items-center md:justify-between">
           <div className="min-w-0">
-            <h1 className="text-base sm:text-lg md:text-xl font-bold">RCP Time Tracker</h1>
-            <p className="text-[10px] sm:text-xs text-[#D9D9D9] truncate">{session.user.email}</p>
+            <h1 className="text-lg sm:text-xl md:text-2xl font-bold">RCP Time Tracker</h1>
+            <p className="text-xs sm:text-sm text-[#D9D9D9] truncate">{session.user.email}</p>
           </div>
           <form
             action={async () => {
@@ -178,7 +178,7 @@ export default async function HomePage() {
               await signOut({ redirectTo: "/" });
             }}
           >
-            <button className="rounded-xl border border-[#808080]/30 px-3 py-1.5 text-xs text-[#D9D9D9] hover:text-[#F8F8F8] transition-colors">
+            <button className="rounded-xl border border-[#808080]/30 px-3 py-1.5 text-sm text-[#D9D9D9] hover:text-[#F8F8F8] transition-colors">
               Sign out
             </button>
           </form>
@@ -191,8 +191,8 @@ export default async function HomePage() {
             !hasProjects ? (
               <Card>
                 <div className="py-6 sm:py-8 text-center">
-                  <p className="text-xs sm:text-sm font-bold text-[#D9D9D9]">No projects assigned</p>
-                  <p className="mt-1 text-xs sm:text-sm text-[#808080]">
+                  <p className="text-sm sm:text-base font-bold text-[#D9D9D9]">No projects assigned</p>
+                  <p className="mt-1 text-sm text-[#808080]">
                     Ask your administrator to assign you to a project before you can track time.
                   </p>
                 </div>
@@ -200,12 +200,12 @@ export default async function HomePage() {
             ) : (
               <div className="space-y-3">
                 {data.session && (
-                  <div className="rounded-xl border-l-2 border-l-[#F40000] border border-[#808080]/20 px-3 py-2 text-xs text-[#D9D9D9]">
+                  <div className="rounded-xl border-l-2 border-l-[#F40000] border border-[#808080]/20 px-3 py-2 text-sm text-[#D9D9D9]">
                     Recovered an unfinished timer session. Resume, pause, save, or discard it.
                   </div>
                 )}
 
-                <div className="grid gap-3 lg:grid-cols-[280px_1fr]">
+                <div className="grid gap-3 lg:grid-cols-[320px_1fr]">
                   {/* ── Left sidebar ── */}
                   <div className="space-y-2 lg:sticky lg:top-4 lg:self-start lg:max-h-[calc(100vh-5rem)] lg:overflow-y-auto">
                     <DashboardStats data={statsData} />
@@ -236,8 +236,8 @@ export default async function HomePage() {
                     <Card>
                       <div className="space-y-2">
                         <div>
-                          <h2 className="text-sm font-bold">Manual entry</h2>
-                          <p className="text-[10px] sm:text-xs text-[#808080]">Add time for work already completed.</p>
+                          <h2 className="text-base font-bold">Manual entry</h2>
+                          <p className="text-xs sm:text-sm text-[#808080]">Add time for work already completed.</p>
                         </div>
                         <ManualEntryForm projects={projectOptions} />
                       </div>
@@ -246,8 +246,8 @@ export default async function HomePage() {
                     <Card>
                       <div className="space-y-2">
                         <div>
-                          <h2 className="text-sm font-bold">Recent entries</h2>
-                          <p className="text-[10px] sm:text-xs text-[#808080]">Your entries, scoped to your project assignments.</p>
+                          <h2 className="text-base font-bold">Recent entries</h2>
+                          <p className="text-xs sm:text-sm text-[#808080]">Your entries, scoped to your project assignments.</p>
                         </div>
                         <EntryTable entries={data.entries} projects={projectOptions} />
                       </div>

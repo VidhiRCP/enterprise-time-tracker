@@ -88,24 +88,24 @@ export function InsightsPanel({ data }: { data: InsightsData }) {
       {/* Summary Cards */}
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 sm:gap-3">
         <div className="rounded-xl border border-[#808080]/20 p-3 sm:p-4">
-          <div className="text-[10px] sm:text-xs uppercase tracking-wider text-[#808080]">Total</div>
+          <div className="text-xs sm:text-sm uppercase tracking-wider text-[#808080]">Total</div>
           <div className="mt-1 text-base sm:text-lg md:text-xl font-bold">{fmtMin(totalMinutes)}</div>
-          <div className="text-[10px] sm:text-xs text-[#808080]">{fmtHours(totalMinutes)}h</div>
+          <div className="text-xs sm:text-sm text-[#808080]">{fmtHours(totalMinutes)}h</div>
         </div>
         <div className="rounded-xl border border-[#808080]/20 p-3 sm:p-4">
-          <div className="text-[10px] sm:text-xs uppercase tracking-wider text-[#808080]">Activity</div>
+          <div className="text-xs sm:text-sm uppercase tracking-wider text-[#808080]">Activity</div>
           <div className="mt-1 text-base sm:text-lg md:text-xl font-bold text-[#F40000]">{fmtMin(totalActivityMin)}</div>
-          <div className="text-[10px] sm:text-xs text-[#808080]">{fmtHours(totalActivityMin)}h</div>
+          <div className="text-xs sm:text-sm text-[#808080]">{fmtHours(totalActivityMin)}h</div>
         </div>
         <div className="rounded-xl border border-[#808080]/20 p-3 sm:p-4">
-          <div className="text-[10px] sm:text-xs uppercase tracking-wider text-[#808080]">Meetings</div>
+          <div className="text-xs sm:text-sm uppercase tracking-wider text-[#808080]">Meetings</div>
           <div className="mt-1 text-base sm:text-lg md:text-xl font-bold text-blue-400">{fmtMin(totalMeetingMin)}</div>
-          <div className="text-[10px] sm:text-xs text-[#808080]">{fmtHours(totalMeetingMin)}h</div>
+          <div className="text-xs sm:text-sm text-[#808080]">{fmtHours(totalMeetingMin)}h</div>
         </div>
         <div className="rounded-xl border border-[#808080]/20 p-3 sm:p-4">
-          <div className="text-[10px] sm:text-xs uppercase tracking-wider text-[#808080]">Avg / day</div>
+          <div className="text-xs sm:text-sm uppercase tracking-wider text-[#808080]">Avg / day</div>
           <div className="mt-1 text-base sm:text-lg md:text-xl font-bold">{fmtMin(avgDailyMin)}</div>
-          <div className="text-[10px] sm:text-xs text-[#808080]">{weekDays} active day{weekDays !== 1 ? "s" : ""}</div>
+          <div className="text-xs sm:text-sm text-[#808080]">{weekDays} active day{weekDays !== 1 ? "s" : ""}</div>
         </div>
       </div>
 
@@ -142,7 +142,7 @@ export function InsightsPanel({ data }: { data: InsightsData }) {
               <span className="text-xs sm:text-sm font-bold">{fmtMin(p.totalMin)}</span>
             </div>
             <ProgressBar value={p.totalMin} max={totalMinutes} color="#F40000" />
-            <div className="flex gap-4 text-[10px] sm:text-xs text-[#808080]">
+            <div className="flex gap-4 text-xs sm:text-sm text-[#808080]">
               <span>
                 Activity: <span className="text-[#D9D9D9]">{fmtMin(p.activityMin)}</span>
               </span>
@@ -167,7 +167,7 @@ export function InsightsPanel({ data }: { data: InsightsData }) {
                   {format(new Date(day.date + "T12:00:00"), "EEEE, dd-MM-yyyy")}
                 </h4>
                 <div className="flex-1 border-t border-[#808080]/20" />
-                <span className="text-[10px] sm:text-xs font-bold text-[#F8F8F8]">{fmtMin(dayTotal)}</span>
+                <span className="text-xs sm:text-sm font-bold text-[#F8F8F8]">{fmtMin(dayTotal)}</span>
               </div>
 
               {/* Mobile: stacked cards */}
@@ -178,7 +178,7 @@ export function InsightsPanel({ data }: { data: InsightsData }) {
                     className="flex items-center justify-between rounded-lg border border-[#808080]/15 px-3 py-2"
                   >
                     <span className="text-xs truncate max-w-[150px]">{p.projectName}</span>
-                    <div className="flex gap-2 text-[10px]">
+                    <div className="flex gap-2 text-xs">
                       <span className="text-[#F40000]">{p.activityMin > 0 ? fmtMin(p.activityMin) : ""}</span>
                       <span className="text-blue-400">{p.meetingMin > 0 ? fmtMin(p.meetingMin) : ""}</span>
                       <span className="font-bold">{fmtMin(p.totalMin)}</span>
@@ -191,7 +191,7 @@ export function InsightsPanel({ data }: { data: InsightsData }) {
               <div className="hidden sm:block overflow-x-auto">
                 <table className="w-full text-xs sm:text-sm">
                   <thead>
-                    <tr className="text-[10px] sm:text-xs uppercase tracking-wider text-[#808080]">
+                    <tr className="text-xs sm:text-sm uppercase tracking-wider text-[#808080]">
                       <th className="text-left py-1 pr-4 font-medium">Project</th>
                       <th className="text-right py-1 px-3 font-medium">Activity</th>
                       <th className="text-right py-1 px-3 font-medium">Meetings</th>

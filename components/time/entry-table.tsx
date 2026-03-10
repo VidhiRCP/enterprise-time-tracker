@@ -35,20 +35,20 @@ function formatTime(date: Date | string) {
 function SourceBadge({ source }: { source: string }) {
   if (source === "TIMER") {
     return (
-      <span className="inline-flex items-center gap-1 rounded-full bg-[#F40000]/15 px-2 py-0.5 text-[10px] font-bold text-[#F40000] border border-[#F40000]/30">
+      <span className="inline-flex items-center gap-1 rounded-full bg-[#F40000]/15 px-2 py-0.5 text-xs font-bold text-[#F40000] border border-[#F40000]/30">
         ⏱ Timer
       </span>
     );
   }
   if (source === "MANUAL") {
     return (
-      <span className="inline-flex items-center gap-1 rounded-full bg-[#808080]/15 px-2 py-0.5 text-[10px] font-bold text-[#D9D9D9] border border-[#808080]/30">
+      <span className="inline-flex items-center gap-1 rounded-full bg-[#808080]/15 px-2 py-0.5 text-xs font-bold text-[#D9D9D9] border border-[#808080]/30">
         ✏ Manual
       </span>
     );
   }
   return (
-    <span className="inline-flex items-center gap-1 rounded-full bg-yellow-500/15 px-2 py-0.5 text-[10px] font-bold text-yellow-400 border border-yellow-500/30">
+    <span className="inline-flex items-center gap-1 rounded-full bg-yellow-500/15 px-2 py-0.5 text-xs font-bold text-yellow-400 border border-yellow-500/30">
       ♻ {source}
     </span>
   );
@@ -113,7 +113,7 @@ function EditManualRow({
   return (
     <div className="rounded-xl border border-[#F40000]/30 bg-[#F40000]/5 p-3 space-y-2">
       <div className="flex items-center justify-between">
-        <span className="text-[10px] sm:text-xs font-bold text-[#F40000] uppercase tracking-wider">Edit manual entry</span>
+        <span className="text-xs sm:text-sm font-bold text-[#F40000] uppercase tracking-wider">Edit manual entry</span>
         <button onClick={onClose} className="text-xs text-[#808080] hover:text-[#D9D9D9]">Cancel</button>
       </div>
       <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
@@ -156,7 +156,7 @@ function EditManualRow({
         className="w-full rounded-lg border border-[#808080]/30 bg-black px-2 py-1.5 text-xs focus:border-[#F40000] focus:outline-none"
       />
       {error && (
-        <div className="text-[10px] text-[#F40000]">{error}</div>
+        <div className="text-xs text-[#F40000]">{error}</div>
       )}
     </div>
   );
@@ -238,7 +238,7 @@ export function EntryTable({
       {/* ── Filter bar ── */}
       <div className="flex flex-wrap items-end gap-2 sm:gap-3">
         <div className="space-y-1">
-          <label className="text-[10px] uppercase tracking-wider text-[#808080] font-bold">Project</label>
+          <label className="text-xs uppercase tracking-wider text-[#808080] font-bold">Project</label>
           <select
             value={filterProject}
             onChange={(e) => setFilterProject(e.target.value)}
@@ -251,7 +251,7 @@ export function EntryTable({
           </select>
         </div>
         <div className="space-y-1">
-          <label className="text-[10px] uppercase tracking-wider text-[#808080] font-bold">From</label>
+          <label className="text-xs uppercase tracking-wider text-[#808080] font-bold">From</label>
           <input
             type="date"
             value={filterFrom}
@@ -260,7 +260,7 @@ export function EntryTable({
           />
         </div>
         <div className="space-y-1">
-          <label className="text-[10px] uppercase tracking-wider text-[#808080] font-bold">To</label>
+          <label className="text-xs uppercase tracking-wider text-[#808080] font-bold">To</label>
           <input
             type="date"
             value={filterTo}
@@ -271,12 +271,12 @@ export function EntryTable({
         {(filterProject !== "ALL" || filterFrom || filterTo) && (
           <button
             onClick={() => { setFilterProject("ALL"); setFilterFrom(""); setFilterTo(""); }}
-            className="rounded-lg border border-[#808080]/30 px-2 py-1.5 text-[10px] text-[#808080] hover:text-[#D9D9D9] transition-colors"
+            className="rounded-lg border border-[#808080]/30 px-2 py-1.5 text-xs text-[#808080] hover:text-[#D9D9D9] transition-colors"
           >
             Clear filters
           </button>
         )}
-        <div className="ml-auto text-[10px] text-[#808080]">
+        <div className="ml-auto text-xs text-[#808080]">
           {filtered.length} {filtered.length === 1 ? "entry" : "entries"} · {formatMinutes(filtered.reduce((s, e) => s + e.durationMinutes, 0))}
         </div>
       </div>
@@ -292,10 +292,10 @@ export function EntryTable({
         <div key={group.weekStart.toISOString()} className="space-y-2">
           {/* Week header */}
           <div className="flex items-center justify-between px-1">
-            <span className="text-[10px] sm:text-xs font-bold text-[#808080] uppercase tracking-wider">
+            <span className="text-xs sm:text-sm font-bold text-[#808080] uppercase tracking-wider">
               Week of {format(group.weekStart, "MMM d")} – {format(group.weekEnd, "MMM d, yyyy")}
             </span>
-            <span className="text-[10px] sm:text-xs font-bold text-[#D9D9D9]">
+            <span className="text-xs sm:text-sm font-bold text-[#D9D9D9]">
               {formatMinutes(group.total)}
             </span>
           </div>
@@ -312,7 +312,7 @@ export function EntryTable({
                       <div>
                         <div className="text-sm font-bold">
                           {entry.project.projectName}{" "}
-                          <span className="text-[10px] font-normal text-[#808080]">({entry.project.projectId})</span>
+                          <span className="text-xs font-normal text-[#808080]">({entry.project.projectId})</span>
                         </div>
                         <div className="text-xs text-[#808080] mt-0.5">
                           {format(new Date(entry.workDate), "dd-MM-yyyy")}
@@ -353,16 +353,16 @@ export function EntryTable({
 
           {/* ── Desktop: full table ── */}
           <div className="hidden md:block overflow-x-auto rounded-xl border border-[#808080]/30">
-            <table className="min-w-full border-collapse text-xs lg:text-sm">
+            <table className="min-w-full border-collapse text-sm">
               <thead>
                 <tr>
-                  <th className="border-b border-[#808080]/30 px-3 lg:px-4 py-2 lg:py-3 text-left text-[10px] lg:text-xs font-bold uppercase tracking-wider text-[#808080]">Date</th>
-                  <th className="border-b border-[#808080]/30 px-3 lg:px-4 py-2 lg:py-3 text-left text-[10px] lg:text-xs font-bold uppercase tracking-wider text-[#808080]">Project</th>
-                  <th className="border-b border-[#808080]/30 px-3 lg:px-4 py-2 lg:py-3 text-left text-[10px] lg:text-xs font-bold uppercase tracking-wider text-[#808080]">Started</th>
-                  <th className="border-b border-[#808080]/30 px-3 lg:px-4 py-2 lg:py-3 text-left text-[10px] lg:text-xs font-bold uppercase tracking-wider text-[#808080]">Stopped</th>
-                  <th className="border-b border-[#808080]/30 px-3 lg:px-4 py-2 lg:py-3 text-left text-[10px] lg:text-xs font-bold uppercase tracking-wider text-[#808080]">Duration</th>
-                  <th className="border-b border-[#808080]/30 px-3 lg:px-4 py-2 lg:py-3 text-left text-[10px] lg:text-xs font-bold uppercase tracking-wider text-[#808080]">Source</th>
-                  <th className="border-b border-[#808080]/30 px-3 lg:px-4 py-2 lg:py-3 text-left text-[10px] lg:text-xs font-bold uppercase tracking-wider text-[#808080]">Notes</th>
+                  <th className="border-b border-[#808080]/30 px-3 lg:px-4 py-2 lg:py-3 text-left text-xs lg:text-sm font-bold uppercase tracking-wider text-[#808080]">Date</th>
+                  <th className="border-b border-[#808080]/30 px-3 lg:px-4 py-2 lg:py-3 text-left text-xs lg:text-sm font-bold uppercase tracking-wider text-[#808080]">Project</th>
+                  <th className="border-b border-[#808080]/30 px-3 lg:px-4 py-2 lg:py-3 text-left text-xs lg:text-sm font-bold uppercase tracking-wider text-[#808080]">Started</th>
+                  <th className="border-b border-[#808080]/30 px-3 lg:px-4 py-2 lg:py-3 text-left text-xs lg:text-sm font-bold uppercase tracking-wider text-[#808080]">Stopped</th>
+                  <th className="border-b border-[#808080]/30 px-3 lg:px-4 py-2 lg:py-3 text-left text-xs lg:text-sm font-bold uppercase tracking-wider text-[#808080]">Duration</th>
+                  <th className="border-b border-[#808080]/30 px-3 lg:px-4 py-2 lg:py-3 text-left text-xs lg:text-sm font-bold uppercase tracking-wider text-[#808080]">Source</th>
+                  <th className="border-b border-[#808080]/30 px-3 lg:px-4 py-2 lg:py-3 text-left text-xs lg:text-sm font-bold uppercase tracking-wider text-[#808080]">Notes</th>
                   <th className="border-b border-[#808080]/30 px-2 lg:px-3 py-2 lg:py-3 w-14"></th>
                 </tr>
               </thead>
@@ -381,7 +381,7 @@ export function EntryTable({
                       </td>
                       <td className="border-b border-[#808080]/10 px-3 lg:px-4 py-2 lg:py-3">
                         <span className="font-bold">{entry.project.projectName}</span>
-                        <span className="ml-1 text-[10px] text-[#808080]">({entry.project.projectId})</span>
+                        <span className="ml-1 text-xs text-[#808080]">({entry.project.projectId})</span>
                       </td>
                       <td className="border-b border-[#808080]/10 px-3 lg:px-4 py-2 lg:py-3 text-[#D9D9D9]">
                         {entry.timerSession?.startedAt

@@ -65,7 +65,7 @@ export function ProjectAliases({ assignments }: { assignments: AliasEntry[] }) {
             <div className="flex items-center justify-between">
               <span className="text-xs sm:text-sm font-bold">{entry.projectName}</span>
               {saved[entry.projectId] && (
-                <span className="text-[10px] sm:text-xs text-green-400 font-medium animate-pulse">
+                <span className="text-xs sm:text-sm text-green-400 font-medium animate-pulse">
                   ✓ Saved
                 </span>
               )}
@@ -97,7 +97,7 @@ export function ProjectAliases({ assignments }: { assignments: AliasEntry[] }) {
                   .map((keyword, i) => (
                     <span
                       key={i}
-                      className="inline-block rounded-full bg-[#808080]/20 px-2 py-0.5 text-[10px] sm:text-xs text-[#D9D9D9]"
+                      className="inline-block rounded-full bg-[#808080]/20 px-2.5 py-0.5 text-xs text-[#D9D9D9]"
                     >
                       {keyword}
                     </span>
@@ -109,7 +109,7 @@ export function ProjectAliases({ assignments }: { assignments: AliasEntry[] }) {
       </div>
 
       <div className="rounded-xl border border-[#808080]/10 p-3 sm:p-4">
-        <p className="text-[10px] sm:text-xs text-[#808080]">
+        <p className="text-xs sm:text-sm text-[#808080]">
           <span className="font-bold text-[#D9D9D9]">💡 Tip:</span> Use short, distinctive
           keywords from meeting subjects. For example, if your project meetings often contain
           &quot;Sprint Review&quot; or &quot;PROJ-123&quot;, add those as aliases. The auto-suggest

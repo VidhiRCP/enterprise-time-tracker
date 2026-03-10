@@ -50,7 +50,7 @@ function Bar({ value, max, color = "bg-[#F40000]" }: { value: number; max: numbe
 /* ── Stat card wrapper ── */
 function S({ children, className = "" }: { children: React.ReactNode; className?: string }) {
   return (
-    <div className={`rounded-xl border border-[#808080]/30 p-2.5 sm:p-3 ${className}`}>
+    <div className={`rounded-xl border border-[#808080]/30 p-3 sm:p-4 ${className}`}>
       {children}
     </div>
   );
@@ -67,9 +67,9 @@ export function DashboardStats({ data }: { data: DashboardStatsData }) {
     <div className="grid grid-cols-2 gap-2 lg:grid-cols-1">
       {/* ── 1. Today's Activity ── */}
       <S>
-        <div className="text-[9px] uppercase tracking-wider text-[#808080] font-bold">Today</div>
-        <div className="text-lg lg:text-xl font-bold tabular-nums mt-0.5">{formatMinutes(data.todayMinutes)}</div>
-        <div className="text-[10px] text-[#808080] mt-0.5 space-y-px">
+        <div className="text-xs uppercase tracking-wider text-[#808080] font-bold">Today</div>
+        <div className="text-xl lg:text-2xl font-bold tabular-nums mt-0.5">{formatMinutes(data.todayMinutes)}</div>
+        <div className="text-xs text-[#808080] mt-0.5 space-y-px">
           <div>{data.todayProjectsCount} project{data.todayProjectsCount !== 1 ? "s" : ""} worked on</div>
           {data.lastActivityAgo && <div>Last: {data.lastActivityAgo}</div>}
         </div>
@@ -77,26 +77,26 @@ export function DashboardStats({ data }: { data: DashboardStatsData }) {
 
       {/* ── 2. Active Timer ── */}
       <S>
-        <div className="text-[9px] uppercase tracking-wider text-[#808080] font-bold">Active Timer</div>
+        <div className="text-xs uppercase tracking-wider text-[#808080] font-bold">Active Timer</div>
         {data.activeTimer ? (
           <div className="mt-0.5">
             <div className="flex items-center gap-1.5">
-              <span className={`text-[10px] ${data.activeTimer.status === "RUNNING" ? "text-[#F40000]" : "text-[#808080]"}`}>●</span>
-              <span className="text-xs font-bold truncate">{data.activeTimer.projectName}</span>
+              <span className={`text-xs ${data.activeTimer.status === "RUNNING" ? "text-[#F40000]" : "text-[#808080]"}`}>●</span>
+              <span className="text-sm font-bold truncate">{data.activeTimer.projectName}</span>
             </div>
-            <div className="text-[10px] text-[#808080] mt-px">
+            <div className="text-xs text-[#808080] mt-px">
               {data.activeTimer.projectId} · {data.activeTimer.status === "RUNNING" ? "Running" : "Paused"}
             </div>
           </div>
         ) : (
-          <div className="text-xs text-[#808080] mt-1">No timer running</div>
+          <div className="text-sm text-[#808080] mt-1">No timer running</div>
         )}
       </S>
 
       {/* ── 3. Remaining Today ── */}
       <S>
-        <div className="text-[9px] uppercase tracking-wider text-[#808080] font-bold">Remaining Today</div>
-        <div className={`text-lg lg:text-xl font-bold tabular-nums mt-0.5 ${remainingMinutes > 0 ? "" : "text-green-400"}`}>
+        <div className="text-xs uppercase tracking-wider text-[#808080] font-bold">Remaining Today</div>
+        <div className={`text-xl lg:text-2xl font-bold tabular-nums mt-0.5 ${remainingMinutes > 0 ? "" : "text-green-400"}`}>
           {remainingMinutes > 0 ? formatMinutes(remainingMinutes) : "✓ Done"}
         </div>
         <Bar
@@ -104,40 +104,40 @@ export function DashboardStats({ data }: { data: DashboardStatsData }) {
           max={data.expectedDayHours * 60}
           color={data.todayMinutes >= data.expectedDayHours * 60 ? "bg-green-400" : "bg-[#F40000]"}
         />
-        <div className="text-[9px] text-[#808080] mt-0.5">
+        <div className="text-xs text-[#808080] mt-0.5">
           {formatMinutes(data.todayMinutes)} / {data.expectedDayHours}h target
         </div>
       </S>
 
       {/* ── 4. This Week ── */}
       <S>
-        <div className="text-[9px] uppercase tracking-wider text-[#808080] font-bold">
+        <div className="text-xs uppercase tracking-wider text-[#808080] font-bold">
           Week · {weekLabel}
         </div>
-        <div className="text-lg lg:text-xl font-bold tabular-nums mt-0.5">{formatMinutes(data.weekTotalMinutes)}</div>
-        <div className="text-[10px] text-[#808080] mt-0.5">
+        <div className="text-xl lg:text-2xl font-bold tabular-nums mt-0.5">{formatMinutes(data.weekTotalMinutes)}</div>
+        <div className="text-xs text-[#808080] mt-0.5">
           Avg {formatMinutes(Math.round(avgPerDay))}/day
         </div>
       </S>
 
       {/* ── 5. Top Project Today (desktop sidebar only) ── */}
       <S className="hidden lg:block">
-        <div className="text-[9px] uppercase tracking-wider text-[#808080] font-bold">Top Project Today</div>
+        <div className="text-xs uppercase tracking-wider text-[#808080] font-bold">Top Project Today</div>
         {data.topProjectToday ? (
           <div className="mt-0.5">
-            <div className="text-xs font-bold truncate">{data.topProjectToday.projectName}</div>
-            <div className="text-[10px] text-[#808080]">
+            <div className="text-sm font-bold truncate">{data.topProjectToday.projectName}</div>
+            <div className="text-xs text-[#808080]">
               {data.topProjectToday.projectId} · {formatMinutes(data.topProjectToday.minutes)} · {data.topProjectToday.sessions} session{data.topProjectToday.sessions !== 1 ? "s" : ""}
             </div>
           </div>
         ) : (
-          <div className="text-[10px] text-[#808080] mt-1">No activity yet</div>
+          <div className="text-xs text-[#808080] mt-1">No activity yet</div>
         )}
       </S>
 
       {/* ── 6. Weekly Trend (desktop sidebar only) ── */}
       <S className="hidden lg:block">
-        <div className="text-[9px] uppercase tracking-wider text-[#808080] font-bold mb-1.5">Weekly Trend</div>
+        <div className="text-xs uppercase tracking-wider text-[#808080] font-bold mb-1.5">Weekly Trend</div>
         <div className="flex items-end gap-1 h-12">
           {data.weekDays.map((day) => (
             <div key={day.label} className="flex-1 flex flex-col justify-end h-full">
@@ -151,8 +151,8 @@ export function DashboardStats({ data }: { data: DashboardStatsData }) {
         <div className="flex gap-1 mt-1">
           {data.weekDays.map((day) => (
             <div key={day.label} className="flex-1 text-center">
-              <div className="text-[8px] text-[#808080]">{day.label}</div>
-              <div className="text-[8px] font-bold text-[#D9D9D9] tabular-nums">
+              <div className="text-[10px] text-[#808080]">{day.label}</div>
+              <div className="text-[10px] font-bold text-[#D9D9D9] tabular-nums">
                 {day.minutes > 0 ? formatMinutes(day.minutes) : "—"}
               </div>
             </div>
@@ -162,15 +162,15 @@ export function DashboardStats({ data }: { data: DashboardStatsData }) {
 
       {/* ── 7. Recent Activity (desktop sidebar only) ── */}
       <S className="hidden lg:block">
-        <div className="text-[9px] uppercase tracking-wider text-[#808080] font-bold">Recent</div>
+        <div className="text-xs uppercase tracking-wider text-[#808080] font-bold">Recent</div>
         {data.recentEntries.length > 0 ? (
-          <div className="mt-1 space-y-1">
+          <div className="mt-1 space-y-1.5">
             {data.recentEntries.map((entry, i) => (
-              <div key={i} className="flex items-center gap-1.5 text-[10px]">
+              <div key={i} className="flex items-center gap-1.5 text-xs">
                 <span className="font-bold tabular-nums text-[#D9D9D9] shrink-0">{formatMinutes(entry.durationMinutes)}</span>
                 <span className="text-[#808080]">—</span>
                 <span className="truncate">{entry.projectName}</span>
-                <span className={`shrink-0 text-[8px] ${
+                <span className={`shrink-0 text-[10px] ${
                   entry.source === "TIMER" ? "text-[#F40000]" : "text-[#808080]"
                 }`}>
                   {entry.source === "TIMER" ? "⏱" : "✏"}
@@ -179,17 +179,17 @@ export function DashboardStats({ data }: { data: DashboardStatsData }) {
             ))}
           </div>
         ) : (
-          <div className="text-[10px] text-[#808080] mt-1">No entries yet</div>
+          <div className="text-xs text-[#808080] mt-1">No entries yet</div>
         )}
       </S>
 
       {/* ── 8. Stale Projects (desktop sidebar only, conditional) ── */}
       {data.staleProjects.length > 0 && (
-        <div className="hidden lg:block rounded-xl border border-yellow-500/30 bg-yellow-500/5 p-2.5 sm:p-3">
-          <div className="text-[9px] uppercase tracking-wider text-yellow-400 font-bold">⚠ No Activity 3+ Days</div>
-          <div className="mt-1 space-y-0.5">
+        <div className="hidden lg:block rounded-xl border border-yellow-500/30 bg-yellow-500/5 p-3 sm:p-4">
+          <div className="text-xs uppercase tracking-wider text-yellow-400 font-bold">⚠ No Activity 3+ Days</div>
+          <div className="mt-1 space-y-1">
             {data.staleProjects.map((p) => (
-              <div key={p.projectId} className="text-[10px] text-[#D9D9D9]">
+              <div key={p.projectId} className="text-xs text-[#D9D9D9]">
                 {p.projectName} <span className="text-[#808080]">· {p.daysSince}d</span>
               </div>
             ))}
