@@ -1,7 +1,6 @@
 import { auth, signOut } from "@/auth";
 import { getDashboardData, getInsightsData } from "@/lib/queries";
 import { getCalendarEvents } from "@/lib/calendar";
-import { formatMinutes } from "@/lib/time";
 import { Card } from "@/components/ui/card";
 import { SignInCard } from "@/components/sign-in-card";
 import { TimerPanel } from "@/components/time/timer-panel";
@@ -12,7 +11,9 @@ import { InsightsPanel } from "@/components/time/insights-panel";
 import { ProjectAliases } from "@/components/time/project-aliases";
 import { DashboardTabs } from "@/components/dashboard-tabs";
 import { DashboardStats, type DashboardStatsData } from "@/components/time/dashboard-stats";
+import { SidebarCalendar } from "@/components/time/sidebar-calendar";
 
+/* ── Compute all dashboard metrics server-side ── */
 function computeDashboardStats(
   data: Awaited<ReturnType<typeof getDashboardData>>,
 ): DashboardStatsData {
@@ -55,6 +56,8 @@ function computeDashboardStats(
   const monday = new Date(now);
   monday.setDate(now.getDate() + mondayOffset);
   monday.setHours(0, 0, 0, 0);
+  const sunday = new Date(monday);
+  sunday.setDate(monday.getDate() + 6);
 
   const dayLabels = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
   const weekDays = dayLabels.map((label, i) => {
@@ -74,8 +77,6 @@ function computeDashboardStats(
         projectName: data.session.project.projectName,
         projectId: data.session.projectId,
         status: data.session.status as "RUNNING" | "PAUSED",
-        accumulatedSeconds: data.session.accumulatedSeconds,
-        lastResumedAt: data.session.lastResumedAt?.toISOString() ?? null,
       }
     : null;
 
@@ -91,21 +92,17 @@ function computeDashboardStats(
   const threeDaysAgo = new Date(now);
   threeDaysAgo.setDate(now.getDate() - 3);
   threeDaysAgo.setHours(0, 0, 0, 0);
-
   const lastEntryPerProject = new Map<string, Date>();
   for (const e of data.entries) {
     const d = new Date(e.workDate);
     const prev = lastEntryPerProject.get(e.projectId);
     if (!prev || d > prev) lastEntryPerProject.set(e.projectId, d);
   }
-
   const staleProjects = data.projects
     .map((p) => {
       const last = lastEntryPerProject.get(p.projectId);
       if (!last || last < threeDaysAgo) {
-        const daysSince = last
-          ? Math.round((now.getTime() - last.getTime()) / 86400000)
-          : 999;
+        const daysSince = last ? Math.round((now.getTime() - last.getTime()) / 86400000) : 999;
         return { projectId: p.projectId, projectName: p.projectName, daysSince };
       }
       return null;
@@ -117,6 +114,8 @@ function computeDashboardStats(
     todayProjectsCount: todayProjects.size,
     activeTimer,
     weekTotalMinutes,
+    weekStartISO: monday.toISOString(),
+    weekEndISO: sunday.toISOString(),
     expectedDayHours: 8,
     topProjectToday,
     weekDays,
@@ -160,26 +159,26 @@ export default async function HomePage() {
   }));
 
   const statsData = computeDashboardStats(data);
+  const entryDateStrings = [...new Set(
+    data.entries.map((e) => new Date(e.workDate).toISOString().slice(0, 10)),
+  )];
 
   return (
-    <main className="min-h-screen p-2 sm:p-4 md:p-6">
-      <div className="mx-auto max-w-[1800px] space-y-3 sm:space-y-4 md:space-y-5">
+    <main className="min-h-screen p-2 sm:p-4 md:p-5">
+      <div className="mx-auto max-w-[1800px] space-y-3 sm:space-y-4">
         {/* Header */}
-        <div className="flex flex-col gap-3 rounded-2xl border border-[#808080]/30 p-3 sm:p-4 md:p-5 md:flex-row md:items-center md:justify-between">
+        <div className="flex flex-col gap-2 rounded-2xl border border-[#808080]/30 p-3 sm:p-4 md:flex-row md:items-center md:justify-between">
           <div className="min-w-0">
-            <h1 className="text-lg sm:text-xl md:text-2xl font-bold">RCP Time Tracker</h1>
-            <p className="mt-0.5 text-xs sm:text-sm text-[#D9D9D9] truncate">
-              {session.user.email}
-            </p>
+            <h1 className="text-base sm:text-lg md:text-xl font-bold">RCP Time Tracker</h1>
+            <p className="text-[10px] sm:text-xs text-[#D9D9D9] truncate">{session.user.email}</p>
           </div>
-
           <form
             action={async () => {
               "use server";
               await signOut({ redirectTo: "/" });
             }}
           >
-            <button className="rounded-xl border border-[#808080]/30 px-3 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm text-[#D9D9D9] hover:text-[#F8F8F8] transition-colors">
+            <button className="rounded-xl border border-[#808080]/30 px-3 py-1.5 text-xs text-[#D9D9D9] hover:text-[#F8F8F8] transition-colors">
               Sign out
             </button>
           </form>
@@ -189,74 +188,74 @@ export default async function HomePage() {
           hasProjects={hasProjects}
           recoveredSession={!!data.session}
           activityContent={
-            <div className="space-y-3 sm:space-y-4">
-              {/* Dashboard stats — replaces old 3 cards */}
-              <DashboardStats data={statsData} />
-
-              {data.session ? (
-                <div className="rounded-xl border-l-2 border-l-[#F40000] border border-[#808080]/20 px-3 py-2 text-xs sm:text-sm text-[#D9D9D9]">
-                  Recovered an unfinished timer session. You can resume, pause, save, or discard it.
+            !hasProjects ? (
+              <Card>
+                <div className="py-6 sm:py-8 text-center">
+                  <p className="text-xs sm:text-sm font-bold text-[#D9D9D9]">No projects assigned</p>
+                  <p className="mt-1 text-xs sm:text-sm text-[#808080]">
+                    Ask your administrator to assign you to a project before you can track time.
+                  </p>
                 </div>
-              ) : null}
-
-              {!hasProjects ? (
-                <Card>
-                  <div className="py-6 sm:py-8 text-center">
-                    <p className="text-xs sm:text-sm font-bold text-[#D9D9D9]">No projects assigned</p>
-                    <p className="mt-1 text-xs sm:text-sm text-[#808080]">
-                      Ask your administrator to assign you to a project before you can track time.
-                    </p>
+              </Card>
+            ) : (
+              <div className="space-y-3">
+                {data.session && (
+                  <div className="rounded-xl border-l-2 border-l-[#F40000] border border-[#808080]/20 px-3 py-2 text-xs text-[#D9D9D9]">
+                    Recovered an unfinished timer session. Resume, pause, save, or discard it.
                   </div>
-                </Card>
-              ) : (
-                <div className="grid gap-3 sm:gap-4 lg:grid-cols-[340px_1fr] xl:grid-cols-[380px_1fr]">
-                  <Card>
-                    <TimerPanel
-                      projects={projectOptions}
-                      activeSession={
-                        data.session
-                          ? {
-                              id: data.session.id,
-                              projectId: data.session.projectId,
-                              notesDraft: data.session.notesDraft,
-                              accumulatedSeconds: data.session.accumulatedSeconds,
-                              status: data.session.status as "RUNNING" | "PAUSED",
-                              startedAt: data.session.startedAt.toISOString(),
-                              lastResumedAt: data.session.lastResumedAt?.toISOString() ?? null,
-                            }
-                          : null
-                      }
-                    />
-                  </Card>
+                )}
 
-                  <div className="space-y-3 sm:space-y-4">
+                <div className="grid gap-3 lg:grid-cols-[280px_1fr]">
+                  {/* ── Left sidebar ── */}
+                  <div className="space-y-2 lg:sticky lg:top-4 lg:self-start lg:max-h-[calc(100vh-5rem)] lg:overflow-y-auto">
+                    <DashboardStats data={statsData} />
+                    <SidebarCalendar entryDates={entryDateStrings} />
+                  </div>
+
+                  {/* ── Right main content ── */}
+                  <div className="space-y-3">
                     <Card>
-                      <div className="space-y-3">
+                      <TimerPanel
+                        projects={projectOptions}
+                        activeSession={
+                          data.session
+                            ? {
+                                id: data.session.id,
+                                projectId: data.session.projectId,
+                                notesDraft: data.session.notesDraft,
+                                accumulatedSeconds: data.session.accumulatedSeconds,
+                                status: data.session.status as "RUNNING" | "PAUSED",
+                                startedAt: data.session.startedAt.toISOString(),
+                                lastResumedAt: data.session.lastResumedAt?.toISOString() ?? null,
+                              }
+                            : null
+                        }
+                      />
+                    </Card>
+
+                    <Card>
+                      <div className="space-y-2">
                         <div>
-                          <h2 className="text-sm sm:text-base font-bold">Manual entry</h2>
-                          <p className="mt-0.5 text-[10px] sm:text-xs text-[#808080]">
-                            Add time for work already completed.
-                          </p>
+                          <h2 className="text-sm font-bold">Manual entry</h2>
+                          <p className="text-[10px] sm:text-xs text-[#808080]">Add time for work already completed.</p>
                         </div>
                         <ManualEntryForm projects={projectOptions} />
                       </div>
                     </Card>
 
                     <Card>
-                      <div className="space-y-3">
+                      <div className="space-y-2">
                         <div>
-                          <h2 className="text-sm sm:text-base font-bold">Recent entries</h2>
-                          <p className="mt-0.5 text-[10px] sm:text-xs text-[#808080]">
-                            Your entries, scoped to your project assignments.
-                          </p>
+                          <h2 className="text-sm font-bold">Recent entries</h2>
+                          <p className="text-[10px] sm:text-xs text-[#808080]">Your entries, scoped to your project assignments.</p>
                         </div>
                         <EntryTable entries={data.entries} projects={projectOptions} />
                       </div>
                     </Card>
                   </div>
                 </div>
-              )}
-            </div>
+              </div>
+            )
           }
           meetingsContent={
             <Card>

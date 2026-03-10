@@ -74,31 +74,32 @@ export async function createOrResumeSession(input: {
     orderBy: { updatedAt: "desc" },
   });
 
-  if (existing) {
-    return prisma.timerSession.update({
-      where: { id: existing.id },
-      data: {
-        projectId: input.projectId,
-        notesDraft: input.notes?.trim() || null,
-        status: "RUNNING",
-        lastResumedAt: new Date(),
-        lastHeartbeatAt: new Date(),
-      },
-    });
-  }
+  const result = existing
+    ? await prisma.timerSession.update({
+        where: { id: existing.id },
+        data: {
+          projectId: input.projectId,
+          notesDraft: input.notes?.trim() || null,
+          status: "RUNNING",
+          lastResumedAt: new Date(),
+          lastHeartbeatAt: new Date(),
+        },
+      })
+    : await prisma.timerSession.create({
+        data: {
+          user: { connect: { email } },
+          project: { connect: { projectId: input.projectId } },
+          status: "RUNNING",
+          startedAt: new Date(),
+          lastResumedAt: new Date(),
+          lastHeartbeatAt: new Date(),
+          accumulatedSeconds: 0,
+          notesDraft: input.notes?.trim() || null,
+        },
+      });
 
-  return prisma.timerSession.create({
-    data: {
-      user: { connect: { email } },
-      project: { connect: { projectId: input.projectId } },
-      status: "RUNNING",
-      startedAt: new Date(),
-      lastResumedAt: new Date(),
-      lastHeartbeatAt: new Date(),
-      accumulatedSeconds: 0,
-      notesDraft: input.notes?.trim() || null,
-    },
-  });
+  revalidatePath("/");
+  return result;
 }
 
 export async function pauseSession(input: {
@@ -118,6 +119,8 @@ export async function pauseSession(input: {
       pausedAt: new Date(),
     },
   });
+
+  revalidatePath("/");
 }
 
 export async function heartbeatSession(input: {

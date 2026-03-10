@@ -121,7 +121,7 @@ export function TimerPanel({
       {/* Timer display + current project */}
       <div>
         <div className="text-[10px] sm:text-xs uppercase tracking-wider text-[#808080]">Current timer</div>
-        <div className="mt-1 sm:mt-2 text-2xl sm:text-3xl font-bold tracking-tight tabular-nums">
+        <div className="mt-1 sm:mt-2 text-xl sm:text-2xl font-bold tracking-tight tabular-nums">
           {formatSeconds(elapsedSeconds)}
         </div>
         <div className="mt-1 sm:mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs sm:text-sm">
