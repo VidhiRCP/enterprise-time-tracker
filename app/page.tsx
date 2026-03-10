@@ -1,11 +1,14 @@
 import { auth, signOut } from "@/auth";
 import { getDashboardData } from "@/lib/queries";
+import { getCalendarEvents } from "@/lib/calendar";
 import { formatMinutes } from "@/lib/time";
 import { Card } from "@/components/ui/card";
 import { SignInCard } from "@/components/sign-in-card";
 import { TimerPanel } from "@/components/time/timer-panel";
 import { ManualEntryForm } from "@/components/time/manual-entry-form";
 import { EntryTable } from "@/components/time/entry-table";
+import { TimesheetPanel } from "@/components/time/timesheet-panel";
+import { DashboardTabs } from "@/components/dashboard-tabs";
 
 export default async function HomePage() {
   const session = await auth();
@@ -23,6 +26,17 @@ export default async function HomePage() {
   const data = await getDashboardData(session.user.email);
   const totalMinutes = data.entries.reduce((sum, entry) => sum + entry.durationMinutes, 0);
   const hasProjects = data.projects.length > 0;
+
+  // Fetch calendar events if we have an access token
+  const accessToken = (session as any).accessToken as string | undefined;
+  const calendarGroups = accessToken
+    ? await getCalendarEvents(accessToken, session.user.email)
+    : [];
+
+  const projectOptions = data.projects.map((project) => ({
+    projectId: project.projectId,
+    projectName: project.projectName,
+  }));
 
   return (
     <main className="min-h-screen p-3 sm:p-5 md:p-8">
@@ -62,77 +76,92 @@ export default async function HomePage() {
           </Card>
         </div>
 
-        {data.session ? (
-          <div className="rounded-xl border-l-2 border-l-[#F40000] border border-[#808080]/20 px-3 py-2 sm:px-4 sm:py-3 text-xs sm:text-sm text-[#D9D9D9]">
-            Recovered an unfinished timer session. You can resume, pause, save, or discard it.
-          </div>
-        ) : null}
+        <DashboardTabs
+          hasProjects={hasProjects}
+          recoveredSession={!!data.session}
+          activityContent={
+            <>
+              {data.session ? (
+                <div className="rounded-xl border-l-2 border-l-[#F40000] border border-[#808080]/20 px-3 py-2 sm:px-4 sm:py-3 text-xs sm:text-sm text-[#D9D9D9] mb-4 sm:mb-5">
+                  Recovered an unfinished timer session. You can resume, pause, save, or discard it.
+                </div>
+              ) : null}
 
-        {!hasProjects ? (
-          <Card>
-            <div className="py-6 sm:py-8 text-center">
-              <p className="text-xs sm:text-sm font-bold text-[#D9D9D9]">No projects assigned</p>
-              <p className="mt-1 text-xs sm:text-sm text-[#808080]">
-                Ask your administrator to assign you to a project before you can track time.
-              </p>
-            </div>
-          </Card>
-        ) : (
-          <div className="grid gap-4 sm:gap-5 md:gap-6 lg:grid-cols-[380px_1fr] xl:grid-cols-[420px_1fr]">
-            <Card>
-              <TimerPanel
-                projects={data.projects.map((project) => ({
-                  projectId: project.projectId,
-                  projectName: project.projectName,
-                }))}
-                activeSession={
-                  data.session
-                    ? {
-                        id: data.session.id,
-                        projectId: data.session.projectId,
-                        notesDraft: data.session.notesDraft,
-                        accumulatedSeconds: data.session.accumulatedSeconds,
-                        status: data.session.status as "RUNNING" | "PAUSED",
-                        startedAt: data.session.startedAt.toISOString(),
-                        lastResumedAt: data.session.lastResumedAt?.toISOString() ?? null,
+              {!hasProjects ? (
+                <Card>
+                  <div className="py-6 sm:py-8 text-center">
+                    <p className="text-xs sm:text-sm font-bold text-[#D9D9D9]">No projects assigned</p>
+                    <p className="mt-1 text-xs sm:text-sm text-[#808080]">
+                      Ask your administrator to assign you to a project before you can track time.
+                    </p>
+                  </div>
+                </Card>
+              ) : (
+                <div className="grid gap-4 sm:gap-5 md:gap-6 lg:grid-cols-[380px_1fr] xl:grid-cols-[420px_1fr]">
+                  <Card>
+                    <TimerPanel
+                      projects={projectOptions}
+                      activeSession={
+                        data.session
+                          ? {
+                              id: data.session.id,
+                              projectId: data.session.projectId,
+                              notesDraft: data.session.notesDraft,
+                              accumulatedSeconds: data.session.accumulatedSeconds,
+                              status: data.session.status as "RUNNING" | "PAUSED",
+                              startedAt: data.session.startedAt.toISOString(),
+                              lastResumedAt: data.session.lastResumedAt?.toISOString() ?? null,
+                            }
+                          : null
                       }
-                    : null
-                }
-              />
+                    />
+                  </Card>
+
+                  <div className="space-y-4 sm:space-y-5 md:space-y-6">
+                    <Card>
+                      <div className="space-y-3 sm:space-y-4">
+                        <div>
+                          <h2 className="text-base sm:text-lg font-bold">Manual entry</h2>
+                          <p className="mt-1 text-xs sm:text-sm text-[#D9D9D9]">
+                            Add time manually for work already completed.
+                          </p>
+                        </div>
+                        <ManualEntryForm projects={projectOptions} />
+                      </div>
+                    </Card>
+
+                    <Card>
+                      <div className="space-y-3 sm:space-y-4">
+                        <div>
+                          <h2 className="text-base sm:text-lg font-bold">Recent entries</h2>
+                          <p className="mt-1 text-xs sm:text-sm text-[#D9D9D9]">
+                            You only see your own entries. Projects are scoped to your assignments.
+                          </p>
+                        </div>
+                        <EntryTable entries={data.entries} />
+                      </div>
+                    </Card>
+                  </div>
+                </div>
+              )}
+            </>
+          }
+          timesheetContent={
+            <Card>
+              <TimesheetPanel groups={calendarGroups} projects={projectOptions} />
             </Card>
-
-            <div className="space-y-6">
-              <Card>
-                <div className="space-y-3 sm:space-y-4">
-                  <div>
-                    <h2 className="text-base sm:text-lg font-bold">Manual entry</h2>
-                    <p className="mt-1 text-xs sm:text-sm text-[#D9D9D9]">
-                      Add time manually for work already completed.
-                    </p>
-                  </div>
-                  <ManualEntryForm
-                    projects={data.projects.map((project) => ({
-                      projectId: project.projectId,
-                      projectName: project.projectName,
-                    }))}
-                  />
-                </div>
-              </Card>
-
-              <Card>
-                <div className="space-y-3 sm:space-y-4">
-                  <div>
-                    <h2 className="text-base sm:text-lg font-bold">Recent entries</h2>
-                    <p className="mt-1 text-xs sm:text-sm text-[#D9D9D9]">
-                      You only see your own entries. Projects are scoped to your assignments.
-                    </p>
-                  </div>
-                  <EntryTable entries={data.entries} />
-                </div>
-              </Card>
-            </div>
-          </div>
-        )}
+          }
+          expensesContent={
+            <Card>
+              <div className="py-8 sm:py-12 text-center">
+                <p className="text-xs sm:text-sm font-bold text-[#D9D9D9]">Expenses</p>
+                <p className="mt-1 text-xs sm:text-sm text-[#808080]">
+                  Expense tracking is coming soon.
+                </p>
+              </div>
+            </Card>
+          }
+        />
       </div>
     </main>
   );

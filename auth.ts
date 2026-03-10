@@ -11,10 +11,20 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       clientId: process.env.AUTH_MICROSOFT_ENTRA_ID_ID!,
       clientSecret: process.env.AUTH_MICROSOFT_ENTRA_ID_SECRET!,
       issuer: process.env.AUTH_MICROSOFT_ENTRA_ID_ISSUER!,
+      authorization: {
+        params: {
+          scope: "openid profile email User.Read Calendars.Read",
+        },
+      },
     }),
   ],
   callbacks: {
-    async jwt({ token, profile }) {
+    async jwt({ token, account, profile }) {
+      // Persist access token from the OAuth provider on initial sign-in
+      if (account?.access_token) {
+        token.accessToken = account.access_token;
+      }
+
       if (token.email) {
         const user = await prisma.user.upsert({
           where: { email: token.email.toLowerCase() },
@@ -36,6 +46,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     },
     async session({ session, token }) {
       if (session.user && token.userId) session.user.id = token.userId;
+      if (token.accessToken) {
+        (session as any).accessToken = token.accessToken;
+      }
       return session;
     },
   },

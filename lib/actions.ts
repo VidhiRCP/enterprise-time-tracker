@@ -202,3 +202,53 @@ export async function deleteTimeEntry(entryId: string) {
 
   revalidatePath("/");
 }
+
+export async function allocateCalendarEvent(input: {
+  eventId: string;
+  eventSubject: string;
+  eventStart: string;
+  eventEnd: string;
+  durationMin: number;
+  projectId: string | null; // null = deallocate
+}) {
+  const email = await requireEmail();
+
+  const user = await prisma.user.findUniqueOrThrow({
+    where: { email },
+  });
+
+  // If projectId is null, remove the allocation
+  if (!input.projectId) {
+    await prisma.calendarAllocation.deleteMany({
+      where: { userId: user.id, eventId: input.eventId },
+    });
+    revalidatePath("/");
+    return;
+  }
+
+  await ensureProjectAccess(email, input.projectId);
+
+  await prisma.calendarAllocation.upsert({
+    where: {
+      userId_eventId: { userId: user.id, eventId: input.eventId },
+    },
+    update: {
+      projectId: input.projectId,
+      eventSubject: input.eventSubject,
+      eventStart: new Date(input.eventStart),
+      eventEnd: new Date(input.eventEnd),
+      durationMin: input.durationMin,
+    },
+    create: {
+      userId: user.id,
+      projectId: input.projectId,
+      eventId: input.eventId,
+      eventSubject: input.eventSubject,
+      eventStart: new Date(input.eventStart),
+      eventEnd: new Date(input.eventEnd),
+      durationMin: input.durationMin,
+    },
+  });
+
+  revalidatePath("/");
+}
