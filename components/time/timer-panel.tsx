@@ -92,13 +92,13 @@ export function TimerPanel({
   }, [session]);
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3 sm:space-y-4">
       <div>
-        <div className="text-xs uppercase tracking-wider text-[#808080]">Current timer</div>
-        <div className="mt-2 text-3xl font-bold tracking-tight">
+        <div className="text-[10px] sm:text-xs uppercase tracking-wider text-[#808080]">Current timer</div>
+        <div className="mt-1 sm:mt-2 text-2xl sm:text-3xl font-bold tracking-tight">
           {formatSeconds(elapsedSeconds)}
         </div>
-        <div className="mt-2 text-sm text-[#D9D9D9]">
+        <div className="mt-1 sm:mt-2 text-xs sm:text-sm text-[#D9D9D9]">
           {session ? (
             <span>
               <span className={session.status === "RUNNING" ? "text-[#F40000]" : "text-[#808080]"}>●</span>
@@ -109,11 +109,11 @@ export function TimerPanel({
       </div>
 
       <div className="space-y-1">
-        <label className="text-sm font-medium text-[#D9D9D9]">Project</label>
+        <label className="text-xs sm:text-sm font-medium text-[#D9D9D9]">Project</label>
         <select
           value={projectId}
           onChange={(e) => setProjectId(e.target.value)}
-          className="w-full rounded-xl border border-[#808080]/30 bg-black px-3 py-2 text-sm focus:border-[#F40000] focus:outline-none"
+          className="w-full rounded-xl border border-[#808080]/30 bg-black px-3 py-2 text-xs sm:text-sm focus:border-[#F40000] focus:outline-none"
         >
           {projects.map((project) => (
             <option key={project.projectId} value={project.projectId}>
@@ -124,17 +124,17 @@ export function TimerPanel({
       </div>
 
       <div className="space-y-1">
-        <label className="text-sm font-medium text-[#D9D9D9]">Notes</label>
+        <label className="text-xs sm:text-sm font-medium text-[#D9D9D9]">Notes</label>
         <textarea
           value={notesDraft}
           onChange={(e) => setNotesDraft(e.target.value)}
-          rows={3}
-          className="w-full rounded-xl border border-[#808080]/30 bg-black px-3 py-2 text-sm focus:border-[#F40000] focus:outline-none"
+          rows={2}
+          className="w-full rounded-xl border border-[#808080]/30 bg-black px-3 py-2 text-xs sm:text-sm focus:border-[#F40000] focus:outline-none"
           placeholder="What are you working on?"
         />
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-2">
+      <div className="grid grid-cols-2 gap-2 sm:gap-3">
         <button
           disabled={isPending || !projectId}
           onClick={() =>
@@ -168,7 +168,7 @@ export function TimerPanel({
               });
             })
           }
-          className="rounded-xl bg-[#F40000] px-4 py-2 text-sm font-bold text-[#F8F8F8] hover:opacity-90 transition-opacity disabled:opacity-40"
+          className="rounded-xl bg-[#F40000] px-3 py-2 text-xs sm:text-sm font-bold text-[#F8F8F8] hover:opacity-90 transition-opacity disabled:opacity-40"
         >
           {session?.status === "PAUSED" ? "Resume" : session ? "Running" : "Start"}
         </button>
@@ -193,7 +193,7 @@ export function TimerPanel({
               });
             })
           }
-          className="rounded-xl border border-[#808080]/30 px-4 py-2 text-sm font-medium text-[#D9D9D9] hover:text-[#F8F8F8] transition-colors disabled:opacity-40"
+          className="rounded-xl border border-[#808080]/30 px-3 py-2 text-xs sm:text-sm font-medium text-[#D9D9D9] hover:text-[#F8F8F8] transition-colors disabled:opacity-40"
         >
           Pause
         </button>
@@ -216,7 +216,7 @@ export function TimerPanel({
               });
             })
           }
-          className="rounded-xl border border-[#808080]/30 px-4 py-2 text-sm font-bold text-[#F8F8F8] hover:border-[#D9D9D9] transition-colors disabled:opacity-40"
+          className="rounded-xl border border-[#808080]/30 px-3 py-2 text-xs sm:text-sm font-bold text-[#F8F8F8] hover:border-[#D9D9D9] transition-colors disabled:opacity-40"
         >
           Save tracked time
         </button>
@@ -237,7 +237,7 @@ export function TimerPanel({
               });
             })
           }
-          className="rounded-xl border border-[#808080]/30 px-4 py-2 text-sm font-medium text-[#F40000] hover:opacity-80 transition-opacity disabled:opacity-40"
+          className="rounded-xl border border-[#808080]/30 px-3 py-2 text-xs sm:text-sm font-medium text-[#F40000] hover:opacity-80 transition-opacity disabled:opacity-40"
         >
           Discard session
         </button>

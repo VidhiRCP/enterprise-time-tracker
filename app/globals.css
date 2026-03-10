@@ -5,6 +5,10 @@
 }
 
 @layer base {
+  html {
+    font-size: clamp(14px, 1.4vw, 16px);
+    -webkit-text-size-adjust: 100%;
+  }
   html, body {
     margin: 0;
     padding: 0;

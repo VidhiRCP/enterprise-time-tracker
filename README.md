@@ -1,4 +1,4 @@
-# PM Time Tracker Enterprise Starter
+# RCP Time Tracker Enterprise Starter
 
 This starter is set up for:
 - Next.js
