@@ -99,8 +99,6 @@ export async function pauseSession(input: {
       pausedAt: new Date(),
     },
   });
-
-  revalidatePath("/");
 }
 
 export async function heartbeatSession(input: {

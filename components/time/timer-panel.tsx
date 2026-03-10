@@ -139,11 +139,24 @@ export function TimerPanel({
           disabled={isPending || !projectId}
           onClick={() =>
             startTransition(async () => {
+              // Optimistic: show running state immediately
+              const now = new Date().toISOString();
+              setSession((prev) => ({
+                id: prev?.id ?? "_pending",
+                projectId,
+                notesDraft,
+                accumulatedSeconds: prev?.accumulatedSeconds ?? 0,
+                status: "RUNNING",
+                startedAt: prev?.startedAt ?? now,
+                lastResumedAt: now,
+              }));
+
               const result = await createOrResumeSession({
                 projectId,
                 notes: notesDraft,
               });
 
+              // Sync with server result
               setSession({
                 id: result.id,
                 projectId: result.projectId,
@@ -164,17 +177,18 @@ export function TimerPanel({
           disabled={isPending || !session || session.status === "PAUSED"}
           onClick={() =>
             startTransition(async () => {
-              await pauseSession({
-                sessionId: session!.id,
-                elapsedSeconds,
-                notesDraft,
-              });
-
+              // Optimistic: pause immediately
               setSession({
                 ...session!,
                 accumulatedSeconds: elapsedSeconds,
                 status: "PAUSED",
                 lastResumedAt: null,
+                notesDraft,
+              });
+
+              await pauseSession({
+                sessionId: session!.id,
+                elapsedSeconds,
                 notesDraft,
               });
             })
@@ -188,16 +202,18 @@ export function TimerPanel({
           disabled={isPending || !session}
           onClick={() =>
             startTransition(async () => {
+              const sid = session!.id;
+              // Optimistic: clear timer immediately
+              setSession(null);
+              setNotesDraft("");
+
               await finalizeSession({
-                sessionId: session!.id,
+                sessionId: sid,
                 projectId,
                 elapsedSeconds,
                 notesDraft,
                 workDate: localDateInputValue(),
               });
-
-              setSession(null);
-              setNotesDraft("");
             })
           }
           className="rounded-xl border border-[#808080]/30 px-4 py-2 text-sm font-bold text-[#F8F8F8] hover:border-[#D9D9D9] transition-colors disabled:opacity-40"
@@ -209,14 +225,16 @@ export function TimerPanel({
           disabled={isPending || !session}
           onClick={() =>
             startTransition(async () => {
+              const sid = session!.id;
+              // Optimistic: clear timer immediately
+              setSession(null);
+              setNotesDraft("");
+
               await discardSession({
-                sessionId: session!.id,
+                sessionId: sid,
                 elapsedSeconds,
                 notesDraft,
               });
-
-              setSession(null);
-              setNotesDraft("");
             })
           }
           className="rounded-xl border border-[#808080]/30 px-4 py-2 text-sm font-medium text-[#F40000] hover:opacity-80 transition-opacity disabled:opacity-40"
