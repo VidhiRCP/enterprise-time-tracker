@@ -93,21 +93,26 @@ export function TimerPanel({
   return (
     <div className="space-y-4">
       <div>
-        <div className="text-sm text-slate-500">Current timer</div>
-        <div className="mt-2 text-5xl font-semibold tracking-tight">
+        <div className="text-xs uppercase tracking-wider text-[#808080]">Current timer</div>
+        <div className="mt-2 text-3xl font-bold tracking-tight">
           {formatSeconds(elapsedSeconds)}
         </div>
-        <div className="mt-2 text-sm text-slate-600">
-          {session ? `${session.status} session` : "No active timer"}
+        <div className="mt-2 text-sm text-[#D9D9D9]">
+          {session ? (
+            <span>
+              <span className={session.status === "RUNNING" ? "text-[#F40000]" : "text-[#808080]"}>●</span>
+              {" "}{session.status === "RUNNING" ? "Running" : "Paused"}
+            </span>
+          ) : "No active timer"}
         </div>
       </div>
 
       <div className="space-y-1">
-        <label className="text-sm font-medium">Project</label>
+        <label className="text-sm font-medium text-[#D9D9D9]">Project</label>
         <select
           value={projectId}
           onChange={(e) => setProjectId(e.target.value)}
-          className="w-full rounded-2xl border border-slate-200 bg-white px-3 py-2"
+          className="w-full rounded-xl border border-[#808080]/30 bg-black px-3 py-2 text-sm focus:border-[#F40000] focus:outline-none"
         >
           {projects.map((project) => (
             <option key={project.projectId} value={project.projectId}>
@@ -118,12 +123,12 @@ export function TimerPanel({
       </div>
 
       <div className="space-y-1">
-        <label className="text-sm font-medium">Notes</label>
+        <label className="text-sm font-medium text-[#D9D9D9]">Notes</label>
         <textarea
           value={notesDraft}
           onChange={(e) => setNotesDraft(e.target.value)}
-          rows={4}
-          className="w-full rounded-2xl border border-slate-200 bg-white px-3 py-2"
+          rows={3}
+          className="w-full rounded-xl border border-[#808080]/30 bg-black px-3 py-2 text-sm focus:border-[#F40000] focus:outline-none"
           placeholder="What are you working on?"
         />
       </div>
@@ -149,7 +154,7 @@ export function TimerPanel({
               });
             })
           }
-          className="rounded-2xl bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
+          className="rounded-xl bg-[#F40000] px-4 py-2 text-sm font-bold text-[#F8F8F8] hover:opacity-90 transition-opacity disabled:opacity-40"
         >
           {session?.status === "PAUSED" ? "Resume" : session ? "Running" : "Start"}
         </button>
@@ -173,7 +178,7 @@ export function TimerPanel({
               });
             })
           }
-          className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-2 text-sm font-medium text-amber-700 hover:bg-amber-100 disabled:opacity-50"
+          className="rounded-xl border border-[#808080]/30 px-4 py-2 text-sm font-medium text-[#D9D9D9] hover:text-[#F8F8F8] transition-colors disabled:opacity-40"
         >
           Pause
         </button>
@@ -194,7 +199,7 @@ export function TimerPanel({
               setNotesDraft("");
             })
           }
-          className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-2 text-sm font-medium text-emerald-700 hover:bg-emerald-100 disabled:opacity-50"
+          className="rounded-xl border border-[#808080]/30 px-4 py-2 text-sm font-bold text-[#F8F8F8] hover:border-[#D9D9D9] transition-colors disabled:opacity-40"
         >
           Save tracked time
         </button>
@@ -213,7 +218,7 @@ export function TimerPanel({
               setNotesDraft("");
             })
           }
-          className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-2 text-sm font-medium text-rose-700 hover:bg-rose-100 disabled:opacity-50"
+          className="rounded-xl border border-[#808080]/30 px-4 py-2 text-sm font-medium text-[#F40000] hover:opacity-80 transition-opacity disabled:opacity-40"
         >
           Discard session
         </button>

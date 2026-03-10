@@ -17,40 +17,42 @@ type Entry = {
 export function EntryTable({ entries }: { entries: Entry[] }) {
   if (!entries.length) {
     return (
-      <div className="rounded-2xl border border-dashed border-slate-200 p-6 text-sm text-slate-600">
+      <div className="rounded-xl border border-dashed border-[#808080]/30 p-6 text-sm text-[#808080]">
         No entries yet.
       </div>
     );
   }
 
   return (
-    <div className="overflow-x-auto rounded-2xl border border-slate-200">
+    <div className="overflow-x-auto rounded-xl border border-[#808080]/30">
       <table className="min-w-full border-collapse text-sm">
-        <thead className="bg-slate-50">
+        <thead>
           <tr>
-            <th className="border-b border-slate-200 px-4 py-3 text-left font-medium text-slate-600">Date</th>
-            <th className="border-b border-slate-200 px-4 py-3 text-left font-medium text-slate-600">Project</th>
-            <th className="border-b border-slate-200 px-4 py-3 text-left font-medium text-slate-600">Duration</th>
-            <th className="border-b border-slate-200 px-4 py-3 text-left font-medium text-slate-600">Source</th>
-            <th className="border-b border-slate-200 px-4 py-3 text-left font-medium text-slate-600">Notes</th>
+            <th className="border-b border-[#808080]/30 px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-[#808080]">Date</th>
+            <th className="border-b border-[#808080]/30 px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-[#808080]">Project</th>
+            <th className="border-b border-[#808080]/30 px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-[#808080]">Duration</th>
+            <th className="border-b border-[#808080]/30 px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-[#808080]">Source</th>
+            <th className="border-b border-[#808080]/30 px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-[#808080]">Notes</th>
           </tr>
         </thead>
         <tbody>
           {entries.map((entry) => (
-            <tr key={entry.id} className="bg-white">
-              <td className="border-b border-slate-100 px-4 py-3">
+            <tr key={entry.id} className="hover:bg-[#F8F8F8]/5 transition-colors">
+              <td className="border-b border-[#808080]/10 px-4 py-3 text-[#D9D9D9]">
                 {format(entry.workDate, "yyyy-MM-dd")}
               </td>
-              <td className="border-b border-slate-100 px-4 py-3 font-medium">
+              <td className="border-b border-[#808080]/10 px-4 py-3 font-bold">
                 {entry.project.projectName}
               </td>
-              <td className="border-b border-slate-100 px-4 py-3">
+              <td className="border-b border-[#808080]/10 px-4 py-3 font-bold">
                 {formatMinutes(entry.durationMinutes)}
               </td>
-              <td className="border-b border-slate-100 px-4 py-3">
-                {entry.source}
+              <td className="border-b border-[#808080]/10 px-4 py-3 text-[#D9D9D9]">
+                {entry.source === "TIMER" ? (
+                  <span className="border-b border-[#F40000] pb-px">Timer</span>
+                ) : entry.source}
               </td>
-              <td className="border-b border-slate-100 px-4 py-3">
+              <td className="border-b border-[#808080]/10 px-4 py-3 text-[#D9D9D9]">
                 {entry.notes ?? "—"}
               </td>
             </tr>

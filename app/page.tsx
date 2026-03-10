@@ -12,8 +12,8 @@ export default async function HomePage() {
 
   if (!session?.user?.email) {
     return (
-      <main className="min-h-screen bg-slate-50 p-8">
-        <div className="mx-auto max-w-3xl">
+      <main className="min-h-screen p-8">
+        <div className="mx-auto max-w-3xl pt-16">
           <SignInCard />
         </div>
       </main>
@@ -24,12 +24,12 @@ export default async function HomePage() {
   const totalMinutes = data.entries.reduce((sum, entry) => sum + entry.durationMinutes, 0);
 
   return (
-    <main className="min-h-screen bg-slate-50 p-6 md:p-8">
+    <main className="min-h-screen p-6 md:p-8">
       <div className="mx-auto max-w-7xl space-y-6">
-        <div className="flex flex-col gap-4 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm md:flex-row md:items-center md:justify-between">
+        <div className="flex flex-col gap-4 rounded-2xl border border-[#808080]/30 p-6 md:flex-row md:items-center md:justify-between">
           <div>
-            <h1 className="text-3xl font-semibold tracking-tight">PM Time Tracker</h1>
-            <p className="mt-1 text-sm text-slate-600">
+            <h1 className="text-2xl font-bold">PM Time Tracker</h1>
+            <p className="mt-1 text-sm text-[#D9D9D9]">
               Signed in as {session.user.email}
             </p>
           </div>
@@ -40,7 +40,7 @@ export default async function HomePage() {
               await signOut({ redirectTo: "/" });
             }}
           >
-            <button className="rounded-2xl border border-slate-200 bg-white px-4 py-2 text-sm font-medium hover:bg-slate-50">
+            <button className="rounded-xl border border-[#808080]/30 px-4 py-2 text-sm text-[#D9D9D9] hover:text-[#F8F8F8] transition-colors">
               Sign out
             </button>
           </form>
@@ -48,21 +48,21 @@ export default async function HomePage() {
 
         <div className="grid gap-4 md:grid-cols-3">
           <Card>
-            <div className="text-sm text-slate-500">Assigned projects</div>
-            <div className="mt-2 text-3xl font-semibold">{data.projects.length}</div>
+            <div className="text-xs uppercase tracking-wider text-[#808080]">Assigned projects</div>
+            <div className="mt-1 text-xl font-bold">{data.projects.length}</div>
           </Card>
           <Card>
-            <div className="text-sm text-slate-500">My entries</div>
-            <div className="mt-2 text-3xl font-semibold">{data.entries.length}</div>
+            <div className="text-xs uppercase tracking-wider text-[#808080]">My entries</div>
+            <div className="mt-1 text-xl font-bold">{data.entries.length}</div>
           </Card>
           <Card>
-            <div className="text-sm text-slate-500">Total tracked</div>
-            <div className="mt-2 text-3xl font-semibold">{formatMinutes(totalMinutes)}</div>
+            <div className="text-xs uppercase tracking-wider text-[#808080]">Total tracked</div>
+            <div className="mt-1 text-xl font-bold">{formatMinutes(totalMinutes)}</div>
           </Card>
         </div>
 
         {data.session ? (
-          <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+          <div className="rounded-xl border-l-2 border-l-[#F40000] border border-[#808080]/20 px-4 py-3 text-sm text-[#D9D9D9]">
             Recovered an unfinished timer session. You can resume, pause, save, or discard it.
           </div>
         ) : null}
@@ -94,8 +94,8 @@ export default async function HomePage() {
             <Card>
               <div className="space-y-4">
                 <div>
-                  <h2 className="text-xl font-semibold">Manual entry</h2>
-                  <p className="mt-1 text-sm text-slate-600">
+                  <h2 className="text-lg font-bold">Manual entry</h2>
+                  <p className="mt-1 text-sm text-[#D9D9D9]">
                     Add time manually for work already completed.
                   </p>
                 </div>
@@ -111,8 +111,8 @@ export default async function HomePage() {
             <Card>
               <div className="space-y-4">
                 <div>
-                  <h2 className="text-xl font-semibold">Recent entries</h2>
-                  <p className="mt-1 text-sm text-slate-600">
+                  <h2 className="text-lg font-bold">Recent entries</h2>
+                  <p className="mt-1 text-sm text-[#D9D9D9]">
                     You only see your own entries. Projects are scoped to your assignments.
                   </p>
                 </div>

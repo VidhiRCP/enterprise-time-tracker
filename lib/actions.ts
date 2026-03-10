@@ -146,12 +146,12 @@ export async function finalizeSession(input: {
       data: {
         user: { connect: { email } },
         project: { connect: { projectId: input.projectId } },
+        timerSession: { connect: { id: session.id } },
         workDate: new Date(`${input.workDate}T00:00:00.000Z`),
         durationMinutes,
         notes: input.notesDraft?.trim() || null,
         source: "TIMER",
         status: "SAVED",
-        timerSessionId: session.id,
       },
     }),
     prisma.timerSession.update({
