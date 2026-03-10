@@ -93,10 +93,25 @@ function EventRow({
 export function TimesheetPanel({
   groups,
   projects,
+  hasToken = false,
 }: {
   groups: GroupedEvents[];
   projects: ProjectOption[];
+  hasToken?: boolean;
 }) {
+  if (!hasToken) {
+    return (
+      <div className="rounded-xl border border-dashed border-[#808080]/30 p-4 sm:p-6 text-center">
+        <p className="text-xs sm:text-sm font-bold text-[#D9D9D9]">
+          Calendar access not available
+        </p>
+        <p className="mt-1 text-xs sm:text-sm text-[#808080]">
+          Please sign out and sign back in to grant calendar permissions.
+        </p>
+      </div>
+    );
+  }
+
   if (!groups.length) {
     return (
       <div className="rounded-xl border border-dashed border-[#808080]/30 p-4 sm:p-6 text-center">
@@ -104,7 +119,7 @@ export function TimesheetPanel({
           No calendar events found for this week.
         </p>
         <p className="mt-1 text-[10px] sm:text-xs text-[#808080]/60">
-          Make sure your Outlook calendar has events and the app has Calendar permissions.
+          Make sure your Outlook calendar has events this week (Mon–Sun).
         </p>
       </div>
     );
@@ -120,9 +135,9 @@ export function TimesheetPanel({
     <div className="space-y-4 sm:space-y-5">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
         <div>
-          <h2 className="text-base sm:text-lg font-bold">Outlook Calendar</h2>
+          <h2 className="text-base sm:text-lg font-bold">Meeting Tracker</h2>
           <p className="mt-0.5 text-xs sm:text-sm text-[#D9D9D9]">
-            This week&apos;s non-private events. Allocate each event to a project.
+            This week&apos;s non-private calendar events. Allocate each to a project.
           </p>
         </div>
         <div className="text-xs sm:text-sm text-[#808080]">

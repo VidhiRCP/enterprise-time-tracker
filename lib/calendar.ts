@@ -53,7 +53,7 @@ export async function getCalendarEvents(
   try {
     const res = await fetch(url.toString(), {
       headers: { Authorization: `Bearer ${accessToken}` },
-      next: { revalidate: 0 },
+      cache: "no-store",
     });
     if (!res.ok) {
       console.error("Graph API error:", res.status, await res.text());

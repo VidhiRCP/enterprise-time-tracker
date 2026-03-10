@@ -4,7 +4,7 @@ import { useState } from "react";
 
 const TABS = [
   { key: "activity", label: "Activity Tracker" },
-  { key: "timesheet", label: "Timesheet" },
+  { key: "meetings", label: "Meeting Tracker" },
   { key: "expenses", label: "Expenses" },
 ] as const;
 
@@ -14,13 +14,13 @@ export function DashboardTabs({
   hasProjects,
   recoveredSession,
   activityContent,
-  timesheetContent,
+  meetingsContent,
   expensesContent,
 }: {
   hasProjects: boolean;
   recoveredSession: boolean;
   activityContent: React.ReactNode;
-  timesheetContent: React.ReactNode;
+  meetingsContent: React.ReactNode;
   expensesContent: React.ReactNode;
 }) {
   const [active, setActive] = useState<TabKey>("activity");
@@ -47,7 +47,7 @@ export function DashboardTabs({
       </nav>
 
       {active === "activity" && activityContent}
-      {active === "timesheet" && timesheetContent}
+      {active === "meetings" && meetingsContent}
       {active === "expenses" && expensesContent}
     </div>
   );

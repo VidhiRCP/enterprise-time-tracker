@@ -146,9 +146,9 @@ export default async function HomePage() {
               )}
             </div>
           }
-          timesheetContent={
+          meetingsContent={
             <Card>
-              <TimesheetPanel groups={calendarGroups} projects={projectOptions} />
+              <TimesheetPanel groups={calendarGroups} projects={projectOptions} hasToken={!!accessToken} />
             </Card>
           }
           expensesContent={
