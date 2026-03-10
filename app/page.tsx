@@ -61,26 +61,26 @@ export default async function HomePage() {
           </form>
         </div>
 
-        <div className="grid grid-cols-3 gap-2 sm:gap-3 md:gap-4">
-          <Card>
-            <div className="text-[10px] sm:text-xs uppercase tracking-wider text-[#808080]">Assigned projects</div>
-            <div className="mt-1 text-base sm:text-lg md:text-xl font-bold">{data.projects.length}</div>
-          </Card>
-          <Card>
-            <div className="text-[10px] sm:text-xs uppercase tracking-wider text-[#808080]">My entries</div>
-            <div className="mt-1 text-base sm:text-lg md:text-xl font-bold">{data.entries.length}</div>
-          </Card>
-          <Card>
-            <div className="text-[10px] sm:text-xs uppercase tracking-wider text-[#808080]">Total tracked</div>
-            <div className="mt-1 text-base sm:text-lg md:text-xl font-bold">{formatMinutes(totalMinutes)}</div>
-          </Card>
-        </div>
-
         <DashboardTabs
           hasProjects={hasProjects}
           recoveredSession={!!data.session}
           activityContent={
-            <>
+            <div className="space-y-4 sm:space-y-5 md:space-y-6">
+              <div className="grid grid-cols-3 gap-2 sm:gap-3 md:gap-4">
+                <Card>
+                  <div className="text-[10px] sm:text-xs uppercase tracking-wider text-[#808080]">Assigned projects</div>
+                  <div className="mt-1 text-base sm:text-lg md:text-xl font-bold">{data.projects.length}</div>
+                </Card>
+                <Card>
+                  <div className="text-[10px] sm:text-xs uppercase tracking-wider text-[#808080]">My entries</div>
+                  <div className="mt-1 text-base sm:text-lg md:text-xl font-bold">{data.entries.length}</div>
+                </Card>
+                <Card>
+                  <div className="text-[10px] sm:text-xs uppercase tracking-wider text-[#808080]">Total tracked</div>
+                  <div className="mt-1 text-base sm:text-lg md:text-xl font-bold">{formatMinutes(totalMinutes)}</div>
+                </Card>
+              </div>
+
               {data.session ? (
                 <div className="rounded-xl border-l-2 border-l-[#F40000] border border-[#808080]/20 px-3 py-2 sm:px-4 sm:py-3 text-xs sm:text-sm text-[#D9D9D9] mb-4 sm:mb-5">
                   Recovered an unfinished timer session. You can resume, pause, save, or discard it.
@@ -144,7 +144,7 @@ export default async function HomePage() {
                   </div>
                 </div>
               )}
-            </>
+            </div>
           }
           timesheetContent={
             <Card>
