@@ -20,6 +20,12 @@ export async function getDashboardData(email: string) {
       },
       include: {
         project: true,
+        timerSession: {
+          select: {
+            startedAt: true,
+            stoppedAt: true,
+          },
+        },
       },
       orderBy: [{ workDate: "desc" }, { createdAt: "desc" }],
       take: 100,

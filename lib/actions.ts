@@ -188,3 +188,17 @@ export async function discardSession(input: {
 
   revalidatePath("/");
 }
+
+export async function deleteTimeEntry(entryId: string) {
+  const email = await requireEmail();
+
+  const entry = await prisma.timeEntry.findFirst({
+    where: { id: entryId, user: { email } },
+  });
+
+  if (!entry) throw new Error("Entry not found or not yours.");
+
+  await prisma.timeEntry.delete({ where: { id: entryId } });
+
+  revalidatePath("/");
+}
