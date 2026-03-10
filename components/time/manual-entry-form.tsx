@@ -64,117 +64,135 @@ export function ManualEntryForm({ projects }: { projects: ProjectOption[] }) {
   }
 
   return (
-    <div className="space-y-3 sm:space-y-4">
-      {/* Project */}
-      <div className="space-y-1">
-        <label className="text-sm font-medium text-[#D9D9D9]">Project</label>
-        <select
-          value={projectId}
-          onChange={(e) => setProjectId(e.target.value)}
-          className="w-full rounded-xl border border-[#808080]/30 bg-black px-3 py-2 text-sm focus:border-[#F40000] focus:outline-none"
-        >
-          {projects.map((project) => (
-            <option key={project.projectId} value={project.projectId}>
-              {project.projectName} ({project.projectId})
-            </option>
-          ))}
-        </select>
-      </div>
-
-      {/* Date */}
-      <div className="space-y-1">
-        <label className="text-sm font-medium text-[#D9D9D9]">Date</label>
-        <input
-          type="date"
-          value={workDate}
-          max={localDateInputValue()}
-          onChange={(e) => setWorkDate(e.target.value)}
-          className="w-full rounded-xl border border-[#808080]/30 bg-black px-3 py-2 text-sm focus:border-[#F40000] focus:outline-none"
-        />
-      </div>
-
-      {/* Duration mode toggle */}
-      <div className="flex items-center gap-2">
-        <span className="text-sm text-[#808080]">Entry type:</span>
-        <button
-          type="button"
-          onClick={() => setMode("duration")}
-          className={`rounded-lg px-2.5 py-1 text-xs sm:text-sm font-medium transition-colors ${
-            mode === "duration"
-              ? "bg-[#F40000] text-white"
-              : "border border-[#808080]/30 text-[#808080] hover:text-[#D9D9D9]"
-          }`}
-        >
-          Duration
-        </button>
-        <button
-          type="button"
-          onClick={() => setMode("range")}
-          className={`rounded-lg px-2.5 py-1 text-xs sm:text-sm font-medium transition-colors ${
-            mode === "range"
-              ? "bg-[#F40000] text-white"
-              : "border border-[#808080]/30 text-[#808080] hover:text-[#D9D9D9]"
-          }`}
-        >
-          Start / End Time
-        </button>
-      </div>
-
-      {mode === "duration" ? (
+    <div className="space-y-3">
+      {/* ── Row 1: Project + Date side by side ── */}
+      <div className="grid gap-3 sm:grid-cols-[2fr_1fr]">
         <div className="space-y-1">
-          <label className="text-sm font-medium text-[#D9D9D9]">Duration (minutes)</label>
+          <label className="text-sm font-medium text-[#D9D9D9]">Project</label>
+          <select
+            value={projectId}
+            onChange={(e) => setProjectId(e.target.value)}
+            className="w-full rounded-xl border border-[#808080]/30 bg-black px-3 py-2 text-sm focus:border-[#F40000] focus:outline-none"
+          >
+            {projects.map((project) => (
+              <option key={project.projectId} value={project.projectId}>
+                {project.projectName} ({project.projectId})
+              </option>
+            ))}
+          </select>
+        </div>
+        <div className="space-y-1">
+          <label className="text-sm font-medium text-[#D9D9D9]">Date</label>
           <input
-            type="number"
-            value={durationMinutes}
-            onChange={(e) => setDurationMinutes(e.target.value)}
-            min={1}
-            step={1}
-            placeholder="60"
+            type="date"
+            value={workDate}
+            max={localDateInputValue()}
+            onChange={(e) => setWorkDate(e.target.value)}
             className="w-full rounded-xl border border-[#808080]/30 bg-black px-3 py-2 text-sm focus:border-[#F40000] focus:outline-none"
           />
         </div>
-      ) : (
-        <div className="grid gap-3 sm:grid-cols-2">
-          <div className="space-y-1">
-            <label className="text-sm font-medium text-[#D9D9D9]">Start time</label>
-            <input
-              type="time"
-              value={startTime}
-              onChange={(e) => setStartTime(e.target.value)}
-              className="w-full rounded-xl border border-[#808080]/30 bg-black px-3 py-2 text-sm focus:border-[#F40000] focus:outline-none"
-            />
-          </div>
-          <div className="space-y-1">
-            <label className="text-sm font-medium text-[#D9D9D9]">End time</label>
-            <input
-              type="time"
-              value={endTime}
-              onChange={(e) => setEndTime(e.target.value)}
-              className="w-full rounded-xl border border-[#808080]/30 bg-black px-3 py-2 text-sm focus:border-[#F40000] focus:outline-none"
-            />
-          </div>
-          {computedDuration && (
-            <div className="sm:col-span-2 text-xs sm:text-sm text-[#808080]">
-              Calculated: <span className="font-bold text-[#D9D9D9]">{Math.floor(computedDuration / 60)}h {computedDuration % 60}m</span>
-            </div>
-          )}
-        </div>
-      )}
+      </div>
 
-      {/* Notes (required) */}
-      <div className="space-y-1">
-        <label className="text-sm font-medium text-[#D9D9D9]">
-          Notes <span className="text-[#F40000]">*</span>
-        </label>
-        <textarea
-          value={notes}
-          onChange={(e) => { setNotes(e.target.value); setError(""); }}
-          rows={2}
-          className={`w-full rounded-xl border bg-black px-3 py-2 text-sm focus:border-[#F40000] focus:outline-none ${
-            error && !notes.trim() ? "border-[#F40000]" : "border-[#808080]/30"
-          }`}
-          placeholder="Describe the work done (required)"
-        />
+      {/* ── Row 2: Mode toggle + time/duration inputs inline ── */}
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
+        {/* Mode toggle */}
+        <div className="space-y-1 shrink-0">
+          <label className="text-sm font-medium text-[#D9D9D9]">Entry type</label>
+          <div className="flex rounded-xl border border-[#808080]/30 overflow-hidden">
+            <button
+              type="button"
+              onClick={() => setMode("duration")}
+              className={`px-3 py-2 text-sm font-medium transition-colors ${
+                mode === "duration"
+                  ? "bg-[#F40000] text-white"
+                  : "text-[#808080] hover:text-[#D9D9D9] hover:bg-[#F8F8F8]/5"
+              }`}
+            >
+              Duration
+            </button>
+            <button
+              type="button"
+              onClick={() => setMode("range")}
+              className={`px-3 py-2 text-sm font-medium transition-colors border-l border-[#808080]/30 ${
+                mode === "range"
+                  ? "bg-[#F40000] text-white"
+                  : "text-[#808080] hover:text-[#D9D9D9] hover:bg-[#F8F8F8]/5"
+              }`}
+            >
+              Start / End
+            </button>
+          </div>
+        </div>
+
+        {/* Time / Duration inputs */}
+        {mode === "duration" ? (
+          <div className="flex-1 space-y-1">
+            <label className="text-sm font-medium text-[#D9D9D9]">Minutes</label>
+            <input
+              type="number"
+              value={durationMinutes}
+              onChange={(e) => setDurationMinutes(e.target.value)}
+              min={1}
+              step={1}
+              placeholder="60"
+              className="w-full rounded-xl border border-[#808080]/30 bg-black px-3 py-2 text-sm focus:border-[#F40000] focus:outline-none"
+            />
+          </div>
+        ) : (
+          <div className="flex-1 grid gap-3 grid-cols-2 items-end">
+            <div className="space-y-1">
+              <label className="text-sm font-medium text-[#D9D9D9]">Start time</label>
+              <input
+                type="time"
+                value={startTime}
+                onChange={(e) => setStartTime(e.target.value)}
+                className="w-full rounded-xl border border-[#808080]/30 bg-black px-3 py-2 text-sm focus:border-[#F40000] focus:outline-none"
+              />
+            </div>
+            <div className="space-y-1">
+              <div className="flex items-center justify-between">
+                <label className="text-sm font-medium text-[#D9D9D9]">End time</label>
+                {computedDuration && (
+                  <span className="text-xs text-[#808080]">
+                    = <span className="font-bold text-[#D9D9D9]">{Math.floor(computedDuration / 60)}h {computedDuration % 60}m</span>
+                  </span>
+                )}
+              </div>
+              <input
+                type="time"
+                value={endTime}
+                onChange={(e) => setEndTime(e.target.value)}
+                className="w-full rounded-xl border border-[#808080]/30 bg-black px-3 py-2 text-sm focus:border-[#F40000] focus:outline-none"
+              />
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* ── Row 3: Notes + Submit side by side ── */}
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
+        <div className="flex-1 space-y-1">
+          <label className="text-sm font-medium text-[#D9D9D9]">
+            Notes <span className="text-[#F40000]">*</span>
+          </label>
+          <input
+            type="text"
+            value={notes}
+            onChange={(e) => { setNotes(e.target.value); setError(""); }}
+            className={`w-full rounded-xl border bg-black px-3 py-2 text-sm focus:border-[#F40000] focus:outline-none ${
+              error && !notes.trim() ? "border-[#F40000]" : "border-[#808080]/30"
+            }`}
+            placeholder="Describe the work done (required)"
+          />
+        </div>
+        <button
+          type="button"
+          disabled={isPending}
+          onClick={handleSubmit}
+          className="shrink-0 rounded-xl border border-[#808080]/30 px-5 py-2 text-sm font-bold text-[#F8F8F8] hover:border-[#D9D9D9] transition-colors disabled:opacity-40"
+        >
+          {isPending ? "Saving…" : "Save entry"}
+        </button>
       </div>
 
       {/* Error / Success messages */}
@@ -188,15 +206,6 @@ export function ManualEntryForm({ projects }: { projects: ProjectOption[] }) {
           ✓ Entry saved successfully
         </div>
       )}
-
-      <button
-        type="button"
-        disabled={isPending}
-        onClick={handleSubmit}
-        className="rounded-xl border border-[#808080]/30 px-4 py-2 text-sm font-bold text-[#F8F8F8] hover:border-[#D9D9D9] transition-colors disabled:opacity-40"
-      >
-        {isPending ? "Saving…" : "Save manual entry"}
-      </button>
     </div>
   );
 }
