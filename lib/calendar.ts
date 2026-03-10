@@ -80,7 +80,9 @@ export async function getCalendarEvents(
       })
     : [];
 
-  const allocationMap = new Map(allocations.map((a) => [a.eventId, a.projectId]));
+  const allocationMap = new Map<string, string>(
+    allocations.map((a: { eventId: string; projectId: string }) => [a.eventId, a.projectId]),
+  );
 
   // Map to our CalendarEvent type
   const events: CalendarEvent[] = publicEvents.map((e: any) => {
@@ -92,15 +94,17 @@ export async function getCalendarEvents(
       .map((a: any) => a.emailAddress?.name || a.emailAddress?.address || "")
       .filter(Boolean);
 
+    const allocated = allocationMap.get(e.id);
+
     return {
-      id: e.id,
-      subject: e.subject || "(No subject)",
+      id: e.id as string,
+      subject: (e.subject || "(No subject)") as string,
       start: startDt.toISOString(),
       end: endDt.toISOString(),
       durationMinutes,
-      isAllDay: e.isAllDay ?? false,
+      isAllDay: (e.isAllDay ?? false) as boolean,
       attendees,
-      allocatedProjectId: allocationMap.get(e.id) ?? null,
+      allocatedProjectId: allocated ?? null,
     };
   });
 
