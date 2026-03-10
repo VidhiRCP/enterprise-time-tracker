@@ -11,33 +11,52 @@ async function requireEmail() {
   return session.user.email.toLowerCase();
 }
 
-export async function createManualEntry(formData: FormData) {
+export async function createManualEntry(input: {
+  projectId: string;
+  workDate: string;
+  durationMinutes?: number;
+  startTime?: string;
+  endTime?: string;
+  notes: string;
+}): Promise<{ error?: string }> {
   const email = await requireEmail();
 
-  const projectId = String(formData.get("projectId") ?? "");
-  const workDate = String(formData.get("workDate") ?? "");
-  const durationMinutes = Number(formData.get("durationMinutes") ?? 0);
-  const notes = String(formData.get("notes") ?? "").trim();
+  if (!input.projectId) return { error: "Please select a project." };
+  if (!input.workDate) return { error: "Please select a date." };
+  if (!input.notes.trim()) return { error: "Notes are required." };
 
-  if (!projectId || !workDate || !Number.isFinite(durationMinutes) || durationMinutes <= 0) {
-    throw new Error("Invalid manual entry.");
+  let durationMinutes = input.durationMinutes ?? 0;
+
+  // If start/end times provided, calculate duration from them
+  if (input.startTime && input.endTime) {
+    const [sh, sm] = input.startTime.split(":").map(Number);
+    const [eh, em] = input.endTime.split(":").map(Number);
+    const startMin = sh * 60 + sm;
+    const endMin = eh * 60 + em;
+    if (endMin <= startMin) return { error: "End time must be after start time." };
+    durationMinutes = endMin - startMin;
   }
 
-  await ensureProjectAccess(email, projectId);
+  if (!Number.isFinite(durationMinutes) || durationMinutes <= 0) {
+    return { error: "Duration must be at least 1 minute." };
+  }
+
+  await ensureProjectAccess(email, input.projectId);
 
   await prisma.timeEntry.create({
     data: {
       user: { connect: { email } },
-      project: { connect: { projectId } },
-      workDate: new Date(`${workDate}T00:00:00.000Z`),
+      project: { connect: { projectId: input.projectId } },
+      workDate: new Date(`${input.workDate}T00:00:00.000Z`),
       durationMinutes,
-      notes: notes || null,
+      notes: input.notes.trim(),
       source: "MANUAL",
       status: "SAVED",
     },
   });
 
   revalidatePath("/");
+  return {};
 }
 
 export async function createOrResumeSession(input: {
@@ -137,6 +156,8 @@ export async function finalizeSession(input: {
 
   if (!session) throw new Error("Session not found.");
 
+  if (!input.notesDraft?.trim()) throw new Error("Notes are required before saving.");
+
   const durationMinutes = Math.max(1, Math.round(input.elapsedSeconds / 60));
 
   await prisma.$transaction([
@@ -147,7 +168,7 @@ export async function finalizeSession(input: {
         timerSession: { connect: { id: session.id } },
         workDate: new Date(`${input.workDate}T00:00:00.000Z`),
         durationMinutes,
-        notes: input.notesDraft?.trim() || null,
+        notes: input.notesDraft.trim(),
         source: "TIMER",
         status: "SAVED",
       },
@@ -201,6 +222,57 @@ export async function deleteTimeEntry(entryId: string) {
   await prisma.timeEntry.delete({ where: { id: entryId } });
 
   revalidatePath("/");
+}
+
+export async function updateManualEntry(input: {
+  entryId: string;
+  projectId: string;
+  workDate: string;
+  durationMinutes?: number;
+  startTime?: string;
+  endTime?: string;
+  notes: string;
+}): Promise<{ error?: string }> {
+  const email = await requireEmail();
+
+  const entry = await prisma.timeEntry.findFirst({
+    where: { id: input.entryId, user: { email }, source: "MANUAL" },
+  });
+
+  if (!entry) return { error: "Entry not found or not editable." };
+  if (!input.projectId) return { error: "Please select a project." };
+  if (!input.workDate) return { error: "Please select a date." };
+  if (!input.notes.trim()) return { error: "Notes are required." };
+
+  let durationMinutes = input.durationMinutes ?? 0;
+
+  if (input.startTime && input.endTime) {
+    const [sh, sm] = input.startTime.split(":").map(Number);
+    const [eh, em] = input.endTime.split(":").map(Number);
+    const startMin = sh * 60 + sm;
+    const endMin = eh * 60 + em;
+    if (endMin <= startMin) return { error: "End time must be after start time." };
+    durationMinutes = endMin - startMin;
+  }
+
+  if (!Number.isFinite(durationMinutes) || durationMinutes <= 0) {
+    return { error: "Duration must be at least 1 minute." };
+  }
+
+  await ensureProjectAccess(email, input.projectId);
+
+  await prisma.timeEntry.update({
+    where: { id: input.entryId },
+    data: {
+      projectId: input.projectId,
+      workDate: new Date(`${input.workDate}T00:00:00.000Z`),
+      durationMinutes,
+      notes: input.notes.trim(),
+    },
+  });
+
+  revalidatePath("/");
+  return {};
 }
 
 export async function allocateCalendarEvent(input: {

@@ -148,7 +148,7 @@ export default async function HomePage() {
                             You only see your own entries. Projects are scoped to your assignments.
                           </p>
                         </div>
-                        <EntryTable entries={data.entries} />
+                        <EntryTable entries={data.entries} projects={projectOptions} />
                       </div>
                     </Card>
                   </div>
