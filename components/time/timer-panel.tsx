@@ -222,7 +222,7 @@ export function TimerPanel({
           }
           className="rounded-xl border border-[#808080]/30 px-3 py-2 text-xs sm:text-sm font-medium text-[#D9D9D9] hover:text-[#F8F8F8] transition-colors disabled:opacity-40"
         >
-          ⏸ Pause
+          <span className="text-[1em]">⏸</span> Pause
         </button>
 
         <button
@@ -240,7 +240,7 @@ export function TimerPanel({
           }}
           className="rounded-xl border border-[#808080]/30 px-3 py-2 text-xs sm:text-sm font-bold text-[#F8F8F8] hover:border-[#D9D9D9] transition-colors disabled:opacity-40"
         >
-          💾 Save tracked time
+          <span className="text-[1em]">💾</span> Save tracked time
         </button>
 
         <button
@@ -258,7 +258,7 @@ export function TimerPanel({
           }}
           className="rounded-xl border border-[#808080]/30 px-3 py-2 text-xs sm:text-sm font-medium text-[#F40000] hover:opacity-80 transition-opacity disabled:opacity-40"
         >
-          🗑 Discard
+          <span className="text-[1em]">🗑</span> Discard
         </button>
       </div>
     </div>

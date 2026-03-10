@@ -12,7 +12,7 @@ type ProjectOption = {
 export function ManualEntryForm({ projects }: { projects: ProjectOption[] }) {
   const [projectId, setProjectId] = useState(projects[0]?.projectId ?? "");
   const [workDate, setWorkDate] = useState(localDateInputValue());
-  const [mode, setMode] = useState<"duration" | "range">("duration");
+  const [mode, setMode] = useState<"duration" | "range">("range");
   const [durationMinutes, setDurationMinutes] = useState("");
   const [startTime, setStartTime] = useState("");
   const [endTime, setEndTime] = useState("");

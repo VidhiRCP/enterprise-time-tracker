@@ -11,6 +11,120 @@ import { TimesheetPanel } from "@/components/time/timesheet-panel";
 import { InsightsPanel } from "@/components/time/insights-panel";
 import { ProjectAliases } from "@/components/time/project-aliases";
 import { DashboardTabs } from "@/components/dashboard-tabs";
+import { DashboardStats, type DashboardStatsData } from "@/components/time/dashboard-stats";
+
+function computeDashboardStats(
+  data: Awaited<ReturnType<typeof getDashboardData>>,
+): DashboardStatsData {
+  const now = new Date();
+  const todayStr = now.toISOString().slice(0, 10);
+
+  // Today's entries
+  const todayEntries = data.entries.filter(
+    (e) => new Date(e.workDate).toISOString().slice(0, 10) === todayStr,
+  );
+  const todayMinutes = todayEntries.reduce((s, e) => s + e.durationMinutes, 0);
+  const todayProjects = new Set(todayEntries.map((e) => e.projectId));
+
+  // Top project today
+  const projMap = new Map<string, { projectName: string; projectId: string; minutes: number; sessions: number }>();
+  for (const e of todayEntries) {
+    const existing = projMap.get(e.projectId) ?? { projectName: e.project.projectName, projectId: e.project.projectId, minutes: 0, sessions: 0 };
+    existing.minutes += e.durationMinutes;
+    existing.sessions += 1;
+    projMap.set(e.projectId, existing);
+  }
+  const topProjectToday = Array.from(projMap.values()).sort((a, b) => b.minutes - a.minutes)[0] ?? null;
+
+  // Last activity ago
+  let lastActivityAgo: string | null = null;
+  if (todayEntries.length > 0) {
+    const latest = todayEntries.reduce((max, e) => {
+      const t = new Date(e.updatedAt ?? e.createdAt).getTime();
+      return t > max ? t : max;
+    }, 0);
+    const diffMin = Math.round((now.getTime() - latest) / 60000);
+    if (diffMin < 1) lastActivityAgo = "just now";
+    else if (diffMin < 60) lastActivityAgo = `${diffMin} min ago`;
+    else lastActivityAgo = `${Math.round(diffMin / 60)}h ago`;
+  }
+
+  // Week calculation (Mon–Sun)
+  const dayOfWeek = now.getDay();
+  const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
+  const monday = new Date(now);
+  monday.setDate(now.getDate() + mondayOffset);
+  monday.setHours(0, 0, 0, 0);
+
+  const dayLabels = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+  const weekDays = dayLabels.map((label, i) => {
+    const d = new Date(monday);
+    d.setDate(monday.getDate() + i);
+    const dateStr = d.toISOString().slice(0, 10);
+    const minutes = data.entries
+      .filter((e) => new Date(e.workDate).toISOString().slice(0, 10) === dateStr)
+      .reduce((s, e) => s + e.durationMinutes, 0);
+    return { label, minutes };
+  });
+  const weekTotalMinutes = weekDays.reduce((s, d) => s + d.minutes, 0);
+
+  // Active timer info
+  const activeTimer = data.session
+    ? {
+        projectName: data.session.project.projectName,
+        projectId: data.session.projectId,
+        status: data.session.status as "RUNNING" | "PAUSED",
+        accumulatedSeconds: data.session.accumulatedSeconds,
+        lastResumedAt: data.session.lastResumedAt?.toISOString() ?? null,
+      }
+    : null;
+
+  // Recent entries (last 5)
+  const recentEntries = data.entries.slice(0, 5).map((e) => ({
+    projectName: e.project.projectName,
+    projectId: e.project.projectId,
+    durationMinutes: e.durationMinutes,
+    source: e.source,
+  }));
+
+  // Stale projects (assigned but no entry in last 3 days)
+  const threeDaysAgo = new Date(now);
+  threeDaysAgo.setDate(now.getDate() - 3);
+  threeDaysAgo.setHours(0, 0, 0, 0);
+
+  const lastEntryPerProject = new Map<string, Date>();
+  for (const e of data.entries) {
+    const d = new Date(e.workDate);
+    const prev = lastEntryPerProject.get(e.projectId);
+    if (!prev || d > prev) lastEntryPerProject.set(e.projectId, d);
+  }
+
+  const staleProjects = data.projects
+    .map((p) => {
+      const last = lastEntryPerProject.get(p.projectId);
+      if (!last || last < threeDaysAgo) {
+        const daysSince = last
+          ? Math.round((now.getTime() - last.getTime()) / 86400000)
+          : 999;
+        return { projectId: p.projectId, projectName: p.projectName, daysSince };
+      }
+      return null;
+    })
+    .filter(Boolean) as { projectId: string; projectName: string; daysSince: number }[];
+
+  return {
+    todayMinutes,
+    todayProjectsCount: todayProjects.size,
+    activeTimer,
+    weekTotalMinutes,
+    expectedDayHours: 8,
+    topProjectToday,
+    weekDays,
+    recentEntries,
+    staleProjects,
+    lastActivityAgo,
+  };
+}
 
 export default async function HomePage() {
   const session = await auth();
@@ -27,10 +141,8 @@ export default async function HomePage() {
 
   const data = await getDashboardData(session.user.email);
   const insightsData = await getInsightsData(session.user.email);
-  const totalMinutes = data.entries.reduce((sum, entry) => sum + entry.durationMinutes, 0);
   const hasProjects = data.projects.length > 0;
 
-  // Fetch calendar events if we have an access token
   const accessToken = (session as any).accessToken as string | undefined;
   const calendarGroups = accessToken
     ? await getCalendarEvents(accessToken, session.user.email)
@@ -41,21 +153,23 @@ export default async function HomePage() {
     projectName: project.projectName,
   }));
 
-  // Build aliases list for the Project Aliases component
   const aliasEntries = data.assignments.map((a) => ({
     projectId: a.projectId,
     projectName: a.project.projectName,
     aliases: a.aliases ?? "",
   }));
 
+  const statsData = computeDashboardStats(data);
+
   return (
-    <main className="min-h-screen p-3 sm:p-5 md:p-8">
-      <div className="mx-auto max-w-7xl space-y-4 sm:space-y-5 md:space-y-6">
-        <div className="flex flex-col gap-3 rounded-2xl border border-[#808080]/30 p-4 sm:p-5 md:p-6 md:flex-row md:items-center md:justify-between">
-          <div>
+    <main className="min-h-screen p-2 sm:p-4 md:p-6">
+      <div className="mx-auto max-w-[1800px] space-y-3 sm:space-y-4 md:space-y-5">
+        {/* Header */}
+        <div className="flex flex-col gap-3 rounded-2xl border border-[#808080]/30 p-3 sm:p-4 md:p-5 md:flex-row md:items-center md:justify-between">
+          <div className="min-w-0">
             <h1 className="text-lg sm:text-xl md:text-2xl font-bold">RCP Time Tracker</h1>
-            <p className="mt-1 text-xs sm:text-sm text-[#D9D9D9] truncate max-w-[260px] sm:max-w-none">
-              Signed in as {session.user.email}
+            <p className="mt-0.5 text-xs sm:text-sm text-[#D9D9D9] truncate">
+              {session.user.email}
             </p>
           </div>
 
@@ -75,24 +189,12 @@ export default async function HomePage() {
           hasProjects={hasProjects}
           recoveredSession={!!data.session}
           activityContent={
-            <div className="space-y-4 sm:space-y-5 md:space-y-6">
-              <div className="grid grid-cols-3 gap-2 sm:gap-3 md:gap-4">
-                <Card>
-                  <div className="text-[10px] sm:text-xs uppercase tracking-wider text-[#808080]">Assigned projects</div>
-                  <div className="mt-1 text-base sm:text-lg md:text-xl font-bold">{data.projects.length}</div>
-                </Card>
-                <Card>
-                  <div className="text-[10px] sm:text-xs uppercase tracking-wider text-[#808080]">My entries</div>
-                  <div className="mt-1 text-base sm:text-lg md:text-xl font-bold">{data.entries.length}</div>
-                </Card>
-                <Card>
-                  <div className="text-[10px] sm:text-xs uppercase tracking-wider text-[#808080]">Total tracked</div>
-                  <div className="mt-1 text-base sm:text-lg md:text-xl font-bold">{formatMinutes(totalMinutes)}</div>
-                </Card>
-              </div>
+            <div className="space-y-3 sm:space-y-4">
+              {/* Dashboard stats — replaces old 3 cards */}
+              <DashboardStats data={statsData} />
 
               {data.session ? (
-                <div className="rounded-xl border-l-2 border-l-[#F40000] border border-[#808080]/20 px-3 py-2 sm:px-4 sm:py-3 text-xs sm:text-sm text-[#D9D9D9] mb-4 sm:mb-5">
+                <div className="rounded-xl border-l-2 border-l-[#F40000] border border-[#808080]/20 px-3 py-2 text-xs sm:text-sm text-[#D9D9D9]">
                   Recovered an unfinished timer session. You can resume, pause, save, or discard it.
                 </div>
               ) : null}
@@ -107,7 +209,7 @@ export default async function HomePage() {
                   </div>
                 </Card>
               ) : (
-                <div className="grid gap-4 sm:gap-5 md:gap-6 lg:grid-cols-[380px_1fr] xl:grid-cols-[420px_1fr]">
+                <div className="grid gap-3 sm:gap-4 lg:grid-cols-[340px_1fr] xl:grid-cols-[380px_1fr]">
                   <Card>
                     <TimerPanel
                       projects={projectOptions}
@@ -127,13 +229,13 @@ export default async function HomePage() {
                     />
                   </Card>
 
-                  <div className="space-y-4 sm:space-y-5 md:space-y-6">
+                  <div className="space-y-3 sm:space-y-4">
                     <Card>
-                      <div className="space-y-3 sm:space-y-4">
+                      <div className="space-y-3">
                         <div>
-                          <h2 className="text-base sm:text-lg font-bold">Manual entry</h2>
-                          <p className="mt-1 text-xs sm:text-sm text-[#D9D9D9]">
-                            Add time manually for work already completed.
+                          <h2 className="text-sm sm:text-base font-bold">Manual entry</h2>
+                          <p className="mt-0.5 text-[10px] sm:text-xs text-[#808080]">
+                            Add time for work already completed.
                           </p>
                         </div>
                         <ManualEntryForm projects={projectOptions} />
@@ -141,11 +243,11 @@ export default async function HomePage() {
                     </Card>
 
                     <Card>
-                      <div className="space-y-3 sm:space-y-4">
+                      <div className="space-y-3">
                         <div>
-                          <h2 className="text-base sm:text-lg font-bold">Recent entries</h2>
-                          <p className="mt-1 text-xs sm:text-sm text-[#D9D9D9]">
-                            You only see your own entries. Projects are scoped to your assignments.
+                          <h2 className="text-sm sm:text-base font-bold">Recent entries</h2>
+                          <p className="mt-0.5 text-[10px] sm:text-xs text-[#808080]">
+                            Your entries, scoped to your project assignments.
                           </p>
                         </div>
                         <EntryTable entries={data.entries} projects={projectOptions} />
