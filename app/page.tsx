@@ -3,15 +3,12 @@ import { getDashboardData, getInsightsData } from "@/lib/queries";
 import { getCalendarEvents } from "@/lib/calendar";
 import { Card } from "@/components/ui/card";
 import { SignInCard } from "@/components/sign-in-card";
-import { TimerPanel } from "@/components/time/timer-panel";
-import { ManualEntryForm } from "@/components/time/manual-entry-form";
-import { EntryTable } from "@/components/time/entry-table";
 import { TimesheetPanel } from "@/components/time/timesheet-panel";
 import { InsightsPanel } from "@/components/time/insights-panel";
 import { ProjectAliases } from "@/components/time/project-aliases";
 import { DashboardTabs } from "@/components/dashboard-tabs";
-import { DashboardStats, type DashboardStatsData } from "@/components/time/dashboard-stats";
-import { SidebarCalendar } from "@/components/time/sidebar-calendar";
+import { ActivityContent } from "@/components/time/activity-content";
+import type { DashboardStatsData } from "@/components/time/dashboard-stats";
 
 /* ── Compute all dashboard metrics server-side ── */
 function computeDashboardStats(
@@ -198,63 +195,26 @@ export default async function HomePage() {
                 </div>
               </Card>
             ) : (
-              <div className="space-y-3">
-                {data.session && (
-                  <div className="rounded-xl border-l-2 border-l-[#F40000] border border-[#808080]/20 px-3 py-2 text-sm text-[#D9D9D9]">
-                    Recovered an unfinished timer session. Resume, pause, save, or discard it.
-                  </div>
-                )}
-
-                <div className="grid gap-3 lg:grid-cols-[320px_1fr]">
-                  {/* ── Left sidebar ── */}
-                  <div className="space-y-2 lg:sticky lg:top-4 lg:self-start lg:max-h-[calc(100vh-5rem)] lg:overflow-y-auto">
-                    <DashboardStats data={statsData} />
-                    <SidebarCalendar entryDates={entryDateStrings} />
-                  </div>
-
-                  {/* ── Right main content ── */}
-                  <div className="space-y-3">
-                    <Card>
-                      <TimerPanel
-                        projects={projectOptions}
-                        activeSession={
-                          data.session
-                            ? {
-                                id: data.session.id,
-                                projectId: data.session.projectId,
-                                notesDraft: data.session.notesDraft,
-                                accumulatedSeconds: data.session.accumulatedSeconds,
-                                status: data.session.status as "RUNNING" | "PAUSED",
-                                startedAt: data.session.startedAt.toISOString(),
-                                lastResumedAt: data.session.lastResumedAt?.toISOString() ?? null,
-                              }
-                            : null
-                        }
-                      />
-                    </Card>
-
-                    <Card>
-                      <div className="space-y-2">
-                        <div>
-                          <h2 className="text-base font-bold">Manual entry</h2>
-                          <p className="text-xs sm:text-sm text-[#808080]">Add time for work already completed.</p>
-                        </div>
-                        <ManualEntryForm projects={projectOptions} />
-                      </div>
-                    </Card>
-
-                    <Card>
-                      <div className="space-y-2">
-                        <div>
-                          <h2 className="text-base font-bold">Recent entries</h2>
-                          <p className="text-xs sm:text-sm text-[#808080]">Your entries, scoped to your project assignments.</p>
-                        </div>
-                        <EntryTable entries={data.entries} projects={projectOptions} />
-                      </div>
-                    </Card>
-                  </div>
-                </div>
-              </div>
+              <ActivityContent
+                statsData={statsData}
+                entryDateStrings={entryDateStrings}
+                projectOptions={projectOptions}
+                activeSession={
+                  data.session
+                    ? {
+                        id: data.session.id,
+                        projectId: data.session.projectId,
+                        notesDraft: data.session.notesDraft,
+                        accumulatedSeconds: data.session.accumulatedSeconds,
+                        status: data.session.status as "RUNNING" | "PAUSED",
+                        startedAt: data.session.startedAt.toISOString(),
+                        lastResumedAt: data.session.lastResumedAt?.toISOString() ?? null,
+                      }
+                    : null
+                }
+                entries={data.entries}
+                hasRecoveredSession={!!data.session}
+              />
             )
           }
           meetingsContent={

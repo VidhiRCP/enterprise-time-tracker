@@ -23,6 +23,9 @@ export async function createManualEntry(input: {
 
   if (!input.projectId) return { error: "Please select a project." };
   if (!input.workDate) return { error: "Please select a date." };
+  // Block future dates
+  const today = new Date().toISOString().slice(0, 10);
+  if (input.workDate > today) return { error: "Cannot create entries for future dates." };
   if (!input.notes.trim()) return { error: "Notes are required." };
 
   let durationMinutes = input.durationMinutes ?? 0;

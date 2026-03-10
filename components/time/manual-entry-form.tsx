@@ -87,6 +87,7 @@ export function ManualEntryForm({ projects }: { projects: ProjectOption[] }) {
         <input
           type="date"
           value={workDate}
+          max={localDateInputValue()}
           onChange={(e) => setWorkDate(e.target.value)}
           className="w-full rounded-xl border border-[#808080]/30 bg-black px-3 py-2 text-sm focus:border-[#F40000] focus:outline-none"
         />

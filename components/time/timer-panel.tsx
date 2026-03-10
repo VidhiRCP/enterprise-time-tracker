@@ -117,149 +117,151 @@ export function TimerPanel({
   }
 
   return (
-    <div className="space-y-3 sm:space-y-4">
-      {/* Timer display + current project */}
-      <div>
-        <div className="text-xs sm:text-sm uppercase tracking-wider text-[#808080]">Current timer</div>
-        <div className="mt-1 sm:mt-2 text-2xl sm:text-3xl font-bold tracking-tight tabular-nums">
-          {formatSeconds(elapsedSeconds)}
-        </div>
-        <div className="mt-1 sm:mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm">
-          {hasSession ? (
-            <>
-              <span className={isRunning ? "text-[#F40000]" : "text-[#808080]"}>●</span>
-              <span className="text-[#D9D9D9]">{isRunning ? "Running" : "Paused"}</span>
-              <span className="text-[#808080]">—</span>
-              <span className="font-bold text-[#F8F8F8]">{selectedProject?.projectName ?? "—"}</span>
-              <span className="text-[#808080] text-xs sm:text-sm">({projectId})</span>
-            </>
-          ) : (
-            <span className="text-[#D9D9D9]">No active timer</span>
+    <div className="space-y-4">
+      {/* ── Row 1: Timer display + action buttons ── */}
+      <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+        <div className="min-w-0">
+          <div className="text-xs uppercase tracking-wider text-[#808080]">Current timer</div>
+          <div className="text-3xl sm:text-4xl font-bold tracking-tight tabular-nums mt-1">
+            {formatSeconds(elapsedSeconds)}
+          </div>
+          <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm mt-1">
+            {hasSession ? (
+              <>
+                <span className={isRunning ? "text-[#F40000]" : "text-[#808080]"}>●</span>
+                <span className="text-[#D9D9D9]">{isRunning ? "Running" : "Paused"}</span>
+                <span className="text-[#808080]">—</span>
+                <span className="font-bold text-[#F8F8F8] truncate">{selectedProject?.projectName ?? "—"}</span>
+              </>
+            ) : (
+              <span className="text-[#808080]">No active timer</span>
+            )}
+          </div>
+          {lastAutosaved && hasSession && (
+            <div className="text-xs text-[#808080]/60 mt-1">
+              Autosaved: {lastAutosaved.toLocaleTimeString()}
+            </div>
           )}
         </div>
-        {lastAutosaved && hasSession && (
-          <div className="mt-1 text-xs text-[#808080]/60">
-            Last autosaved: {lastAutosaved.toLocaleTimeString()}
-          </div>
-        )}
-      </div>
 
-      {/* Project selector */}
-      <div className="space-y-1">
-        <label className="text-sm font-medium text-[#D9D9D9]">Project</label>
-        <select
-          value={projectId}
-          onChange={(e) => handleProjectChange(e.target.value)}
-          className="w-full rounded-xl border border-[#808080]/30 bg-black px-3 py-2 text-sm focus:border-[#F40000] focus:outline-none"
-        >
-          {projects.map((project) => (
-            <option key={project.projectId} value={project.projectId}>
-              {project.projectName} ({project.projectId})
-            </option>
-          ))}
-        </select>
-      </div>
+        {/* Action buttons — inline row */}
+        <div className="flex flex-wrap gap-2 shrink-0">
+          <button
+            disabled={isPending || !projectId || isRunning}
+            onClick={() =>
+              startTransition(async () => {
+                const now = new Date().toISOString();
+                setSession((prev) => ({
+                  id: prev?.id ?? "_pending",
+                  projectId,
+                  notesDraft,
+                  accumulatedSeconds: prev?.accumulatedSeconds ?? 0,
+                  status: "RUNNING",
+                  startedAt: prev?.startedAt ?? now,
+                  lastResumedAt: now,
+                }));
+                const result = await createOrResumeSession({ projectId, notes: notesDraft });
+                setSession({
+                  id: result.id,
+                  projectId: result.projectId,
+                  notesDraft: result.notesDraft,
+                  accumulatedSeconds: result.accumulatedSeconds,
+                  status: result.status as "RUNNING" | "PAUSED",
+                  startedAt: result.startedAt.toISOString(),
+                  lastResumedAt: result.lastResumedAt?.toISOString() ?? null,
+                });
+              })
+            }
+            className="rounded-xl bg-[#F40000] px-4 py-2 text-sm font-bold text-[#F8F8F8] hover:opacity-90 transition-opacity disabled:opacity-40"
+          >
+            {getStartLabel()}
+          </button>
 
-      {/* Notes (required) */}
-      <div className="space-y-1">
-        <label className="text-sm font-medium text-[#D9D9D9]">
-          Notes <span className="text-[#F40000]">*</span>
-        </label>
-        <textarea
-          value={notesDraft}
-          onChange={(e) => { setNotesDraft(e.target.value); setNotesError(""); }}
-          rows={2}
-          className={`w-full rounded-xl border bg-black px-3 py-2 text-sm focus:border-[#F40000] focus:outline-none ${
-            notesError ? "border-[#F40000]" : "border-[#808080]/30"
-          }`}
-          placeholder="What are you working on? (required)"
-        />
-        {notesError && (
-          <p className="text-xs sm:text-sm text-[#F40000]">{notesError}</p>
-        )}
-      </div>
+          <button
+            disabled={isPending || !isRunning}
+            onClick={() =>
+              startTransition(async () => {
+                setSession({ ...session!, accumulatedSeconds: elapsedSeconds, status: "PAUSED", lastResumedAt: null, notesDraft });
+                await pauseSession({ sessionId: session!.id, elapsedSeconds, notesDraft });
+              })
+            }
+            className="rounded-xl border border-[#808080]/30 px-4 py-2 text-sm font-medium text-[#D9D9D9] hover:text-[#F8F8F8] transition-colors disabled:opacity-40"
+          >
+            ⏸ Pause
+          </button>
 
-      {/* Action buttons */}
-      <div className="grid grid-cols-2 gap-2 sm:gap-3">
-        <button
-          disabled={isPending || !projectId || isRunning}
-          onClick={() =>
-            startTransition(async () => {
-              const now = new Date().toISOString();
-              setSession((prev) => ({
-                id: prev?.id ?? "_pending",
-                projectId,
-                notesDraft,
-                accumulatedSeconds: prev?.accumulatedSeconds ?? 0,
-                status: "RUNNING",
-                startedAt: prev?.startedAt ?? now,
-                lastResumedAt: now,
-              }));
-              const result = await createOrResumeSession({ projectId, notes: notesDraft });
-              setSession({
-                id: result.id,
-                projectId: result.projectId,
-                notesDraft: result.notesDraft,
-                accumulatedSeconds: result.accumulatedSeconds,
-                status: result.status as "RUNNING" | "PAUSED",
-                startedAt: result.startedAt.toISOString(),
-                lastResumedAt: result.lastResumedAt?.toISOString() ?? null,
+          <button
+            disabled={isPending || !hasSession}
+            onClick={() => {
+              if (!validateNotes()) return;
+              startTransition(async () => {
+                const sid = session!.id;
+                setSession(null);
+                setNotesDraft("");
+                setNotesError("");
+                setLastAutosaved(null);
+                await finalizeSession({ sessionId: sid, projectId, elapsedSeconds, notesDraft, workDate: localDateInputValue() });
               });
-            })
-          }
-          className="rounded-xl bg-[#F40000] px-3 py-2 text-sm font-bold text-[#F8F8F8] hover:opacity-90 transition-opacity disabled:opacity-40"
-        >
-          {getStartLabel()}
-        </button>
+            }}
+            className="rounded-xl border border-[#808080]/30 px-4 py-2 text-sm font-bold text-[#F8F8F8] hover:border-[#D9D9D9] transition-colors disabled:opacity-40"
+          >
+            💾 Save Session
+          </button>
 
-        <button
-          disabled={isPending || !isRunning}
-          onClick={() =>
-            startTransition(async () => {
-              setSession({ ...session!, accumulatedSeconds: elapsedSeconds, status: "PAUSED", lastResumedAt: null, notesDraft });
-              await pauseSession({ sessionId: session!.id, elapsedSeconds, notesDraft });
-            })
-          }
-          className="rounded-xl border border-[#808080]/30 px-3 py-2 text-sm font-medium text-[#D9D9D9] hover:text-[#F8F8F8] transition-colors disabled:opacity-40"
-        >
-          <span className="text-[1em]">⏸</span> Pause
-        </button>
+          <button
+            disabled={isPending || !hasSession}
+            onClick={() => {
+              if (!confirm("Discard this session? All tracked time will be lost.")) return;
+              startTransition(async () => {
+                const sid = session!.id;
+                setSession(null);
+                setNotesDraft("");
+                setNotesError("");
+                setLastAutosaved(null);
+                await discardSession({ sessionId: sid, elapsedSeconds, notesDraft });
+              });
+            }}
+            className="rounded-xl border border-[#808080]/30 px-4 py-2 text-sm font-medium text-[#F40000] hover:opacity-80 transition-opacity disabled:opacity-40"
+          >
+            🗑 Discard
+          </button>
+        </div>
+      </div>
 
-        <button
-          disabled={isPending || !hasSession}
-          onClick={() => {
-            if (!validateNotes()) return;
-            startTransition(async () => {
-              const sid = session!.id;
-              setSession(null);
-              setNotesDraft("");
-              setNotesError("");
-              setLastAutosaved(null);
-              await finalizeSession({ sessionId: sid, projectId, elapsedSeconds, notesDraft, workDate: localDateInputValue() });
-            });
-          }}
-          className="rounded-xl border border-[#808080]/30 px-3 py-2 text-sm font-bold text-[#F8F8F8] hover:border-[#D9D9D9] transition-colors disabled:opacity-40"
-        >
-          <span className="text-[1em]">💾</span> Save tracked time
-        </button>
+      {/* ── Row 2: Project + Notes side by side ── */}
+      <div className="grid gap-3 sm:grid-cols-[1fr_2fr]">
+        <div className="space-y-1">
+          <label className="text-sm font-medium text-[#D9D9D9]">Project</label>
+          <select
+            value={projectId}
+            onChange={(e) => handleProjectChange(e.target.value)}
+            className="w-full rounded-xl border border-[#808080]/30 bg-black px-3 py-2 text-sm focus:border-[#F40000] focus:outline-none"
+          >
+            {projects.map((project) => (
+              <option key={project.projectId} value={project.projectId}>
+                {project.projectName} ({project.projectId})
+              </option>
+            ))}
+          </select>
+        </div>
 
-        <button
-          disabled={isPending || !hasSession}
-          onClick={() => {
-            if (!confirm("Discard this session? All tracked time will be lost.")) return;
-            startTransition(async () => {
-              const sid = session!.id;
-              setSession(null);
-              setNotesDraft("");
-              setNotesError("");
-              setLastAutosaved(null);
-              await discardSession({ sessionId: sid, elapsedSeconds, notesDraft });
-            });
-          }}
-          className="rounded-xl border border-[#808080]/30 px-3 py-2 text-sm font-medium text-[#F40000] hover:opacity-80 transition-opacity disabled:opacity-40"
-        >
-          <span className="text-[1em]">🗑</span> Discard
-        </button>
+        <div className="space-y-1">
+          <label className="text-sm font-medium text-[#D9D9D9]">
+            Notes <span className="text-[#F40000]">*</span>
+          </label>
+          <textarea
+            value={notesDraft}
+            onChange={(e) => { setNotesDraft(e.target.value); setNotesError(""); }}
+            rows={2}
+            className={`w-full rounded-xl border bg-black px-3 py-2 text-sm focus:border-[#F40000] focus:outline-none ${
+              notesError ? "border-[#F40000]" : "border-[#808080]/30"
+            }`}
+            placeholder="What are you working on? (required)"
+          />
+          {notesError && (
+            <p className="text-xs text-[#F40000]">{notesError}</p>
+          )}
+        </div>
       </div>
     </div>
   );

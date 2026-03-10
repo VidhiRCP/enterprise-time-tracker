@@ -166,9 +166,13 @@ function EditManualRow({
 export function EntryTable({
   entries,
   projects,
+  calendarDate,
+  onClearCalendarDate,
 }: {
   entries: Entry[];
   projects: ProjectOption[];
+  calendarDate?: string | null;
+  onClearCalendarDate?: () => void;
 }) {
   const [filterProject, setFilterProject] = useState("ALL");
   const [filterFrom, setFilterFrom] = useState("");
@@ -180,6 +184,11 @@ export function EntryTable({
     return entries.filter((e) => {
       if (filterProject !== "ALL" && e.project.projectId !== filterProject) return false;
       const d = new Date(e.workDate);
+      // Calendar date filter (from sidebar)
+      if (calendarDate) {
+        const entryDate = d.toISOString().slice(0, 10);
+        if (entryDate !== calendarDate) return false;
+      }
       if (filterFrom) {
         const from = parseISO(filterFrom);
         if (d < from) return false;
@@ -191,7 +200,7 @@ export function EntryTable({
       }
       return true;
     });
-  }, [entries, filterProject, filterFrom, filterTo]);
+  }, [entries, filterProject, filterFrom, filterTo, calendarDate]);
 
   // Group by week (Monday start)
   const weekGroups = useMemo(() => {
@@ -235,6 +244,21 @@ export function EntryTable({
 
   return (
     <div className="space-y-3 sm:space-y-4">
+      {/* ── Calendar date badge ── */}
+      {calendarDate && (
+        <div className="flex items-center gap-2 rounded-xl border border-[#F40000]/30 bg-[#F40000]/5 px-3 py-2">
+          <span className="text-sm text-[#D9D9D9]">
+            📅 Showing entries for <span className="font-bold text-[#F8F8F8]">{format(new Date(calendarDate + "T12:00:00"), "EEEE, dd MMM yyyy")}</span>
+          </span>
+          <button
+            onClick={onClearCalendarDate}
+            className="ml-auto text-xs text-[#808080] hover:text-[#F40000] transition-colors"
+          >
+            ✕ Clear
+          </button>
+        </div>
+      )}
+
       {/* ── Filter bar ── */}
       <div className="flex flex-wrap items-end gap-2 sm:gap-3">
         <div className="space-y-1">
