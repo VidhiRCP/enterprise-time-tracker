@@ -252,3 +252,20 @@ export async function allocateCalendarEvent(input: {
 
   revalidatePath("/");
 }
+
+export async function updateProjectAliases(input: {
+  projectId: string;
+  aliases: string;
+}) {
+  const email = await requireEmail();
+  await ensureProjectAccess(email, input.projectId);
+
+  const user = await prisma.user.findUniqueOrThrow({ where: { email } });
+
+  await prisma.projectAssignment.updateMany({
+    where: { userId: user.id, projectId: input.projectId },
+    data: { aliases: input.aliases.trim() || null },
+  });
+
+  revalidatePath("/");
+}

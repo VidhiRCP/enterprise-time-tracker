@@ -5,7 +5,8 @@ import { useState } from "react";
 const TABS = [
   { key: "activity", label: "Activity Tracker" },
   { key: "meetings", label: "Meeting Tracker" },
-  { key: "expenses", label: "Expenses" },
+  { key: "insights", label: "Insights" },
+  { key: "aliases", label: "Project Aliases" },
 ] as const;
 
 type TabKey = (typeof TABS)[number]["key"];
@@ -15,13 +16,15 @@ export function DashboardTabs({
   recoveredSession,
   activityContent,
   meetingsContent,
-  expensesContent,
+  insightsContent,
+  aliasesContent,
 }: {
   hasProjects: boolean;
   recoveredSession: boolean;
   activityContent: React.ReactNode;
   meetingsContent: React.ReactNode;
-  expensesContent: React.ReactNode;
+  insightsContent: React.ReactNode;
+  aliasesContent: React.ReactNode;
 }) {
   const [active, setActive] = useState<TabKey>("activity");
 
@@ -48,7 +51,8 @@ export function DashboardTabs({
 
       {active === "activity" && activityContent}
       {active === "meetings" && meetingsContent}
-      {active === "expenses" && expensesContent}
+      {active === "insights" && insightsContent}
+      {active === "aliases" && aliasesContent}
     </div>
   );
 }

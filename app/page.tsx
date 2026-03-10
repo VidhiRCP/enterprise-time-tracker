@@ -1,5 +1,5 @@
 import { auth, signOut } from "@/auth";
-import { getDashboardData } from "@/lib/queries";
+import { getDashboardData, getInsightsData } from "@/lib/queries";
 import { getCalendarEvents } from "@/lib/calendar";
 import { formatMinutes } from "@/lib/time";
 import { Card } from "@/components/ui/card";
@@ -8,6 +8,8 @@ import { TimerPanel } from "@/components/time/timer-panel";
 import { ManualEntryForm } from "@/components/time/manual-entry-form";
 import { EntryTable } from "@/components/time/entry-table";
 import { TimesheetPanel } from "@/components/time/timesheet-panel";
+import { InsightsPanel } from "@/components/time/insights-panel";
+import { ProjectAliases } from "@/components/time/project-aliases";
 import { DashboardTabs } from "@/components/dashboard-tabs";
 
 export default async function HomePage() {
@@ -24,6 +26,7 @@ export default async function HomePage() {
   }
 
   const data = await getDashboardData(session.user.email);
+  const insightsData = await getInsightsData(session.user.email);
   const totalMinutes = data.entries.reduce((sum, entry) => sum + entry.durationMinutes, 0);
   const hasProjects = data.projects.length > 0;
 
@@ -36,6 +39,13 @@ export default async function HomePage() {
   const projectOptions = data.projects.map((project) => ({
     projectId: project.projectId,
     projectName: project.projectName,
+  }));
+
+  // Build aliases list for the Project Aliases component
+  const aliasEntries = data.assignments.map((a) => ({
+    projectId: a.projectId,
+    projectName: a.project.projectName,
+    aliases: a.aliases ?? "",
   }));
 
   return (
@@ -151,14 +161,14 @@ export default async function HomePage() {
               <TimesheetPanel groups={calendarGroups} projects={projectOptions} hasToken={!!accessToken} />
             </Card>
           }
-          expensesContent={
+          insightsContent={
             <Card>
-              <div className="py-8 sm:py-12 text-center">
-                <p className="text-xs sm:text-sm font-bold text-[#D9D9D9]">Expenses</p>
-                <p className="mt-1 text-xs sm:text-sm text-[#808080]">
-                  Expense tracking is coming soon.
-                </p>
-              </div>
+              <InsightsPanel data={insightsData} />
+            </Card>
+          }
+          aliasesContent={
+            <Card>
+              <ProjectAliases assignments={aliasEntries} />
             </Card>
           }
         />

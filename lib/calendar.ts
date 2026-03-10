@@ -9,6 +9,8 @@ export type CalendarEvent = {
   isAllDay: boolean;
   attendees: string[];
   allocatedProjectId: string | null;
+  suggestedProjectId: string | null;
+  suggestedProjectName: string | null;
 };
 
 export type GroupedEvents = {
@@ -84,6 +86,36 @@ export async function getCalendarEvents(
     allocations.map((a: { eventId: string; projectId: string }) => [a.eventId, a.projectId]),
   );
 
+  // Fetch project aliases for auto-suggest
+  const assignments = user
+    ? await prisma.projectAssignment.findMany({
+        where: { userId: user.id, active: true },
+        select: { projectId: true, aliases: true, project: { select: { projectName: true } } },
+      })
+    : [];
+
+  // Build alias → project map (lowercase keywords)
+  const aliasEntries: { keyword: string; projectId: string; projectName: string }[] = [];
+  for (const a of assignments) {
+    if (!a.aliases) continue;
+    const keywords = a.aliases.split(",").map((k: string) => k.trim().toLowerCase()).filter(Boolean);
+    for (const kw of keywords) {
+      aliasEntries.push({ keyword: kw, projectId: a.projectId, projectName: a.project.projectName });
+    }
+  }
+
+  function suggestProject(subject: string): { projectId: string; projectName: string } | null {
+    const lower = subject.toLowerCase();
+    // Try exact substring match first, longest keyword wins
+    const sorted = [...aliasEntries].sort((a, b) => b.keyword.length - a.keyword.length);
+    for (const entry of sorted) {
+      if (lower.includes(entry.keyword)) {
+        return { projectId: entry.projectId, projectName: entry.projectName };
+      }
+    }
+    return null;
+  }
+
   // Map to our CalendarEvent type
   const events: CalendarEvent[] = publicEvents.map((e: any) => {
     const startDt = new Date(e.start?.dateTime + "Z");
@@ -95,6 +127,7 @@ export async function getCalendarEvents(
       .filter(Boolean);
 
     const allocated = allocationMap.get(e.id);
+    const suggestion = !allocated ? suggestProject(e.subject || "") : null;
 
     return {
       id: e.id as string,
@@ -105,6 +138,8 @@ export async function getCalendarEvents(
       isAllDay: (e.isAllDay ?? false) as boolean,
       attendees,
       allocatedProjectId: allocated ?? null,
+      suggestedProjectId: suggestion?.projectId ?? null,
+      suggestedProjectName: suggestion?.projectName ?? null,
     };
   });
 

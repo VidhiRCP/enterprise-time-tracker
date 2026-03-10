@@ -29,6 +29,7 @@ function EventRow({
   projects: ProjectOption[];
 }) {
   const [isPending, startTransition] = useTransition();
+  const hasSuggestion = !event.allocatedProjectId && !!event.suggestedProjectId;
 
   function handleChange(projectId: string) {
     startTransition(async () => {
@@ -41,6 +42,11 @@ function EventRow({
         projectId: projectId || null,
       });
     });
+  }
+
+  function handleAcceptSuggestion() {
+    if (!event.suggestedProjectId) return;
+    handleChange(event.suggestedProjectId);
   }
 
   return (
@@ -69,6 +75,21 @@ function EventRow({
             </span>
           )}
         </div>
+
+        {hasSuggestion && (
+          <div className="flex items-center gap-2 mt-1">
+            <span className="text-[10px] sm:text-xs text-yellow-400/80">
+              ✨ Suggested: <span className="font-bold">{event.suggestedProjectName}</span>
+            </span>
+            <button
+              onClick={handleAcceptSuggestion}
+              disabled={isPending}
+              className="text-[10px] sm:text-xs text-[#F40000] hover:text-[#F40000]/80 font-medium disabled:opacity-40"
+            >
+              Accept
+            </button>
+          </div>
+        )}
       </div>
 
       <div className="flex-shrink-0">
@@ -76,7 +97,11 @@ function EventRow({
           value={event.allocatedProjectId ?? ""}
           onChange={(e) => handleChange(e.target.value)}
           disabled={isPending}
-          className="w-full sm:w-48 rounded-xl border border-[#808080]/30 bg-black px-2 py-1.5 sm:px-3 sm:py-2 text-xs sm:text-sm focus:border-[#F40000] focus:outline-none disabled:opacity-40 transition-opacity"
+          className={`w-full sm:w-48 rounded-xl border bg-black px-2 py-1.5 sm:px-3 sm:py-2 text-xs sm:text-sm focus:border-[#F40000] focus:outline-none disabled:opacity-40 transition-opacity ${
+            hasSuggestion
+              ? "border-yellow-400/40"
+              : "border-[#808080]/30"
+          }`}
         >
           <option value="">— Select project —</option>
           {projects.map((p) => (
