@@ -22,6 +22,7 @@ export default async function HomePage() {
 
   const data = await getDashboardData(session.user.email);
   const totalMinutes = data.entries.reduce((sum, entry) => sum + entry.durationMinutes, 0);
+  const hasProjects = data.projects.length > 0;
 
   return (
     <main className="min-h-screen p-6 md:p-8">
@@ -67,60 +68,71 @@ export default async function HomePage() {
           </div>
         ) : null}
 
-        <div className="grid gap-6 lg:grid-cols-[420px_1fr]">
+        {!hasProjects ? (
           <Card>
-            <TimerPanel
-              projects={data.projects.map((project) => ({
-                projectId: project.projectId,
-                projectName: project.projectName,
-              }))}
-              activeSession={
-                data.session
-                  ? {
-                      id: data.session.id,
-                      projectId: data.session.projectId,
-                      notesDraft: data.session.notesDraft,
-                      accumulatedSeconds: data.session.accumulatedSeconds,
-                      status: data.session.status as "RUNNING" | "PAUSED",
-                      startedAt: data.session.startedAt.toISOString(),
-                      lastResumedAt: data.session.lastResumedAt?.toISOString() ?? null,
-                    }
-                  : null
-              }
-            />
+            <div className="py-8 text-center">
+              <p className="text-sm font-bold text-[#D9D9D9]">No projects assigned</p>
+              <p className="mt-1 text-sm text-[#808080]">
+                Ask your administrator to assign you to a project before you can track time.
+              </p>
+            </div>
           </Card>
-
-          <div className="space-y-6">
+        ) : (
+          <div className="grid gap-6 lg:grid-cols-[420px_1fr]">
             <Card>
-              <div className="space-y-4">
-                <div>
-                  <h2 className="text-lg font-bold">Manual entry</h2>
-                  <p className="mt-1 text-sm text-[#D9D9D9]">
-                    Add time manually for work already completed.
-                  </p>
-                </div>
-                <ManualEntryForm
-                  projects={data.projects.map((project) => ({
-                    projectId: project.projectId,
-                    projectName: project.projectName,
-                  }))}
-                />
-              </div>
+              <TimerPanel
+                projects={data.projects.map((project) => ({
+                  projectId: project.projectId,
+                  projectName: project.projectName,
+                }))}
+                activeSession={
+                  data.session
+                    ? {
+                        id: data.session.id,
+                        projectId: data.session.projectId,
+                        notesDraft: data.session.notesDraft,
+                        accumulatedSeconds: data.session.accumulatedSeconds,
+                        status: data.session.status as "RUNNING" | "PAUSED",
+                        startedAt: data.session.startedAt.toISOString(),
+                        lastResumedAt: data.session.lastResumedAt?.toISOString() ?? null,
+                      }
+                    : null
+                }
+              />
             </Card>
 
-            <Card>
-              <div className="space-y-4">
-                <div>
-                  <h2 className="text-lg font-bold">Recent entries</h2>
-                  <p className="mt-1 text-sm text-[#D9D9D9]">
-                    You only see your own entries. Projects are scoped to your assignments.
-                  </p>
+            <div className="space-y-6">
+              <Card>
+                <div className="space-y-4">
+                  <div>
+                    <h2 className="text-lg font-bold">Manual entry</h2>
+                    <p className="mt-1 text-sm text-[#D9D9D9]">
+                      Add time manually for work already completed.
+                    </p>
+                  </div>
+                  <ManualEntryForm
+                    projects={data.projects.map((project) => ({
+                      projectId: project.projectId,
+                      projectName: project.projectName,
+                    }))}
+                  />
                 </div>
-                <EntryTable entries={data.entries} />
-              </div>
-            </Card>
+              </Card>
+
+              <Card>
+                <div className="space-y-4">
+                  <div>
+                    <h2 className="text-lg font-bold">Recent entries</h2>
+                    <p className="mt-1 text-sm text-[#D9D9D9]">
+                      You only see your own entries. Projects are scoped to your assignments.
+                    </p>
+                  </div>
+                  <EntryTable entries={data.entries} />
+                </div>
+              </Card>
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </main>
   );

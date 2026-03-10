@@ -36,7 +36,7 @@ export function TimerPanel({
   const [notesDraft, setNotesDraft] = useState(activeSession?.notesDraft ?? "");
   const [session, setSession] = useState<SessionData | null>(activeSession);
   const [isPending, startTransition] = useTransition();
-  const [, setTick] = useState(0);
+  const [tick, setTick] = useState(0);
 
   useEffect(() => {
     const id = window.setInterval(() => setTick((v) => v + 1), 1000);
@@ -52,7 +52,8 @@ export function TimerPanel({
       : Date.now();
 
     return session.accumulatedSeconds + Math.floor((Date.now() - last) / 1000);
-  }, [session]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [session, tick]);
 
   useEffect(() => {
     if (!session) return;

@@ -3,6 +3,7 @@ import MicrosoftEntraID from "next-auth/providers/microsoft-entra-id";
 import { prisma } from "@/lib/prisma";
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
+  secret: process.env.AUTH_SECRET,
   session: { strategy: "jwt" },
   trustHost: true,
   providers: [
@@ -29,12 +30,12 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             active: true,
           },
         });
-        (token as any).userId = user.id;
+        token.userId = user.id;
       }
       return token;
     },
     async session({ session, token }) {
-      if (session.user) (session.user as any).id = (token as any).userId;
+      if (session.user && token.userId) session.user.id = token.userId;
       return session;
     },
   },
