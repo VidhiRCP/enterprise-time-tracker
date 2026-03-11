@@ -1,7 +1,8 @@
 "use client";
 
+import { useState, useMemo } from "react";
 import { formatMinutes } from "@/lib/time";
-import { format } from "date-fns";
+import { format, startOfWeek, endOfWeek, addWeeks, subWeeks, isAfter } from "date-fns";
 
 /* ── Types ── */
 export type DashboardStatsData = {
@@ -23,16 +24,11 @@ export type DashboardStatsData = {
     sessions: number;
   } | null;
   weekDays: { label: string; minutes: number }[];
-  recentEntries: {
-    projectName: string;
+  projectEntries: {
     projectId: string;
+    projectName: string;
+    workDate: string;
     durationMinutes: number;
-    source: string;
-  }[];
-  staleProjects: {
-    projectId: string;
-    projectName: string;
-    daysSince: number;
   }[];
   lastActivityAgo: string | null;
 };
@@ -53,6 +49,82 @@ function S({ children, className = "", onClick }: { children: React.ReactNode; c
     <div className={`rounded-xl border border-[#808080]/30 p-3 sm:p-4 ${className}`} onClick={onClick} role={onClick ? "button" : undefined} tabIndex={onClick ? 0 : undefined} onKeyDown={onClick ? (e) => { if (e.key === "Enter" || e.key === " ") onClick(); } : undefined}>
       {children}
     </div>
+  );
+}
+
+/* ── Project Time chart with week picker ── */
+function ProjectTimeCard({ entries }: { entries: DashboardStatsData["projectEntries"] }) {
+  const [weekOffset, setWeekOffset] = useState(0);
+
+  const now = new Date();
+  const currentWeekStart = startOfWeek(now, { weekStartsOn: 1 });
+
+  const selectedWeekStart = addWeeks(currentWeekStart, weekOffset);
+  const selectedWeekEnd = endOfWeek(selectedWeekStart, { weekStartsOn: 1 });
+  const isFutureWeek = isAfter(addWeeks(selectedWeekStart, 1), currentWeekStart) && weekOffset >= 0;
+
+  const weekLabel = `${format(selectedWeekStart, "d MMM")} – ${format(selectedWeekEnd, "d MMM")}`;
+
+  const projectTotals = useMemo(() => {
+    const wkStart = format(selectedWeekStart, "yyyy-MM-dd");
+    const wkEnd = format(selectedWeekEnd, "yyyy-MM-dd");
+
+    const map = new Map<string, { projectId: string; projectName: string; minutes: number }>();
+    for (const e of entries) {
+      if (e.workDate >= wkStart && e.workDate <= wkEnd) {
+        const prev = map.get(e.projectId) ?? { projectId: e.projectId, projectName: e.projectName, minutes: 0 };
+        prev.minutes += e.durationMinutes;
+        map.set(e.projectId, prev);
+      }
+    }
+    return Array.from(map.values()).sort((a, b) => b.minutes - a.minutes);
+  }, [entries, selectedWeekStart, selectedWeekEnd]);
+
+  const maxMinutes = Math.max(...projectTotals.map((p) => p.minutes), 1);
+
+  return (
+    <S className="hidden lg:block">
+      <div className="flex items-center justify-between mb-2">
+        <div className="text-xs uppercase tracking-wider text-[#808080] font-bold">Project Time</div>
+        <div className="flex items-center gap-1.5">
+          <button
+            onClick={() => setWeekOffset((v) => v - 1)}
+            className="text-sm text-[#808080] hover:text-[#D9D9D9] transition-colors px-1"
+          >
+            ‹
+          </button>
+          <span className="text-[10px] text-[#D9D9D9] font-bold tabular-nums">{weekLabel}</span>
+          <button
+            onClick={() => setWeekOffset((v) => v + 1)}
+            disabled={isFutureWeek}
+            className="text-sm text-[#808080] hover:text-[#D9D9D9] transition-colors px-1 disabled:opacity-20 disabled:cursor-not-allowed"
+          >
+            ›
+          </button>
+        </div>
+      </div>
+
+      {projectTotals.length > 0 ? (
+        <div className="space-y-2">
+          {projectTotals.map((p) => (
+            <div key={p.projectId}>
+              <div className="flex items-center justify-between mb-0.5">
+                <span className="text-xs text-[#D9D9D9] truncate max-w-[70%]">{p.projectName}</span>
+                <span className="text-xs font-bold tabular-nums text-[#D9D9D9] shrink-0">{formatMinutes(p.minutes)}</span>
+              </div>
+              <div className="h-2 w-full rounded bg-[#808080]/10 overflow-hidden">
+                <div
+                  className="h-full rounded bg-[#F40000] transition-all"
+                  style={{ width: `${(p.minutes / maxMinutes) * 100}%` }}
+                />
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="text-xs text-[#808080] mt-1">No time logged this week</div>
+      )}
+    </S>
   );
 }
 
@@ -145,28 +217,8 @@ export function DashboardStats({ data, onTodayClick }: { data: DashboardStatsDat
         </div>
       </S>
 
-      {/* ── 7. Recent Activity (desktop sidebar only) ── */}
-      <S className="hidden lg:block">
-        <div className="text-xs uppercase tracking-wider text-[#808080] font-bold">Recent</div>
-        {data.recentEntries.length > 0 ? (
-          <div className="mt-1 space-y-1.5">
-            {data.recentEntries.map((entry, i) => (
-              <div key={i} className="flex items-center gap-1.5 text-xs">
-                <span className="font-bold tabular-nums text-[#D9D9D9] shrink-0">{formatMinutes(entry.durationMinutes)}</span>
-                <span className="text-[#808080]">—</span>
-                <span className="truncate">{entry.projectName}</span>
-                <span className={`shrink-0 text-[10px] ${
-                  entry.source === "TIMER" ? "text-[#F40000]" : "text-[#808080]"
-                }`}>
-                  {entry.source === "TIMER" ? "⏱" : "✏"}
-                </span>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="text-xs text-[#808080] mt-1">No entries yet</div>
-        )}
-      </S>
+      {/* ── 6. Project Time (desktop sidebar only) ── */}
+      <ProjectTimeCard entries={data.projectEntries} />
 
     </div>
   );

@@ -77,34 +77,13 @@ function computeDashboardStats(
       }
     : null;
 
-  // Recent entries (last 5)
-  const recentEntries = data.entries.slice(0, 5).map((e) => ({
-    projectName: e.project.projectName,
+  // All project entries for client-side week filtering
+  const projectEntries = data.entries.map((e) => ({
     projectId: e.project.projectId,
+    projectName: e.project.projectName,
+    workDate: new Date(e.workDate).toISOString().slice(0, 10),
     durationMinutes: e.durationMinutes,
-    source: e.source,
   }));
-
-  // Stale projects (assigned but no entry in last 3 days)
-  const threeDaysAgo = new Date(now);
-  threeDaysAgo.setDate(now.getDate() - 3);
-  threeDaysAgo.setHours(0, 0, 0, 0);
-  const lastEntryPerProject = new Map<string, Date>();
-  for (const e of data.entries) {
-    const d = new Date(e.workDate);
-    const prev = lastEntryPerProject.get(e.projectId);
-    if (!prev || d > prev) lastEntryPerProject.set(e.projectId, d);
-  }
-  const staleProjects = data.projects
-    .map((p) => {
-      const last = lastEntryPerProject.get(p.projectId);
-      if (!last || last < threeDaysAgo) {
-        const daysSince = last ? Math.round((now.getTime() - last.getTime()) / 86400000) : 999;
-        return { projectId: p.projectId, projectName: p.projectName, daysSince };
-      }
-      return null;
-    })
-    .filter(Boolean) as { projectId: string; projectName: string; daysSince: number }[];
 
   return {
     todayMinutes,
@@ -116,8 +95,7 @@ function computeDashboardStats(
     expectedDayHours: 8,
     topProjectToday,
     weekDays,
-    recentEntries,
-    staleProjects,
+    projectEntries,
     lastActivityAgo,
   };
 }
