@@ -260,13 +260,13 @@ export function EntryTable({
       )}
 
       {/* ── Filter bar ── */}
-      <div className="flex flex-wrap items-end gap-2 sm:gap-3">
+      <div className="flex flex-wrap items-end gap-3">
         <div className="space-y-1">
-          <label className="text-xs uppercase tracking-wider text-[#808080] font-bold">Project</label>
+          <label className="text-sm font-medium text-[#D9D9D9]">Project</label>
           <select
             value={filterProject}
             onChange={(e) => setFilterProject(e.target.value)}
-            className="rounded-lg border border-[#808080]/30 bg-black px-2 py-1.5 text-xs focus:border-[#F40000] focus:outline-none"
+            className="w-full rounded-xl border border-[#808080]/30 bg-black px-3 py-2 text-sm focus:border-[#F40000] focus:outline-none"
           >
             <option value="ALL">All projects</option>
             {uniqueProjects.map(([id, name]) => (
@@ -275,27 +275,27 @@ export function EntryTable({
           </select>
         </div>
         <div className="space-y-1">
-          <label className="text-xs uppercase tracking-wider text-[#808080] font-bold">From</label>
+          <label className="text-sm font-medium text-[#D9D9D9]">From</label>
           <input
             type="date"
             value={filterFrom}
             onChange={(e) => setFilterFrom(e.target.value)}
-            className="rounded-lg border border-[#808080]/30 bg-black px-2 py-1.5 text-xs focus:border-[#F40000] focus:outline-none"
+            className="w-full rounded-xl border border-[#808080]/30 bg-black px-3 py-2 text-sm focus:border-[#F40000] focus:outline-none"
           />
         </div>
         <div className="space-y-1">
-          <label className="text-xs uppercase tracking-wider text-[#808080] font-bold">To</label>
+          <label className="text-sm font-medium text-[#D9D9D9]">To</label>
           <input
             type="date"
             value={filterTo}
             onChange={(e) => setFilterTo(e.target.value)}
-            className="rounded-lg border border-[#808080]/30 bg-black px-2 py-1.5 text-xs focus:border-[#F40000] focus:outline-none"
+            className="w-full rounded-xl border border-[#808080]/30 bg-black px-3 py-2 text-sm focus:border-[#F40000] focus:outline-none"
           />
         </div>
         {(filterProject !== "ALL" || filterFrom || filterTo) && (
           <button
             onClick={() => { setFilterProject("ALL"); setFilterFrom(""); setFilterTo(""); }}
-            className="rounded-lg border border-[#808080]/30 px-2 py-1.5 text-xs text-[#808080] hover:text-[#D9D9D9] transition-colors"
+            className="rounded-xl border border-[#808080]/30 px-3 py-2 text-sm text-[#808080] hover:text-[#D9D9D9] transition-colors"
           >
             Clear filters
           </button>
