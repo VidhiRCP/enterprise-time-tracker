@@ -109,7 +109,7 @@ export function ActivityContent({
 
       <div className="grid gap-3 lg:grid-cols-[320px_1fr]">
         {/* ── Left sidebar ── */}
-        <div className="space-y-2 lg:sticky lg:top-4 lg:self-start lg:max-h-[calc(100vh-5rem)] lg:overflow-y-auto">
+        <div className="space-y-2 lg:sticky lg:top-4 lg:self-start">
           <div className="rounded-xl border border-[#808080]/30 p-3 hidden lg:block">
             <button
               onClick={() => setStatsCollapsed((v) => !v)}

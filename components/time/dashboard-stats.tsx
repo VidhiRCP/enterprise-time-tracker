@@ -120,25 +120,10 @@ export function DashboardStats({ data, onTodayClick }: { data: DashboardStatsDat
         </div>
       </S>
 
-      {/* ── 5. Top Project Today (desktop sidebar only) ── */}
+      {/* ── 5. Weekly Trend (desktop sidebar only) ── */}
       <S className="hidden lg:block">
-        <div className="text-xs uppercase tracking-wider text-[#808080] font-bold">Top Project Today</div>
-        {data.topProjectToday ? (
-          <div className="mt-0.5">
-            <div className="text-sm font-bold truncate">{data.topProjectToday.projectName}</div>
-            <div className="text-xs text-[#808080]">
-              {data.topProjectToday.projectId} · {formatMinutes(data.topProjectToday.minutes)} · {data.topProjectToday.sessions} session{data.topProjectToday.sessions !== 1 ? "s" : ""}
-            </div>
-          </div>
-        ) : (
-          <div className="text-xs text-[#808080] mt-1">No activity yet</div>
-        )}
-      </S>
-
-      {/* ── 6. Weekly Trend (desktop sidebar only) ── */}
-      <S className="hidden lg:block">
-        <div className="text-xs uppercase tracking-wider text-[#808080] font-bold mb-1.5">Weekly Trend</div>
-        <div className="flex items-end gap-1 h-12">
+        <div className="text-xs uppercase tracking-wider text-[#808080] font-bold mb-2">Weekly Trend</div>
+        <div className="flex items-end gap-1.5 h-20">
           {data.weekDays.map((day) => (
             <div key={day.label} className="flex-1 flex flex-col justify-end h-full">
               <div
@@ -148,7 +133,7 @@ export function DashboardStats({ data, onTodayClick }: { data: DashboardStatsDat
             </div>
           ))}
         </div>
-        <div className="flex gap-1 mt-1">
+        <div className="flex gap-1.5 mt-1.5">
           {data.weekDays.map((day) => (
             <div key={day.label} className="flex-1 text-center">
               <div className="text-[10px] text-[#808080]">{day.label}</div>
@@ -183,19 +168,6 @@ export function DashboardStats({ data, onTodayClick }: { data: DashboardStatsDat
         )}
       </S>
 
-      {/* ── 8. Stale Projects (desktop sidebar only, conditional) ── */}
-      {data.staleProjects.length > 0 && (
-        <div className="hidden lg:block rounded-xl border border-yellow-500/30 bg-yellow-500/5 p-3 sm:p-4">
-          <div className="text-xs uppercase tracking-wider text-yellow-400 font-bold">⚠ No Activity 3+ Days</div>
-          <div className="mt-1 space-y-1">
-            {data.staleProjects.map((p) => (
-              <div key={p.projectId} className="text-xs text-[#D9D9D9]">
-                {p.projectName} <span className="text-[#808080]">· {p.daysSince}d</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
     </div>
   );
 }
