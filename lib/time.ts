@@ -1,5 +1,9 @@
 export function formatMinutes(minutes: number) {
-  return `${(minutes / 60).toFixed(2)}h`;
+  const m = Math.round(minutes);
+  if (m < 60) return `${m} min`;
+  const h = Math.floor(m / 60);
+  const rem = m % 60;
+  return rem > 0 ? `${h}h ${rem}m` : `${h}h`;
 }
 
 export function formatSeconds(seconds: number) {

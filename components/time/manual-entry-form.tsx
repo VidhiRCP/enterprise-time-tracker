@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { createManualEntry } from "@/lib/actions";
-import { localDateInputValue } from "@/lib/time";
+import { localDateInputValue, formatMinutes } from "@/lib/time";
 
 type ProjectOption = {
   projectId: string;
@@ -150,7 +150,7 @@ export function ManualEntryForm({ projects }: { projects: ProjectOption[] }) {
                 <label className="text-sm font-medium text-[#D9D9D9]">End time</label>
                 {computedDuration && (
                   <span className="text-xs text-[#808080]">
-                    = <span className="font-bold text-[#D9D9D9]">{(computedDuration / 60).toFixed(2)}h</span>
+                    = <span className="font-bold text-[#D9D9D9]">{formatMinutes(computedDuration)}</span>
                   </span>
                 )}
               </div>
