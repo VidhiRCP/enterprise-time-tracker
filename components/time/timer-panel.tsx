@@ -117,15 +117,15 @@ export function TimerPanel({
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3">
       {/* ── Row 1: Timer display + action buttons ── */}
-      <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+      <div className="flex flex-col gap-2 lg:flex-row lg:items-center lg:justify-between">
         <div className="min-w-0">
           <div className="text-xs uppercase tracking-wider text-[#808080]">Current timer</div>
-          <div className="text-3xl sm:text-4xl font-bold tracking-tight tabular-nums mt-1">
+          <div className="text-2xl sm:text-3xl font-bold tracking-tight tabular-nums mt-0.5">
             {formatSeconds(elapsedSeconds)}
           </div>
-          <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm mt-1">
+          <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs sm:text-sm mt-0.5">
             {hasSession ? (
               <>
                 <span className={isRunning ? "text-[#F40000]" : "text-[#808080]"}>●</span>
@@ -145,7 +145,7 @@ export function TimerPanel({
         </div>
 
         {/* Action buttons — inline row */}
-        <div className="flex flex-wrap gap-2 shrink-0">
+        <div className="flex flex-wrap gap-1.5 shrink-0">
           <button
             disabled={isPending || !projectId || isRunning}
             onClick={() =>
@@ -172,7 +172,7 @@ export function TimerPanel({
                 });
               })
             }
-            className="rounded-xl bg-[#F40000] px-4 py-2 text-sm font-bold text-[#F8F8F8] hover:opacity-90 transition-opacity disabled:opacity-40"
+            className="rounded-xl bg-[#F40000] px-3 py-1.5 text-sm font-bold text-[#F8F8F8] hover:opacity-90 transition-opacity disabled:opacity-40"
           >
             {getStartLabel()}
           </button>
@@ -185,7 +185,7 @@ export function TimerPanel({
                 await pauseSession({ sessionId: session!.id, elapsedSeconds, notesDraft });
               })
             }
-            className="rounded-xl border border-[#808080]/30 px-4 py-2 text-sm font-medium text-[#D9D9D9] hover:text-[#F8F8F8] transition-colors disabled:opacity-40"
+            className="rounded-xl border border-[#808080]/30 px-3 py-1.5 text-sm font-medium text-[#D9D9D9] hover:text-[#F8F8F8] transition-colors disabled:opacity-40"
           >
             ⏸ Pause
           </button>
@@ -203,7 +203,7 @@ export function TimerPanel({
                 await finalizeSession({ sessionId: sid, projectId, elapsedSeconds, notesDraft, workDate: localDateInputValue() });
               });
             }}
-            className="rounded-xl border border-[#808080]/30 px-4 py-2 text-sm font-bold text-[#F8F8F8] hover:border-[#D9D9D9] transition-colors disabled:opacity-40"
+            className="rounded-xl border border-[#808080]/30 px-3 py-1.5 text-sm font-bold text-[#F8F8F8] hover:border-[#D9D9D9] transition-colors disabled:opacity-40"
           >
             💾 Save Session
           </button>
@@ -221,7 +221,7 @@ export function TimerPanel({
                 await discardSession({ sessionId: sid, elapsedSeconds, notesDraft });
               });
             }}
-            className="rounded-xl border border-[#808080]/30 px-4 py-2 text-sm font-medium text-[#F40000] hover:opacity-80 transition-opacity disabled:opacity-40"
+            className="rounded-xl border border-[#808080]/30 px-3 py-1.5 text-sm font-medium text-[#F40000] hover:opacity-80 transition-opacity disabled:opacity-40"
           >
             🗑 Discard
           </button>
@@ -229,13 +229,13 @@ export function TimerPanel({
       </div>
 
       {/* ── Row 2: Project + Notes side by side ── */}
-      <div className="grid gap-3 sm:grid-cols-[1fr_2fr]">
+      <div className="grid gap-2 sm:grid-cols-[1fr_2fr]">
         <div className="space-y-1">
           <label className="text-sm font-medium text-[#D9D9D9]">Project</label>
           <select
             value={projectId}
             onChange={(e) => handleProjectChange(e.target.value)}
-            className="w-full rounded-xl border border-[#808080]/30 bg-black px-3 py-2 text-sm focus:border-[#F40000] focus:outline-none"
+            className="w-full rounded-xl border border-[#808080]/30 bg-black px-2.5 py-1.5 text-sm focus:border-[#F40000] focus:outline-none"
           >
             {projects.map((project) => (
               <option key={project.projectId} value={project.projectId}>
@@ -253,7 +253,7 @@ export function TimerPanel({
             value={notesDraft}
             onChange={(e) => { setNotesDraft(e.target.value); setNotesError(""); }}
             rows={2}
-            className={`w-full rounded-xl border bg-black px-3 py-2 text-sm focus:border-[#F40000] focus:outline-none ${
+            className={`w-full rounded-xl border bg-black px-2.5 py-1.5 text-sm focus:border-[#F40000] focus:outline-none ${
               notesError ? "border-[#F40000]" : "border-[#808080]/30"
             }`}
             placeholder="What are you working on? (required)"

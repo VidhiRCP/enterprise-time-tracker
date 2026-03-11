@@ -64,9 +64,9 @@ export function ManualEntryForm({ projects }: { projects: ProjectOption[] }) {
   }
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-2">
       {/* ── Row 1: Project + Date side by side ── */}
-      <div className="grid gap-3 sm:grid-cols-[2fr_1fr]">
+      <div className="grid gap-2 sm:grid-cols-[2fr_1fr]">
         <div className="space-y-1">
           <label className="text-sm font-medium text-[#D9D9D9]">Project</label>
           <select
@@ -90,7 +90,7 @@ export function ManualEntryForm({ projects }: { projects: ProjectOption[] }) {
       </div>
 
       {/* ── Row 2: Mode toggle + time/duration inputs inline ── */}
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-end">
         {/* Mode toggle */}
         <div className="space-y-1 shrink-0">
           <label className="text-sm font-medium text-[#D9D9D9]">Entry type</label>
@@ -166,7 +166,7 @@ export function ManualEntryForm({ projects }: { projects: ProjectOption[] }) {
       </div>
 
       {/* ── Row 3: Notes + Submit side by side ── */}
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-end">
         <div className="flex-1 space-y-1">
           <label className="text-sm font-medium text-[#D9D9D9]">
             Notes <span className="text-[#F40000]">*</span>

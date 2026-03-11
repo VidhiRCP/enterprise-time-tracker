@@ -46,9 +46,82 @@ function Bar({ value, max, color = "bg-[#F40000]" }: { value: number; max: numbe
 /* ── Stat card wrapper ── */
 function S({ children, className = "", onClick }: { children: React.ReactNode; className?: string; onClick?: () => void }) {
   return (
-    <div className={`rounded-xl border border-[#808080]/30 p-3 sm:p-4 ${className}`} onClick={onClick} role={onClick ? "button" : undefined} tabIndex={onClick ? 0 : undefined} onKeyDown={onClick ? (e) => { if (e.key === "Enter" || e.key === " ") onClick(); } : undefined}>
+    <div className={`rounded-xl border border-[#808080]/30 p-2.5 sm:p-3 ${className}`} onClick={onClick} role={onClick ? "button" : undefined} tabIndex={onClick ? 0 : undefined} onKeyDown={onClick ? (e) => { if (e.key === "Enter" || e.key === " ") onClick(); } : undefined}>
       {children}
     </div>
+  );
+}
+
+/* ── Weekly Trend chart with week picker ── */
+function WeeklyTrendCard({ entries }: { entries: DashboardStatsData["projectEntries"] }) {
+  const [weekOffset, setWeekOffset] = useState(0);
+
+  const now = new Date();
+  const currentWeekStart = startOfWeek(now, { weekStartsOn: 1 });
+  const selectedWeekStart = addWeeks(currentWeekStart, weekOffset);
+  const selectedWeekEnd = endOfWeek(selectedWeekStart, { weekStartsOn: 1 });
+  const isFutureWeek = weekOffset >= 0;
+
+  const weekLabel = `${format(selectedWeekStart, "d MMM")} – ${format(selectedWeekEnd, "d MMM")}`;
+
+  const dayLabels = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+
+  const weekDays = useMemo(() => {
+    return dayLabels.map((label, i) => {
+      const d = new Date(selectedWeekStart);
+      d.setDate(selectedWeekStart.getDate() + i);
+      const dateStr = format(d, "yyyy-MM-dd");
+      const minutes = entries
+        .filter((e) => e.workDate === dateStr)
+        .reduce((s, e) => s + e.durationMinutes, 0);
+      return { label, minutes };
+    });
+  }, [entries, selectedWeekStart]);
+
+  const weekMax = Math.max(...weekDays.map((d) => d.minutes), 1);
+
+  return (
+    <S className="hidden lg:block">
+      <div className="flex items-center justify-between mb-1.5">
+        <div className="text-xs uppercase tracking-wider text-[#808080] font-bold">Weekly Trend</div>
+        <div className="flex items-center gap-1.5">
+          <button
+            onClick={() => setWeekOffset((v) => v - 1)}
+            className="text-sm text-[#808080] hover:text-[#D9D9D9] transition-colors px-1"
+          >
+            ‹
+          </button>
+          <span className="text-[10px] text-[#D9D9D9] font-bold tabular-nums">{weekLabel}</span>
+          <button
+            onClick={() => setWeekOffset((v) => v + 1)}
+            disabled={isFutureWeek}
+            className="text-sm text-[#808080] hover:text-[#D9D9D9] transition-colors px-1 disabled:opacity-20 disabled:cursor-not-allowed"
+          >
+            ›
+          </button>
+        </div>
+      </div>
+      <div className="flex items-end gap-1.5 h-16">
+        {weekDays.map((day) => (
+          <div key={day.label} className="flex-1 flex flex-col justify-end h-full">
+            <div
+              className={`w-full rounded-t transition-all ${day.minutes > 0 ? "bg-[#F40000]" : "bg-[#808080]/15"}`}
+              style={{ height: `${weekMax > 0 ? Math.max(4, (day.minutes / weekMax) * 100) : 4}%` }}
+            />
+          </div>
+        ))}
+      </div>
+      <div className="flex gap-1.5 mt-1">
+        {weekDays.map((day) => (
+          <div key={day.label} className="flex-1 text-center">
+            <div className="text-[10px] text-[#808080]">{day.label}</div>
+            <div className="text-[10px] font-bold text-[#D9D9D9] tabular-nums">
+              {day.minutes > 0 ? formatMinutes(day.minutes) : "—"}
+            </div>
+          </div>
+        ))}
+      </div>
+    </S>
   );
 }
 
@@ -140,7 +213,7 @@ export function DashboardStats({ data, onTodayClick }: { data: DashboardStatsDat
       {/* ── 1. Today's Activity ── */}
       <S className={onTodayClick ? "cursor-pointer hover:border-[#F40000]/50 transition-colors" : ""} onClick={onTodayClick}>
         <div className="text-xs uppercase tracking-wider text-[#808080] font-bold">Today</div>
-        <div className="text-xl lg:text-2xl font-bold tabular-nums mt-0.5">{formatMinutes(data.todayMinutes)}</div>
+        <div className="text-lg lg:text-xl font-bold tabular-nums mt-0.5">{formatMinutes(data.todayMinutes)}</div>
         <div className="text-xs text-[#808080] mt-0.5 space-y-px">
           <div>{data.todayProjectsCount} project{data.todayProjectsCount !== 1 ? "s" : ""} worked on</div>
           {data.lastActivityAgo && <div>Last: {data.lastActivityAgo}</div>}
@@ -168,7 +241,7 @@ export function DashboardStats({ data, onTodayClick }: { data: DashboardStatsDat
       {/* ── 3. Remaining Today ── */}
       <S>
         <div className="text-xs uppercase tracking-wider text-[#808080] font-bold">Remaining Today</div>
-        <div className={`text-xl lg:text-2xl font-bold tabular-nums mt-0.5 ${remainingMinutes > 0 ? "" : "text-green-400"}`}>
+        <div className={`text-lg lg:text-xl font-bold tabular-nums mt-0.5 ${remainingMinutes > 0 ? "" : "text-green-400"}`}>
           {remainingMinutes > 0 ? formatMinutes(remainingMinutes) : "✓ Done"}
         </div>
         <Bar
@@ -186,36 +259,14 @@ export function DashboardStats({ data, onTodayClick }: { data: DashboardStatsDat
         <div className="text-xs uppercase tracking-wider text-[#808080] font-bold">
           Week · {weekLabel}
         </div>
-        <div className="text-xl lg:text-2xl font-bold tabular-nums mt-0.5">{formatMinutes(data.weekTotalMinutes)}</div>
+        <div className="text-lg lg:text-xl font-bold tabular-nums mt-0.5">{formatMinutes(data.weekTotalMinutes)}</div>
         <div className="text-xs text-[#808080] mt-0.5">
           Avg {formatMinutes(Math.round(avgPerDay))}/day
         </div>
       </S>
 
       {/* ── 5. Weekly Trend (desktop sidebar only) ── */}
-      <S className="hidden lg:block">
-        <div className="text-xs uppercase tracking-wider text-[#808080] font-bold mb-2">Weekly Trend</div>
-        <div className="flex items-end gap-1.5 h-20">
-          {data.weekDays.map((day) => (
-            <div key={day.label} className="flex-1 flex flex-col justify-end h-full">
-              <div
-                className={`w-full rounded-t transition-all ${day.minutes > 0 ? "bg-[#F40000]" : "bg-[#808080]/15"}`}
-                style={{ height: `${weekMax > 0 ? Math.max(4, (day.minutes / weekMax) * 100) : 4}%` }}
-              />
-            </div>
-          ))}
-        </div>
-        <div className="flex gap-1.5 mt-1.5">
-          {data.weekDays.map((day) => (
-            <div key={day.label} className="flex-1 text-center">
-              <div className="text-[10px] text-[#808080]">{day.label}</div>
-              <div className="text-[10px] font-bold text-[#D9D9D9] tabular-nums">
-                {day.minutes > 0 ? formatMinutes(day.minutes) : "—"}
-              </div>
-            </div>
-          ))}
-        </div>
-      </S>
+      <WeeklyTrendCard entries={data.projectEntries} />
 
       {/* ── 6. Project Time (desktop sidebar only) ── */}
       <ProjectTimeCard entries={data.projectEntries} />

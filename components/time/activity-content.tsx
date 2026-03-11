@@ -53,16 +53,16 @@ function CollapsibleSection({
           className="w-full flex items-center justify-between text-left"
         >
           <div className="min-w-0">
-            <h2 className="text-base font-bold">{title}</h2>
+            <h2 className="text-sm font-bold">{title}</h2>
             {subtitle && !collapsed && (
-              <p className="text-xs sm:text-sm text-[#808080]">{subtitle}</p>
+              <p className="text-xs text-[#808080]">{subtitle}</p>
             )}
           </div>
           <span className="shrink-0 ml-2 text-[#808080] hover:text-[#D9D9D9] transition-colors text-sm">
             {collapsed ? "▸" : "▾"}
           </span>
         </button>
-        {!collapsed && <div className="mt-3">{children}</div>}
+        {!collapsed && <div className="mt-2">{children}</div>}
       </div>
     </Card>
   );
@@ -159,8 +159,8 @@ export function ActivityContent({
           <Card>
             <div className="space-y-2">
               <div>
-                <h2 className="text-base font-bold">Recent entries</h2>
-                <p className="text-xs sm:text-sm text-[#808080]">Your entries, scoped to your project assignments.</p>
+                <h2 className="text-sm font-bold">Recent entries</h2>
+                <p className="text-xs text-[#808080]">Your entries, scoped to your project assignments.</p>
               </div>
               <EntryTable
                 entries={entries}
