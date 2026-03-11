@@ -164,7 +164,9 @@ export async function finalizeSession(input: {
 
   if (!input.notesDraft?.trim()) throw new Error("Notes are required before saving.");
 
-  const durationMinutes = Math.max(1, Math.round(input.elapsedSeconds / 60));
+  const now = new Date();
+  const wallClockMs = now.getTime() - session.startedAt.getTime();
+  const durationMinutes = Math.max(1, Math.round(wallClockMs / 60_000));
 
   await prisma.$transaction([
     prisma.timeEntry.create({
@@ -185,9 +187,9 @@ export async function finalizeSession(input: {
         status: "FINALIZED",
         accumulatedSeconds: Math.max(0, input.elapsedSeconds),
         notesDraft: input.notesDraft?.trim() || null,
-        stoppedAt: new Date(),
-        finalizedAt: new Date(),
-        lastHeartbeatAt: new Date(),
+        stoppedAt: now,
+        finalizedAt: now,
+        lastHeartbeatAt: now,
       },
     }),
   ]);

@@ -31,6 +31,17 @@ function formatTime(date: Date | string) {
   return format(new Date(date), "HH:mm");
 }
 
+/** Derive display duration from wall-clock start/stop for TIMER entries
+ *  so the number always matches the HH:MM range the user sees. */
+function effectiveDuration(entry: Entry): number {
+  if (entry.timerSession?.startedAt && entry.timerSession?.stoppedAt) {
+    const startMs = new Date(entry.timerSession.startedAt).getTime();
+    const stopMs = new Date(entry.timerSession.stoppedAt).getTime();
+    return Math.max(1, Math.round((stopMs - startMs) / 60_000));
+  }
+  return entry.durationMinutes;
+}
+
 /* ── Source badge ── */
 function SourceBadge({ source }: { source: string }) {
   if (source === "TIMER") {
@@ -216,7 +227,7 @@ export function EntryTable({
       }
       const g = groups.get(key)!;
       g.entries.push(entry);
-      g.total += entry.durationMinutes;
+      g.total += effectiveDuration(entry);
     }
 
     // Sort weeks descending (most recent first)
@@ -242,8 +253,8 @@ export function EntryTable({
       "Project ID": e.project.projectId,
       Started: e.timerSession?.startedAt ? format(new Date(e.timerSession.startedAt), "HH:mm") : "",
       Stopped: e.timerSession?.stoppedAt ? format(new Date(e.timerSession.stoppedAt), "HH:mm") : "",
-      "Duration (min)": e.durationMinutes,
-      Duration: formatMinutes(e.durationMinutes),
+      "Duration (min)": effectiveDuration(e),
+      Duration: formatMinutes(effectiveDuration(e)),
       Source: e.source,
       Notes: e.notes ?? "",
     }));
@@ -330,7 +341,7 @@ export function EntryTable({
         )}
         <div className="ml-auto flex items-center gap-2">
           <span className="text-xs text-[#808080]">
-            {filtered.length} {filtered.length === 1 ? "entry" : "entries"} · {formatMinutes(filtered.reduce((s, e) => s + e.durationMinutes, 0))}
+            {filtered.length} {filtered.length === 1 ? "entry" : "entries"} · {formatMinutes(filtered.reduce((s, e) => s + effectiveDuration(e), 0))}
           </span>
           <button
             onClick={() => exportToExcel(filtered)}
@@ -394,7 +405,7 @@ export function EntryTable({
                     </div>
 
                     <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-[#D9D9D9] items-center">
-                      <span className="font-bold text-[#F8F8F8]">{formatMinutes(entry.durationMinutes)}</span>
+                      <span className="font-bold text-[#F8F8F8]">{formatMinutes(effectiveDuration(entry))}</span>
                       <SourceBadge source={entry.source} />
                       {entry.timerSession?.startedAt && (
                         <span className="text-[#808080]">
@@ -455,7 +466,7 @@ export function EntryTable({
                           : <span className="text-[#808080]">—</span>}
                       </td>
                       <td className="border-b border-[#808080]/10 px-3 lg:px-4 py-2 lg:py-3 font-bold tabular-nums">
-                        {formatMinutes(entry.durationMinutes)}
+                        {formatMinutes(effectiveDuration(entry))}
                       </td>
                       <td className="border-b border-[#808080]/10 px-3 lg:px-4 py-2 lg:py-3">
                         <SourceBadge source={entry.source} />
