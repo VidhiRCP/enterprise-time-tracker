@@ -125,11 +125,11 @@ model CalendarAllocation {
 model ExpenseReceipt {
   id         String             @id @default(cuid())
   userId     String
-  projectId  String
+  projectId  String?
   filePath   String
   createdAt  DateTime           @default(now())
   user       User               @relation(fields: [userId], references: [id])
-  project    Project            @relation(fields: [projectId], references: [projectId])
+  project    Project?           @relation(fields: [projectId], references: [projectId])
   extraction ExpenseExtraction?
   entry      ExpenseEntry?
 }

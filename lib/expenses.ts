@@ -1,0 +1,141 @@
+"use server";
+
+import { prisma } from "@/lib/prisma";
+import { auth } from "@/auth";
+import { createClient } from "@supabase/supabase-js";
+import { revalidatePath } from "next/cache";
+import { ensureProjectAccess } from "@/lib/authz";
+
+async function requireUser() {
+  const session = await auth();
+  if (!session?.user?.email) throw new Error("Unauthorized");
+  return session as (typeof session & { user: { email: string; id?: string } });
+}
+
+export async function uploadReceiptAndExtract(file: File) {
+  const session = await requireUser();
+  const userEmail = session.user.email.toLowerCase();
+
+  // Init Supabase admin client
+  const supabaseUrl = process.env.SUPABASE_URL!;
+  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+  const supabase = createClient(supabaseUrl, supabaseKey, { auth: { persistSession: false } });
+
+  const userId = (session.user as any).id;
+  const timestamp = Date.now();
+  const filename = `${userId}/${timestamp}-${file.name}`;
+
+  // Upload to 'receipts' bucket
+  const { data: up, error: upErr } = await supabase.storage.from("receipts").upload(filename, file, {
+    cacheControl: "3600",
+    upsert: false,
+    contentType: file.type,
+  });
+  if (upErr) throw new Error("Upload failed: " + upErr.message);
+
+  const publicUrl = supabase.storage.from("receipts").getPublicUrl(filename).data.publicUrl;
+
+  // Call OpenAI to extract fields (server-side only)
+  const openaiKey = process.env.OPENAI_API_KEY;
+  if (!openaiKey) throw new Error("OpenAI API key not configured");
+
+  const prompt = `Extract the following fields from the receipt accessible at ${publicUrl}.
+Respond with a single JSON object containing: date (YYYY-MM-DD or empty), amount (numeric as string), currency (e.g. USD), merchant (vendor name if available), details (short description).
+If a field is not present, return an empty string for it.
+JSON ONLY.`;
+
+  const resp = await fetch("https://api.openai.com/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${openaiKey}`,
+    },
+    body: JSON.stringify({
+      model: "gpt-4o-mini",
+      messages: [
+        { role: "system", content: "You extract structured JSON from receipts. Return JSON only." },
+        { role: "user", content: prompt },
+      ],
+      max_tokens: 800,
+    }),
+  });
+
+  if (!resp.ok) {
+    const txt = await resp.text();
+    throw new Error("OpenAI request failed: " + txt);
+  }
+  const data = await resp.json();
+  const text = data.choices?.[0]?.message?.content ?? data.choices?.[0]?.text ?? "";
+
+  // Try to parse JSON
+  let extracted: any = {};
+  try {
+    extracted = JSON.parse(text);
+  } catch (e) {
+    // Try to find JSON substring
+    const m = text.match(/\{[\s\S]*\}/);
+    if (m) extracted = JSON.parse(m[0]);
+    else extracted = { date: "", amount: "", currency: "", merchant: "", details: "" };
+  }
+
+  // Persist receipt record
+  const user = await prisma.user.findUniqueOrThrow({ where: { email: userEmail } });
+  const receipt = await prisma.expenseReceipt.create({
+    // Use unchecked/explicit shape to avoid generated type constraints for optional relations
+    data: ({
+      userId: user.id,
+      filePath: filename,
+    } as any),
+  });
+
+  // Persist raw extraction
+  await prisma.expenseExtraction.create({
+    data: {
+      receiptId: receipt.id,
+      rawJson: extracted,
+    },
+  });
+
+  return { receiptId: receipt.id, filePath: filename, publicUrl, extracted };
+}
+
+export async function saveExpenseReview(input: {
+  receiptId: string;
+  projectId: string;
+  expenseDate: string; // YYYY-MM-DD
+  amount: string;
+  currency: string;
+  merchant: string;
+  details: string;
+}) {
+  const session = await requireUser();
+  const userEmail = session.user.email.toLowerCase();
+
+  await ensureProjectAccess(userEmail, input.projectId);
+
+  // link receipt
+  const receipt = await prisma.expenseReceipt.findUniqueOrThrow({ where: { id: input.receiptId } });
+
+  // upsert entry
+  const entry = await prisma.expenseEntry.create({
+    data: {
+      user: { connect: { email: userEmail } },
+      project: { connect: { projectId: input.projectId } },
+      expenseDate: new Date(`${input.expenseDate}T00:00:00.000Z`),
+      amount: input.amount,
+      currency: input.currency,
+      merchant: input.merchant,
+      details: input.details,
+      receipt: { connect: { id: receipt.id } },
+      receiptFilePath: receipt.filePath,
+    },
+  });
+
+  // attach project to receipt if not set
+  if (!receipt.projectId) {
+    await prisma.expenseReceipt.update({ where: { id: receipt.id }, data: { projectId: input.projectId } });
+  }
+
+  revalidatePath("/");
+  return { entry };
+}
