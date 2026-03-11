@@ -220,25 +220,7 @@ export function DashboardStats({ data, onTodayClick }: { data: DashboardStatsDat
         </div>
       </S>
 
-      {/* ── 2. Active Timer ── */}
-      <S>
-        <div className="text-xs uppercase tracking-wider text-[#808080] font-bold">Active Timer</div>
-        {data.activeTimer ? (
-          <div className="mt-0.5">
-            <div className="flex items-center gap-1.5">
-              <span className={`text-xs ${data.activeTimer.status === "RUNNING" ? "text-[#F40000]" : "text-[#808080]"}`}>●</span>
-              <span className="text-sm font-bold truncate">{data.activeTimer.projectName}</span>
-            </div>
-            <div className="text-xs text-[#808080] mt-px">
-              {data.activeTimer.projectId} · {data.activeTimer.status === "RUNNING" ? "Running" : "Paused"}
-            </div>
-          </div>
-        ) : (
-          <div className="text-sm text-[#808080] mt-1">No timer running</div>
-        )}
-      </S>
-
-      {/* ── 3. Remaining Today ── */}
+      {/* ── 2. Remaining Today ── */}
       <S>
         <div className="text-xs uppercase tracking-wider text-[#808080] font-bold">Remaining Today</div>
         <div className={`text-lg lg:text-xl font-bold tabular-nums mt-0.5 ${remainingMinutes > 0 ? "" : "text-green-400"}`}>
