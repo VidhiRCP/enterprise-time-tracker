@@ -7,6 +7,7 @@ const TABS = [
   { key: "meetings", label: "Meeting Tracker" },
   { key: "insights", label: "Insights" },
   { key: "aliases", label: "Project Aliases" },
+  { key: "expenses", label: "Expense Tracker" },
 ] as const;
 
 type TabKey = (typeof TABS)[number]["key"];
@@ -18,6 +19,7 @@ export function DashboardTabs({
   meetingsContent,
   insightsContent,
   aliasesContent,
+  expensesContent,
 }: {
   hasProjects: boolean;
   recoveredSession: boolean;
@@ -25,6 +27,7 @@ export function DashboardTabs({
   meetingsContent: React.ReactNode;
   insightsContent: React.ReactNode;
   aliasesContent: React.ReactNode;
+  expensesContent: React.ReactNode;
 }) {
   const [active, setActive] = useState<TabKey>("activity");
 
@@ -34,7 +37,7 @@ export function DashboardTabs({
         {TABS.map((tab) => (
           <button
             key={tab.key}
-            onClick={() => setActive(tab.key)}
+            onClick={() => setActive(tab.key as TabKey)}
             className={`
               whitespace-nowrap px-4 py-2.5 sm:px-5 sm:py-3 text-sm sm:text-base font-medium transition-colors
               ${
@@ -53,6 +56,7 @@ export function DashboardTabs({
       {active === "meetings" && meetingsContent}
       {active === "insights" && insightsContent}
       {active === "aliases" && aliasesContent}
+      {active === "expenses" && expensesContent}
     </div>
   );
 }

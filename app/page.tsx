@@ -7,6 +7,7 @@ import { InsightsPanel } from "@/components/time/insights-panel";
 import { ProjectAliases } from "@/components/time/project-aliases";
 import { DashboardTabs } from "@/components/dashboard-tabs";
 import { ActivityContent } from "@/components/time/activity-content";
+import { ExpenseTracker } from "@/components/time/expense-tracker";
 import type { DashboardStatsData } from "@/components/time/dashboard-stats";
 
 /* ── Compute all dashboard metrics server-side ── */
@@ -212,6 +213,9 @@ export default async function HomePage() {
           }
           aliasesContent={
             <ProjectAliases assignments={aliasEntries} />
+          }
+          expensesContent={
+            <ExpenseTracker projects={projectOptions} userId={(session.user as any).id} />
           }
         />
       </div>
