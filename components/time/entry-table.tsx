@@ -127,7 +127,7 @@ function EditManualRow({
   return (
     <div className="border border-[#F40000]/30 bg-[#F40000]/5 p-3 space-y-2">
       <div className="flex items-center justify-between">
-        <span className="text-xs sm:text-sm font-bold text-[#F40000] uppercase tracking-wider">Edit manual entry</span>
+        <span className="text-xs sm:text-sm font-bold text-[#F40000] uppercase tracking-wider">Edit Manual Entry</span>
         <button onClick={onClose} className="text-xs text-[#808080] hover:text-[#D9D9D9]">Cancel</button>
       </div>
       <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">

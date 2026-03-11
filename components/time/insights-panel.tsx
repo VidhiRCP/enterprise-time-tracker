@@ -234,6 +234,8 @@ export function InsightsPanel({ data }: { data: InsightsData }) {
         </div>
       </div>
 
+      <div className="border-t border-[#F40000]/25" />
+
       {/* ── Summary Cards ── */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-4">
         <div className="border border-[#808080]/20 p-3 sm:p-4">

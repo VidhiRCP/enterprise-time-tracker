@@ -189,6 +189,8 @@ export function TimesheetPanel({
         </div>
       </div>
 
+      <div className="border-t border-[#F40000]/25" />
+
       {groups.map((group) => (
         <div key={group.date} className="space-y-2">
           <div className="flex items-center gap-4">

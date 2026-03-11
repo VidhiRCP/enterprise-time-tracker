@@ -56,6 +56,8 @@ export function ProjectAliases({ assignments }: { assignments: AliasEntry[] }) {
         </p>
       </div>
 
+      <div className="border-t border-[#F40000]/25" />
+
       <div className="space-y-4">
         {entries.map((entry) => (
           <div

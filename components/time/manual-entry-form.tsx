@@ -93,7 +93,7 @@ export function ManualEntryForm({ projects }: { projects: ProjectOption[] }) {
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
         {/* Mode toggle */}
         <div className="space-y-1 shrink-0">
-          <label className="text-sm font-medium text-[#D9D9D9]">Entry type</label>
+          <label className="text-sm font-medium text-[#D9D9D9]">Entry Type</label>
           <div className="flex border border-[#808080]/30 overflow-hidden">
             <button
               type="button"
@@ -137,7 +137,7 @@ export function ManualEntryForm({ projects }: { projects: ProjectOption[] }) {
         ) : (
           <div className="flex-1 grid gap-3 grid-cols-2 items-end">
             <div className="space-y-1">
-              <label className="text-sm font-medium text-[#D9D9D9]">Start time</label>
+              <label className="text-sm font-medium text-[#D9D9D9]">Start Time</label>
               <input
                 type="time"
                 value={startTime}
@@ -147,7 +147,7 @@ export function ManualEntryForm({ projects }: { projects: ProjectOption[] }) {
             </div>
             <div className="space-y-1">
               <div className="flex items-center justify-between">
-                <label className="text-sm font-medium text-[#D9D9D9]">End time</label>
+                <label className="text-sm font-medium text-[#D9D9D9]">End Time</label>
                 {computedDuration && (
                   <span className="text-xs text-[#808080]">
                     = <span className="font-bold text-[#D9D9D9]">{formatMinutes(computedDuration)}</span>

@@ -62,7 +62,9 @@ function CollapsibleSection({
             {collapsed ? "▸" : "▾"}
           </span>
         </button>
-        {!collapsed && <div className="mt-3">{children}</div>}
+        {!collapsed && (
+          <div className="mt-3 border-t border-[#F40000]/25 pt-3">{children}</div>
+        )}
       </div>
     </Card>
   );
@@ -148,7 +150,7 @@ export function ActivityContent({
           </CollapsibleSection>
 
           <CollapsibleSection
-            title="Manual entry"
+            title="Manual Entry"
             subtitle="Add time for work already completed."
             collapsed={manualCollapsed}
             onToggle={() => setManualCollapsed((v) => !v)}
@@ -159,10 +161,9 @@ export function ActivityContent({
           <Card>
             <div className="space-y-3">
               <div>
-                <h2 className="text-sm sm:text-base font-bold">Recent entries</h2>
+                <h2 className="text-sm sm:text-base font-bold">Recent Entries</h2>
                 <p className="text-xs sm:text-sm text-[#808080] mt-0.5">Your entries, scoped to your project assignments.</p>
-              </div>
-              <EntryTable
+              </div>              <div className="border-t border-[#F40000]/25" />              <EntryTable
                 entries={entries}
                 projects={projectOptions}
                 calendarDate={selectedDate}
