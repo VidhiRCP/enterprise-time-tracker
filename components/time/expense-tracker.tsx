@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { z } from "zod";
 
@@ -36,6 +36,33 @@ export function ExpenseTracker({ projects, userId }: { projects: { projectId: st
     setForm({ expenseDate: "", amount: "", currency: "", merchant: "", details: "", projectId: "" });
     setError(null);
     // TODO: upload to Supabase, trigger extraction
+    uploadAndExtract(f);
+  }
+
+  async function uploadAndExtract(f: File) {
+    setUploading(true);
+    try {
+      const fd = new FormData();
+      fd.append("file", f);
+      const res = await fetch("/api/expenses/upload", { method: "POST", body: fd });
+      if (!res.ok) throw new Error(await res.text());
+      const data = await res.json();
+      setExtraction(data.extracted ?? null);
+      setForm({
+        expenseDate: data.extracted?.date ?? "",
+        amount: data.extracted?.amount ?? "",
+        currency: data.extracted?.currency ?? "",
+        merchant: data.extracted?.merchant ?? "",
+        details: data.extracted?.details ?? "",
+        projectId: "",
+      });
+      // preview URL
+      setExpenses(prev => prev);
+    } catch (e: any) {
+      setError(String(e.message ?? e));
+    } finally {
+      setUploading(false);
+    }
   }
 
   // Review form change
@@ -51,8 +78,31 @@ export function ExpenseTracker({ projects, userId }: { projects: { projectId: st
       setError("Please fill all fields correctly.");
       return;
     }
-    // TODO: save to server
+    try {
+      const res = await fetch("/api/expenses/save", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(form) });
+      if (!res.ok) throw new Error(await res.text());
+      await loadExpenses();
+      // clear
+      setFile(null);
+      setExtraction(null);
+      setForm({ expenseDate: "", amount: "", currency: "", merchant: "", details: "", projectId: "" });
+    } catch (e: any) {
+      setError(String(e.message ?? e));
+    }
   }
+
+  async function loadExpenses() {
+    try {
+      const res = await fetch("/api/expenses/list");
+      if (!res.ok) throw new Error(await res.text());
+      const data = await res.json();
+      setExpenses(data ?? []);
+    } catch (e) {
+      // ignore silently
+    }
+  }
+
+  useEffect(() => { loadExpenses(); }, []);
 
   return (
     <div className="space-y-8">
@@ -134,7 +184,7 @@ export function ExpenseTracker({ projects, userId }: { projects: { projectId: st
                 <td className="px-3 py-2">{exp.merchant}</td>
                 <td className="px-3 py-2">{exp.details}</td>
                 <td className="px-3 py-2">{exp.projectName}</td>
-                <td className="px-3 py-2"><a href={exp.receiptFilePath} target="_blank" rel="noopener" className="text-[#F40000] underline">View</a></td>
+                <td className="px-3 py-2"><a href={exp.publicUrl ?? exp.receiptFilePath} target="_blank" rel="noopener" className="text-[#F40000] underline">View</a></td>
               </tr>
             ))}
           </tbody>

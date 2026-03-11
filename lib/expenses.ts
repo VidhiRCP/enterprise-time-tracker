@@ -2,6 +2,7 @@
 
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/auth";
+import { z } from "zod";
 import { createClient } from "@supabase/supabase-js";
 import { revalidatePath } from "next/cache";
 import { ensureProjectAccess } from "@/lib/authz";
@@ -113,6 +114,19 @@ export async function saveExpenseReview(input: {
 
   await ensureProjectAccess(userEmail, input.projectId);
 
+  // Validate input using Zod
+  const Schema = z.object({
+    receiptId: z.string().min(1),
+    projectId: z.string().min(1),
+    expenseDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+    amount: z.string().min(1),
+    currency: z.string().min(1),
+    merchant: z.string().min(0),
+    details: z.string().min(0),
+  });
+
+  Schema.parse(input as any);
+
   // link receipt
   const receipt = await prisma.expenseReceipt.findUniqueOrThrow({ where: { id: input.receiptId } });
 
@@ -138,4 +152,40 @@ export async function saveExpenseReview(input: {
 
   revalidatePath("/");
   return { entry };
+}
+
+export async function getUserExpenses() {
+  const session = await requireUser();
+  if (!session?.user?.email) throw new Error("Unauthorized");
+  const userEmail = session.user.email.toLowerCase();
+
+  const user = await prisma.user.findUniqueOrThrow({ where: { email: userEmail } });
+
+  const entries = await prisma.expenseEntry.findMany({
+    where: { userId: user.id },
+    include: { project: true, receipt: true },
+    orderBy: { createdAt: "desc" },
+  });
+
+  // Build public URLs for receipts
+  const supabaseUrl = process.env.SUPABASE_URL!;
+  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+  const supabase = createClient(supabaseUrl, supabaseKey, { auth: { persistSession: false } });
+
+  const results = await Promise.all(entries.map(async (e) => {
+    const publicUrl = e.receipt ? supabase.storage.from("receipts").getPublicUrl(e.receipt.filePath).data.publicUrl : null;
+    return {
+      id: e.id,
+      expenseDate: e.expenseDate.toISOString().slice(0,10),
+      amount: String(e.amount),
+      currency: e.currency,
+      merchant: e.merchant,
+      details: e.details,
+      projectName: e.project?.projectName ?? null,
+      receiptFilePath: e.receiptFilePath,
+      publicUrl,
+    };
+  }));
+
+  return results;
 }
