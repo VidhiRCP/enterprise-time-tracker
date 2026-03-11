@@ -148,30 +148,35 @@ export function TimerPanel({
         <div className="flex flex-wrap gap-1.5 shrink-0">
           <button
             disabled={isPending || !projectId || isRunning}
-            onClick={() =>
+            onClick={() => {
+              const now = new Date().toISOString();
+              const prev = session;
+              setSession((s) => ({
+                id: s?.id ?? "_pending",
+                projectId,
+                notesDraft,
+                accumulatedSeconds: s?.accumulatedSeconds ?? 0,
+                status: "RUNNING",
+                startedAt: s?.startedAt ?? now,
+                lastResumedAt: now,
+              }));
               startTransition(async () => {
-                const now = new Date().toISOString();
-                setSession((prev) => ({
-                  id: prev?.id ?? "_pending",
-                  projectId,
-                  notesDraft,
-                  accumulatedSeconds: prev?.accumulatedSeconds ?? 0,
-                  status: "RUNNING",
-                  startedAt: prev?.startedAt ?? now,
-                  lastResumedAt: now,
-                }));
-                const result = await createOrResumeSession({ projectId, notes: notesDraft });
-                setSession({
-                  id: result.id,
-                  projectId: result.projectId,
-                  notesDraft: result.notesDraft,
-                  accumulatedSeconds: result.accumulatedSeconds,
-                  status: result.status as "RUNNING" | "PAUSED",
-                  startedAt: result.startedAt.toISOString(),
-                  lastResumedAt: result.lastResumedAt?.toISOString() ?? null,
-                });
-              })
-            }
+                try {
+                  const result = await createOrResumeSession({ projectId, notes: notesDraft });
+                  setSession({
+                    id: result.id,
+                    projectId: result.projectId,
+                    notesDraft: result.notesDraft,
+                    accumulatedSeconds: result.accumulatedSeconds,
+                    status: result.status as "RUNNING" | "PAUSED",
+                    startedAt: result.startedAt.toISOString(),
+                    lastResumedAt: result.lastResumedAt?.toISOString() ?? null,
+                  });
+                } catch {
+                  setSession(prev);
+                }
+              });
+            }}
             className="rounded-xl bg-[#F40000] px-3 py-1.5 text-sm font-bold text-[#F8F8F8] hover:opacity-90 transition-opacity disabled:opacity-40"
           >
             {getStartLabel()}
@@ -179,12 +184,18 @@ export function TimerPanel({
 
           <button
             disabled={isPending || !isRunning}
-            onClick={() =>
+            onClick={() => {
+              const prev = session;
+              const frozenElapsed = elapsedSeconds;
+              setSession({ ...session!, accumulatedSeconds: frozenElapsed, status: "PAUSED", lastResumedAt: null, notesDraft });
               startTransition(async () => {
-                setSession({ ...session!, accumulatedSeconds: elapsedSeconds, status: "PAUSED", lastResumedAt: null, notesDraft });
-                await pauseSession({ sessionId: session!.id, elapsedSeconds, notesDraft });
-              })
-            }
+                try {
+                  await pauseSession({ sessionId: session!.id, elapsedSeconds: frozenElapsed, notesDraft });
+                } catch {
+                  setSession(prev);
+                }
+              });
+            }}
             className="rounded-xl border border-[#808080]/30 px-3 py-1.5 text-sm font-medium text-[#D9D9D9] hover:text-[#F8F8F8] transition-colors disabled:opacity-40"
           >
             ⏸ Pause
@@ -194,13 +205,21 @@ export function TimerPanel({
             disabled={isPending || !hasSession}
             onClick={() => {
               if (!validateNotes()) return;
+              const prev = session;
+              const sid = session!.id;
+              const frozenElapsed = elapsedSeconds;
+              const frozenNotes = notesDraft;
+              setSession(null);
+              setNotesDraft("");
+              setNotesError("");
+              setLastAutosaved(null);
               startTransition(async () => {
-                const sid = session!.id;
-                setSession(null);
-                setNotesDraft("");
-                setNotesError("");
-                setLastAutosaved(null);
-                await finalizeSession({ sessionId: sid, projectId, elapsedSeconds, notesDraft, workDate: localDateInputValue() });
+                try {
+                  await finalizeSession({ sessionId: sid, projectId, elapsedSeconds: frozenElapsed, notesDraft: frozenNotes, workDate: localDateInputValue() });
+                } catch {
+                  setSession(prev);
+                  setNotesDraft(frozenNotes);
+                }
               });
             }}
             className="rounded-xl border border-[#808080]/30 px-3 py-1.5 text-sm font-bold text-[#F8F8F8] hover:border-[#D9D9D9] transition-colors disabled:opacity-40"
@@ -212,13 +231,21 @@ export function TimerPanel({
             disabled={isPending || !hasSession}
             onClick={() => {
               if (!confirm("Discard this session? All tracked time will be lost.")) return;
+              const prev = session;
+              const sid = session!.id;
+              const frozenElapsed = elapsedSeconds;
+              const frozenNotes = notesDraft;
+              setSession(null);
+              setNotesDraft("");
+              setNotesError("");
+              setLastAutosaved(null);
               startTransition(async () => {
-                const sid = session!.id;
-                setSession(null);
-                setNotesDraft("");
-                setNotesError("");
-                setLastAutosaved(null);
-                await discardSession({ sessionId: sid, elapsedSeconds, notesDraft });
+                try {
+                  await discardSession({ sessionId: sid, elapsedSeconds: frozenElapsed, notesDraft: frozenNotes });
+                } catch {
+                  setSession(prev);
+                  setNotesDraft(frozenNotes);
+                }
               });
             }}
             className="rounded-xl border border-[#808080]/30 px-3 py-1.5 text-sm font-medium text-[#F40000] hover:opacity-80 transition-opacity disabled:opacity-40"

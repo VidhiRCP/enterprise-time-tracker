@@ -17,18 +17,27 @@ function computeDashboardStats(
   const now = new Date();
   const todayStr = now.toISOString().slice(0, 10);
 
+  // Wall-clock duration for timer entries so display matches start→stop times
+  const effectiveMinutes = (e: (typeof data.entries)[number]) => {
+    if (e.timerSession?.startedAt && e.timerSession?.stoppedAt) {
+      const ms = new Date(e.timerSession.stoppedAt).getTime() - new Date(e.timerSession.startedAt).getTime();
+      return Math.max(1, Math.round(ms / 60_000));
+    }
+    return e.durationMinutes;
+  };
+
   // Today's entries
   const todayEntries = data.entries.filter(
     (e) => new Date(e.workDate).toISOString().slice(0, 10) === todayStr,
   );
-  const todayMinutes = todayEntries.reduce((s, e) => s + e.durationMinutes, 0);
+  const todayMinutes = todayEntries.reduce((s, e) => s + effectiveMinutes(e), 0);
   const todayProjects = new Set(todayEntries.map((e) => e.projectId));
 
   // Top project today
   const projMap = new Map<string, { projectName: string; projectId: string; minutes: number; sessions: number }>();
   for (const e of todayEntries) {
     const existing = projMap.get(e.projectId) ?? { projectName: e.project.projectName, projectId: e.project.projectId, minutes: 0, sessions: 0 };
-    existing.minutes += e.durationMinutes;
+    existing.minutes += effectiveMinutes(e);
     existing.sessions += 1;
     projMap.set(e.projectId, existing);
   }
@@ -63,7 +72,7 @@ function computeDashboardStats(
     const dateStr = d.toISOString().slice(0, 10);
     const minutes = data.entries
       .filter((e) => new Date(e.workDate).toISOString().slice(0, 10) === dateStr)
-      .reduce((s, e) => s + e.durationMinutes, 0);
+      .reduce((s, e) => s + effectiveMinutes(e), 0);
     return { label, minutes };
   });
   const weekTotalMinutes = weekDays.reduce((s, d) => s + d.minutes, 0);
@@ -82,7 +91,7 @@ function computeDashboardStats(
     projectId: e.project.projectId,
     projectName: e.project.projectName,
     workDate: new Date(e.workDate).toISOString().slice(0, 10),
-    durationMinutes: e.durationMinutes,
+    durationMinutes: effectiveMinutes(e),
   }));
 
   return {
