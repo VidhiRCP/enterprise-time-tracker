@@ -63,96 +63,63 @@ export type ProjectAlias = {
 export async function getInsightsData(email: string) {
   const lowerEmail = email.toLowerCase();
 
-  // This week: Monday–Sunday
+  // Fetch last 8 weeks of data for week navigation
   const now = new Date();
   const dayOfWeek = now.getDay();
   const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
-  const monday = new Date(now);
-  monday.setDate(now.getDate() + mondayOffset);
-  monday.setHours(0, 0, 0, 0);
-  const sunday = new Date(monday);
-  sunday.setDate(monday.getDate() + 6);
-  sunday.setHours(23, 59, 59, 999);
+  const currentMonday = new Date(now);
+  currentMonday.setDate(now.getDate() + mondayOffset);
+  currentMonday.setHours(0, 0, 0, 0);
+
+  // Go back 7 more weeks
+  const rangeStart = new Date(currentMonday);
+  rangeStart.setDate(rangeStart.getDate() - 7 * 7);
+
+  const currentSunday = new Date(currentMonday);
+  currentSunday.setDate(currentMonday.getDate() + 6);
+  currentSunday.setHours(23, 59, 59, 999);
 
   const user = await prisma.user.findUnique({ where: { email: lowerEmail } });
-  if (!user) return { dailyBreakdown: [], totalMinutes: 0, projectTotals: [] };
+  if (!user) return { entries: [], allocations: [], currentWeekISO: currentMonday.toISOString() };
 
   const [timeEntries, calAllocations] = await Promise.all([
     prisma.timeEntry.findMany({
       where: {
         userId: user.id,
-        workDate: { gte: monday, lte: sunday },
+        workDate: { gte: rangeStart, lte: currentSunday },
       },
-      include: { project: true },
+      include: {
+        project: true,
+        timerSession: {
+          select: { startedAt: true, stoppedAt: true },
+        },
+      },
     }),
     prisma.calendarAllocation.findMany({
       where: {
         userId: user.id,
-        eventStart: { gte: monday, lte: sunday },
+        eventStart: { gte: rangeStart, lte: currentSunday },
       },
       include: { project: true },
     }),
   ]);
 
-  // Aggregate: date → project → { minutes, sources }
-  const map = new Map<string, Map<string, { projectName: string; activityMin: number; meetingMin: number }>>();
+  // Return raw data — let client aggregate per selected week
+  const entries = timeEntries.map((e) => ({
+    projectId: e.projectId,
+    projectName: e.project.projectName,
+    workDate: e.workDate.toISOString().slice(0, 10),
+    durationMinutes: e.durationMinutes,
+    startedAt: e.timerSession?.startedAt?.toISOString() ?? null,
+    stoppedAt: e.timerSession?.stoppedAt?.toISOString() ?? null,
+  }));
 
-  for (const entry of timeEntries) {
-    const dateKey = entry.workDate.toISOString().slice(0, 10);
-    if (!map.has(dateKey)) map.set(dateKey, new Map());
-    const dayMap = map.get(dateKey)!;
-    const existing = dayMap.get(entry.projectId) ?? { projectName: entry.project.projectName, activityMin: 0, meetingMin: 0 };
-    existing.activityMin += entry.durationMinutes;
-    dayMap.set(entry.projectId, existing);
-  }
+  const allocations = calAllocations.map((a) => ({
+    projectId: a.projectId,
+    projectName: a.project.projectName,
+    eventDate: a.eventStart.toISOString().slice(0, 10),
+    durationMin: a.durationMin,
+  }));
 
-  for (const alloc of calAllocations) {
-    const dateKey = alloc.eventStart.toISOString().slice(0, 10);
-    if (!map.has(dateKey)) map.set(dateKey, new Map());
-    const dayMap = map.get(dateKey)!;
-    const existing = dayMap.get(alloc.projectId) ?? { projectName: alloc.project.projectName, activityMin: 0, meetingMin: 0 };
-    existing.meetingMin += alloc.durationMin;
-    dayMap.set(alloc.projectId, existing);
-  }
-
-  // Build daily breakdown sorted by date
-  const dailyBreakdown = Array.from(map.entries())
-    .sort(([a], [b]) => a.localeCompare(b))
-    .map(([date, dayMap]) => ({
-      date,
-      projects: Array.from(dayMap.entries())
-        .map(([projectId, data]) => ({
-          projectId,
-          projectName: data.projectName,
-          activityMin: data.activityMin,
-          meetingMin: data.meetingMin,
-          totalMin: data.activityMin + data.meetingMin,
-        }))
-        .sort((a, b) => b.totalMin - a.totalMin),
-    }));
-
-  // Project totals for the week
-  const projectTotalsMap = new Map<string, { projectName: string; activityMin: number; meetingMin: number }>();
-  for (const day of dailyBreakdown) {
-    for (const p of day.projects) {
-      const existing = projectTotalsMap.get(p.projectId) ?? { projectName: p.projectName, activityMin: 0, meetingMin: 0 };
-      existing.activityMin += p.activityMin;
-      existing.meetingMin += p.meetingMin;
-      projectTotalsMap.set(p.projectId, existing);
-    }
-  }
-
-  const projectTotals = Array.from(projectTotalsMap.entries())
-    .map(([projectId, data]) => ({
-      projectId,
-      projectName: data.projectName,
-      activityMin: data.activityMin,
-      meetingMin: data.meetingMin,
-      totalMin: data.activityMin + data.meetingMin,
-    }))
-    .sort((a, b) => b.totalMin - a.totalMin);
-
-  const totalMinutes = projectTotals.reduce((sum, p) => sum + p.totalMin, 0);
-
-  return { dailyBreakdown, totalMinutes, projectTotals };
+  return { entries, allocations, currentWeekISO: currentMonday.toISOString() };
 }

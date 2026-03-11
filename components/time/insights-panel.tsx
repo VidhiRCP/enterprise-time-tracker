@@ -1,34 +1,32 @@
 "use client";
 
-import { format } from "date-fns";
+import { useState, useMemo } from "react";
+import { format, addDays } from "date-fns";
 
-type ProjectDay = {
+/* ── Types ── */
+type EntryRow = {
   projectId: string;
   projectName: string;
-  activityMin: number;
-  meetingMin: number;
-  totalMin: number;
+  workDate: string;         // "YYYY-MM-DD"
+  durationMinutes: number;
+  startedAt: string | null;
+  stoppedAt: string | null;
 };
 
-type DayBreakdown = {
-  date: string;
-  projects: ProjectDay[];
-};
-
-type ProjectTotal = {
+type AllocRow = {
   projectId: string;
   projectName: string;
-  activityMin: number;
-  meetingMin: number;
-  totalMin: number;
+  eventDate: string;        // "YYYY-MM-DD"
+  durationMin: number;
 };
 
 type InsightsData = {
-  dailyBreakdown: DayBreakdown[];
-  totalMinutes: number;
-  projectTotals: ProjectTotal[];
+  entries: EntryRow[];
+  allocations: AllocRow[];
+  currentWeekISO: string;   // Monday ISO of current week
 };
 
+/* ── Helpers ── */
 function fmtMin(mins: number) {
   if (mins === 0) return "—";
   const h = Math.floor(mins / 60);
@@ -41,178 +39,340 @@ function fmtHours(mins: number) {
   return (mins / 60).toFixed(1);
 }
 
-function ProgressBar({ value, max, color }: { value: number; max: number; color: string }) {
-  const pct = max > 0 ? Math.min(100, (value / max) * 100) : 0;
-  return (
-    <div className="h-2 w-full rounded-full bg-[#808080]/20 overflow-hidden">
-      <div
-        className="h-full rounded-full transition-all duration-500"
-        style={{ width: `${pct}%`, backgroundColor: color }}
-      />
-    </div>
-  );
+/** Wall-clock duration for timer entries */
+function effectiveMin(e: EntryRow): number {
+  if (e.startedAt && e.stoppedAt) {
+    const ms = new Date(e.stoppedAt).getTime() - new Date(e.startedAt).getTime();
+    return Math.max(1, Math.round(ms / 60_000));
+  }
+  return e.durationMinutes;
 }
 
-export function InsightsPanel({ data }: { data: InsightsData }) {
-  const { dailyBreakdown, totalMinutes, projectTotals } = data;
+const DAY_LABELS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
-  if (totalMinutes === 0 && dailyBreakdown.length === 0) {
+const PROJECT_COLORS = [
+  "#F40000", "#3B82F6", "#22C55E", "#F59E0B", "#A855F7",
+  "#EC4899", "#14B8A6", "#F97316", "#6366F1", "#84CC16",
+];
+
+/* ── Main Component ── */
+export function InsightsPanel({ data }: { data: InsightsData }) {
+  const { entries, allocations, currentWeekISO } = data;
+  const currentMonday = new Date(currentWeekISO);
+
+  const [weekOffset, setWeekOffset] = useState(0);
+
+  // Compute selected week boundaries
+  const selectedMonday = useMemo(() => {
+    const d = new Date(currentMonday);
+    d.setDate(d.getDate() + weekOffset * 7);
+    return d;
+  }, [currentMonday, weekOffset]);
+
+  const selectedSunday = useMemo(() => addDays(selectedMonday, 6), [selectedMonday]);
+
+  const weekLabel = useMemo(
+    () => `${format(selectedMonday, "d MMM")} – ${format(selectedSunday, "d MMM yyyy")}`,
+    [selectedMonday, selectedSunday],
+  );
+
+  // Filter data for selected week
+  const weekStart = useMemo(() => selectedMonday.toISOString().slice(0, 10), [selectedMonday]);
+  const weekEnd = useMemo(() => selectedSunday.toISOString().slice(0, 10), [selectedSunday]);
+
+  const weekEntries = useMemo(
+    () => entries.filter((e) => e.workDate >= weekStart && e.workDate <= weekEnd),
+    [entries, weekStart, weekEnd],
+  );
+
+  const weekAllocs = useMemo(
+    () => allocations.filter((a) => a.eventDate >= weekStart && a.eventDate <= weekEnd),
+    [allocations, weekStart, weekEnd],
+  );
+
+  // Aggregate into daily breakdown + project totals
+  const { dailyBreakdown, projectTotals, totalMinutes, totalActivityMin, totalMeetingMin } = useMemo(() => {
+    const map = new Map<string, Map<string, { projectName: string; activityMin: number; meetingMin: number }>>();
+
+    for (const e of weekEntries) {
+      if (!map.has(e.workDate)) map.set(e.workDate, new Map());
+      const dayMap = map.get(e.workDate)!;
+      const ex = dayMap.get(e.projectId) ?? { projectName: e.projectName, activityMin: 0, meetingMin: 0 };
+      ex.activityMin += effectiveMin(e);
+      dayMap.set(e.projectId, ex);
+    }
+
+    for (const a of weekAllocs) {
+      if (!map.has(a.eventDate)) map.set(a.eventDate, new Map());
+      const dayMap = map.get(a.eventDate)!;
+      const ex = dayMap.get(a.projectId) ?? { projectName: a.projectName, activityMin: 0, meetingMin: 0 };
+      ex.meetingMin += a.durationMin;
+      dayMap.set(a.projectId, ex);
+    }
+
+    const dailyBreakdown = Array.from(map.entries())
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([date, dayMap]) => ({
+        date,
+        projects: Array.from(dayMap.entries())
+          .map(([projectId, d]) => ({
+            projectId,
+            projectName: d.projectName,
+            activityMin: d.activityMin,
+            meetingMin: d.meetingMin,
+            totalMin: d.activityMin + d.meetingMin,
+          }))
+          .sort((a, b) => b.totalMin - a.totalMin),
+      }));
+
+    const ptMap = new Map<string, { projectName: string; activityMin: number; meetingMin: number }>();
+    for (const day of dailyBreakdown) {
+      for (const p of day.projects) {
+        const ex = ptMap.get(p.projectId) ?? { projectName: p.projectName, activityMin: 0, meetingMin: 0 };
+        ex.activityMin += p.activityMin;
+        ex.meetingMin += p.meetingMin;
+        ptMap.set(p.projectId, ex);
+      }
+    }
+
+    const projectTotals = Array.from(ptMap.entries())
+      .map(([projectId, d]) => ({
+        projectId,
+        projectName: d.projectName,
+        activityMin: d.activityMin,
+        meetingMin: d.meetingMin,
+        totalMin: d.activityMin + d.meetingMin,
+      }))
+      .sort((a, b) => b.totalMin - a.totalMin);
+
+    const totalMinutes = projectTotals.reduce((s, p) => s + p.totalMin, 0);
+    const totalActivityMin = projectTotals.reduce((s, p) => s + p.activityMin, 0);
+    const totalMeetingMin = projectTotals.reduce((s, p) => s + p.meetingMin, 0);
+
+    return { dailyBreakdown, projectTotals, totalMinutes, totalActivityMin, totalMeetingMin };
+  }, [weekEntries, weekAllocs]);
+
+  // Insight text
+  const weekDays = dailyBreakdown.length;
+  const avgDailyMin = weekDays > 0 ? Math.round(totalMinutes / weekDays) : 0;
+  const meetingPct = totalMinutes > 0 ? Math.round((totalMeetingMin / totalMinutes) * 100) : 0;
+  const topProject = projectTotals[0];
+
+  // ── Bar chart data: per-day stacked bars ──
+  const projectColorMap = useMemo(() => {
+    const map = new Map<string, string>();
+    const allProjects = [...new Set([...entries.map((e) => e.projectId), ...allocations.map((a) => a.projectId)])];
+    allProjects.forEach((id, i) => map.set(id, PROJECT_COLORS[i % PROJECT_COLORS.length]));
+    return map;
+  }, [entries, allocations]);
+
+  const chartData = useMemo(() => {
+    const days = DAY_LABELS.map((label, i) => {
+      const d = addDays(selectedMonday, i);
+      const dateStr = d.toISOString().slice(0, 10);
+      const dayBreakdown = dailyBreakdown.find((db) => db.date === dateStr);
+      const segments = dayBreakdown
+        ? dayBreakdown.projects.map((p) => ({
+            projectId: p.projectId,
+            projectName: p.projectName,
+            minutes: p.totalMin,
+            color: projectColorMap.get(p.projectId) ?? "#808080",
+          }))
+        : [];
+      const total = segments.reduce((s, seg) => s + seg.minutes, 0);
+      return { label, dateStr, segments, total };
+    });
+    return days;
+  }, [selectedMonday, dailyBreakdown, projectColorMap]);
+
+  const chartMax = Math.max(1, ...chartData.map((d) => d.total));
+
+  // No data at all
+  const hasAnyData = entries.length > 0 || allocations.length > 0;
+  if (!hasAnyData) {
     return (
       <div className="rounded-xl border border-dashed border-[#808080]/30 p-4 sm:p-6 text-center">
-        <p className="text-xs sm:text-sm font-bold text-[#D9D9D9]">No data this week yet</p>
+        <p className="text-xs sm:text-sm font-bold text-[#D9D9D9]">No data yet</p>
         <p className="mt-1 text-xs sm:text-sm text-[#808080]">
-          Track time with the Activity Tracker or allocate meetings to projects in the Meeting Tracker.
+          Track time with the Activity Tracker or allocate meetings in the Meeting Tracker.
         </p>
       </div>
     );
   }
 
-  const totalActivityMin = projectTotals.reduce((s, p) => s + p.activityMin, 0);
-  const totalMeetingMin = projectTotals.reduce((s, p) => s + p.meetingMin, 0);
-
-  // Generate a textual insight
-  const topProject = projectTotals[0];
-  const weekDays = dailyBreakdown.length;
-  const avgDailyMin = weekDays > 0 ? Math.round(totalMinutes / weekDays) : 0;
-  const meetingPct = totalMinutes > 0 ? Math.round((totalMeetingMin / totalMinutes) * 100) : 0;
-
   return (
     <div className="space-y-4 sm:space-y-5">
-      <div>
-        <h2 className="text-base sm:text-lg font-bold">Weekly Insights</h2>
-        <p className="mt-0.5 text-xs sm:text-sm text-[#D9D9D9]">
-          Combined time from Activity Tracker + Meeting Tracker for this week.
-        </p>
+      {/* ── Header + Week Nav ── */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-base sm:text-lg font-bold">Weekly Insights</h2>
+          <p className="mt-0.5 text-xs sm:text-sm text-[#808080]">
+            Activity + Meetings combined
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setWeekOffset((o) => o - 1)}
+            disabled={weekOffset <= -7}
+            className="rounded-lg border border-[#808080]/30 px-2 py-1 text-xs text-[#D9D9D9] hover:text-[#F8F8F8] transition-colors disabled:opacity-30"
+          >
+            ‹
+          </button>
+          <span className="text-xs sm:text-sm font-medium text-[#D9D9D9] min-w-[140px] text-center">
+            {weekLabel}
+          </span>
+          <button
+            onClick={() => setWeekOffset((o) => o + 1)}
+            disabled={weekOffset >= 0}
+            className="rounded-lg border border-[#808080]/30 px-2 py-1 text-xs text-[#D9D9D9] hover:text-[#F8F8F8] transition-colors disabled:opacity-30"
+          >
+            ›
+          </button>
+        </div>
       </div>
 
-      {/* Summary Cards */}
+      {/* ── Summary Cards ── */}
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 sm:gap-3">
-        <div className="rounded-xl border border-[#808080]/20 p-3 sm:p-4">
-          <div className="text-xs sm:text-sm uppercase tracking-wider text-[#808080]">Total</div>
-          <div className="mt-1 text-base sm:text-lg md:text-xl font-bold">{fmtMin(totalMinutes)}</div>
-          <div className="text-xs sm:text-sm text-[#808080]">{fmtHours(totalMinutes)}h</div>
+        <div className="rounded-xl border border-[#808080]/20 p-3">
+          <div className="text-xs uppercase tracking-wider text-[#808080]">Total</div>
+          <div className="mt-1 text-lg sm:text-xl font-bold">{fmtMin(totalMinutes)}</div>
+          <div className="text-xs text-[#808080]">{fmtHours(totalMinutes)}h</div>
         </div>
-        <div className="rounded-xl border border-[#808080]/20 p-3 sm:p-4">
-          <div className="text-xs sm:text-sm uppercase tracking-wider text-[#808080]">Activity</div>
-          <div className="mt-1 text-base sm:text-lg md:text-xl font-bold text-[#F40000]">{fmtMin(totalActivityMin)}</div>
-          <div className="text-xs sm:text-sm text-[#808080]">{fmtHours(totalActivityMin)}h</div>
+        <div className="rounded-xl border border-[#808080]/20 p-3">
+          <div className="text-xs uppercase tracking-wider text-[#808080]">Activity</div>
+          <div className="mt-1 text-lg sm:text-xl font-bold text-[#F40000]">{fmtMin(totalActivityMin)}</div>
+          <div className="text-xs text-[#808080]">{fmtHours(totalActivityMin)}h</div>
         </div>
-        <div className="rounded-xl border border-[#808080]/20 p-3 sm:p-4">
-          <div className="text-xs sm:text-sm uppercase tracking-wider text-[#808080]">Meetings</div>
-          <div className="mt-1 text-base sm:text-lg md:text-xl font-bold text-blue-400">{fmtMin(totalMeetingMin)}</div>
-          <div className="text-xs sm:text-sm text-[#808080]">{fmtHours(totalMeetingMin)}h</div>
+        <div className="rounded-xl border border-[#808080]/20 p-3">
+          <div className="text-xs uppercase tracking-wider text-[#808080]">Meetings</div>
+          <div className="mt-1 text-lg sm:text-xl font-bold text-blue-400">{fmtMin(totalMeetingMin)}</div>
+          <div className="text-xs text-[#808080]">{fmtHours(totalMeetingMin)}h</div>
         </div>
-        <div className="rounded-xl border border-[#808080]/20 p-3 sm:p-4">
-          <div className="text-xs sm:text-sm uppercase tracking-wider text-[#808080]">Avg / day</div>
-          <div className="mt-1 text-base sm:text-lg md:text-xl font-bold">{fmtMin(avgDailyMin)}</div>
-          <div className="text-xs sm:text-sm text-[#808080]">{weekDays} active day{weekDays !== 1 ? "s" : ""}</div>
+        <div className="rounded-xl border border-[#808080]/20 p-3">
+          <div className="text-xs uppercase tracking-wider text-[#808080]">Avg / day</div>
+          <div className="mt-1 text-lg sm:text-xl font-bold">{fmtMin(avgDailyMin)}</div>
+          <div className="text-xs text-[#808080]">{weekDays} active day{weekDays !== 1 ? "s" : ""}</div>
         </div>
       </div>
 
-      {/* AI Insight Box */}
-      <div className="rounded-xl border border-[#F40000]/30 bg-[#F40000]/5 p-3 sm:p-4">
-        <div className="flex items-start gap-2">
-          <span className="text-sm sm:text-base">✨</span>
-          <div className="text-xs sm:text-sm text-[#D9D9D9] space-y-1">
-            <p>
-              You&apos;ve tracked <span className="font-bold text-[#F8F8F8]">{fmtMin(totalMinutes)}</span> this
-              week across <span className="font-bold text-[#F8F8F8]">{projectTotals.length}</span> project{projectTotals.length !== 1 ? "s" : ""}.
-            </p>
-            {topProject && (
+      {/* ── AI Insight Box ── */}
+      {totalMinutes > 0 && (
+        <div className="rounded-xl border border-[#F40000]/30 bg-[#F40000]/5 px-3 py-2.5 sm:px-4 sm:py-3">
+          <div className="flex items-start gap-2">
+            <span className="text-sm">✨</span>
+            <div className="text-xs sm:text-sm text-[#D9D9D9] space-y-0.5">
               <p>
-                Your top project is <span className="font-bold text-[#F8F8F8]">{topProject.projectName}</span> at{" "}
-                <span className="font-bold text-[#F8F8F8]">{fmtMin(topProject.totalMin)}</span>.
+                You tracked <span className="font-bold text-[#F8F8F8]">{fmtMin(totalMinutes)}</span> across{" "}
+                <span className="font-bold text-[#F8F8F8]">{projectTotals.length}</span> project{projectTotals.length !== 1 ? "s" : ""}.
+                {topProject && (
+                  <> Top: <span className="font-bold text-[#F8F8F8]">{topProject.projectName}</span> ({fmtMin(topProject.totalMin)}).</>
+                )}
+                {meetingPct > 0 && <> Meetings: <span className="font-bold text-[#F8F8F8]">{meetingPct}%</span>.</>}
               </p>
-            )}
-            <p>
-              Meetings account for <span className="font-bold text-[#F8F8F8]">{meetingPct}%</span> of
-              your tracked time.
-            </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Stacked Bar Chart: By Project per Day ── */}
+      <div className="space-y-2">
+        <h3 className="text-xs sm:text-sm font-bold text-[#D9D9D9]">By Project</h3>
+        <div className="rounded-xl border border-[#808080]/20 p-3 sm:p-4">
+          {/* Chart */}
+          <div className="flex items-end gap-1.5 sm:gap-3" style={{ height: 180 }}>
+            {chartData.map((day) => (
+              <div key={day.label} className="flex-1 flex flex-col items-center gap-1">
+                {/* Stacked bar */}
+                <div className="w-full flex flex-col-reverse items-stretch" style={{ height: 140 }}>
+                  {day.segments.map((seg, i) => {
+                    const pct = chartMax > 0 ? (seg.minutes / chartMax) * 100 : 0;
+                    return (
+                      <div
+                        key={seg.projectId}
+                        className="w-full transition-all duration-300"
+                        style={{
+                          height: `${pct}%`,
+                          backgroundColor: seg.color,
+                          borderRadius: i === day.segments.length - 1 ? "4px 4px 0 0" : 0,
+                          minHeight: pct > 0 ? 2 : 0,
+                        }}
+                        title={`${seg.projectName}: ${fmtMin(seg.minutes)}`}
+                      />
+                    );
+                  })}
+                </div>
+                {/* Total label */}
+                <span className="text-[10px] sm:text-xs text-[#808080] tabular-nums">
+                  {day.total > 0 ? fmtMin(day.total) : ""}
+                </span>
+                {/* Day label */}
+                <span className="text-[10px] sm:text-xs text-[#808080]">{day.label}</span>
+              </div>
+            ))}
+          </div>
+
+          {/* Legend */}
+          <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1.5 border-t border-[#808080]/15 pt-3">
+            {projectTotals.map((p) => (
+              <div key={p.projectId} className="flex items-center gap-1.5">
+                <div
+                  className="h-2.5 w-2.5 rounded-sm shrink-0"
+                  style={{ backgroundColor: projectColorMap.get(p.projectId) ?? "#808080" }}
+                />
+                <span className="text-xs text-[#D9D9D9]">{p.projectName}</span>
+                <span className="text-xs font-bold text-[#F8F8F8]">{fmtMin(p.totalMin)}</span>
+              </div>
+            ))}
           </div>
         </div>
       </div>
 
-      {/* Project Totals */}
-      <div className="space-y-3">
-        <h3 className="text-xs sm:text-sm font-bold text-[#D9D9D9]">By Project</h3>
-        {projectTotals.map((p) => (
-          <div key={p.projectId} className="rounded-xl border border-[#808080]/20 p-3 sm:p-4 space-y-2">
-            <div className="flex items-center justify-between">
-              <span className="text-xs sm:text-sm font-bold">{p.projectName}</span>
-              <span className="text-xs sm:text-sm font-bold">{fmtMin(p.totalMin)}</span>
-            </div>
-            <ProgressBar value={p.totalMin} max={totalMinutes} color="#F40000" />
-            <div className="flex gap-4 text-xs sm:text-sm text-[#808080]">
-              <span>
-                Activity: <span className="text-[#D9D9D9]">{fmtMin(p.activityMin)}</span>
-              </span>
-              <span>
-                Meetings: <span className="text-blue-400">{fmtMin(p.meetingMin)}</span>
-              </span>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {/* Daily Breakdown */}
+      {/* ── Daily Breakdown ── */}
       <div className="space-y-3">
         <h3 className="text-xs sm:text-sm font-bold text-[#D9D9D9]">Daily Breakdown</h3>
+
+        {dailyBreakdown.length === 0 && (
+          <div className="rounded-xl border border-dashed border-[#808080]/20 p-4 text-center text-xs text-[#808080]">
+            No tracked time this week.
+          </div>
+        )}
 
         {dailyBreakdown.map((day) => {
           const dayTotal = day.projects.reduce((s, p) => s + p.totalMin, 0);
           return (
-            <div key={day.date} className="space-y-2">
-              <div className="flex items-center gap-3">
-                <h4 className="text-xs sm:text-sm font-bold text-[#D9D9D9]">
-                  {format(new Date(day.date + "T12:00:00"), "EEEE, dd-MM-yyyy")}
-                </h4>
-                <div className="flex-1 border-t border-[#808080]/20" />
+            <div key={day.date} className="rounded-xl border border-[#808080]/20 overflow-hidden">
+              {/* Day header */}
+              <div className="flex items-center justify-between bg-[#808080]/5 px-3 sm:px-4 py-2">
+                <span className="text-xs sm:text-sm font-bold text-[#D9D9D9]">
+                  {format(new Date(day.date + "T12:00:00"), "EEEE, dd MMM")}
+                </span>
                 <span className="text-xs sm:text-sm font-bold text-[#F8F8F8]">{fmtMin(dayTotal)}</span>
               </div>
 
-              {/* Mobile: stacked cards */}
-              <div className="space-y-1.5 sm:hidden">
+              {/* Project rows */}
+              <div className="divide-y divide-[#808080]/10">
                 {day.projects.map((p) => (
-                  <div
-                    key={p.projectId}
-                    className="flex items-center justify-between rounded-lg border border-[#808080]/15 px-3 py-2"
-                  >
-                    <span className="text-xs truncate max-w-[150px]">{p.projectName}</span>
-                    <div className="flex gap-2 text-xs">
-                      <span className="text-[#F40000]">{p.activityMin > 0 ? fmtMin(p.activityMin) : ""}</span>
-                      <span className="text-blue-400">{p.meetingMin > 0 ? fmtMin(p.meetingMin) : ""}</span>
-                      <span className="font-bold">{fmtMin(p.totalMin)}</span>
-                    </div>
+                  <div key={p.projectId} className="grid grid-cols-[1fr_auto_auto_auto] items-center gap-x-4 px-3 sm:px-4 py-2">
+                    <span className="text-xs sm:text-sm text-[#D9D9D9] truncate">{p.projectName}</span>
+                    <span className="text-xs sm:text-sm text-[#F40000] tabular-nums text-right w-14 sm:w-16">
+                      {p.activityMin > 0 ? fmtMin(p.activityMin) : "—"}
+                    </span>
+                    <span className="text-xs sm:text-sm text-blue-400 tabular-nums text-right w-14 sm:w-16">
+                      {p.meetingMin > 0 ? fmtMin(p.meetingMin) : "—"}
+                    </span>
+                    <span className="text-xs sm:text-sm font-bold text-[#F8F8F8] tabular-nums text-right w-14 sm:w-16">
+                      {fmtMin(p.totalMin)}
+                    </span>
                   </div>
                 ))}
               </div>
 
-              {/* Desktop: table row */}
-              <div className="hidden sm:block overflow-x-auto">
-                <table className="w-full text-xs sm:text-sm">
-                  <thead>
-                    <tr className="text-xs sm:text-sm uppercase tracking-wider text-[#808080]">
-                      <th className="text-left py-1 pr-4 font-medium">Project</th>
-                      <th className="text-right py-1 px-3 font-medium">Activity</th>
-                      <th className="text-right py-1 px-3 font-medium">Meetings</th>
-                      <th className="text-right py-1 pl-3 font-medium">Total</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {day.projects.map((p) => (
-                      <tr key={p.projectId} className="border-t border-[#808080]/10">
-                        <td className="py-1.5 pr-4">{p.projectName}</td>
-                        <td className="py-1.5 px-3 text-right text-[#F40000]">
-                          {p.activityMin > 0 ? fmtMin(p.activityMin) : "—"}
-                        </td>
-                        <td className="py-1.5 px-3 text-right text-blue-400">
-                          {p.meetingMin > 0 ? fmtMin(p.meetingMin) : "—"}
-                        </td>
-                        <td className="py-1.5 pl-3 text-right font-bold">{fmtMin(p.totalMin)}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+              {/* Column labels footer */}
+              <div className="grid grid-cols-[1fr_auto_auto_auto] items-center gap-x-4 px-3 sm:px-4 py-1.5 border-t border-[#808080]/15">
+                <span />
+                <span className="text-[10px] uppercase tracking-wider text-[#808080] text-right w-14 sm:w-16">Activity</span>
+                <span className="text-[10px] uppercase tracking-wider text-[#808080] text-right w-14 sm:w-16">Meetings</span>
+                <span className="text-[10px] uppercase tracking-wider text-[#808080] text-right w-14 sm:w-16">Total</span>
               </div>
             </div>
           );
