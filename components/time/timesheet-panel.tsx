@@ -2,6 +2,7 @@
 
 import { format } from "date-fns";
 import { useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { allocateCalendarEvent } from "@/lib/actions";
 import type { GroupedEvents, CalendarEvent } from "@/lib/calendar";
 
@@ -124,6 +125,15 @@ export function TimesheetPanel({
   projects: ProjectOption[];
   hasToken?: boolean;
 }) {
+  const router = useRouter();
+  const [isRefreshing, startRefresh] = useTransition();
+
+  function handleRefresh() {
+    startRefresh(() => {
+      router.refresh();
+    });
+  }
+
   if (!hasToken) {
     return (
       <div className="rounded-xl border border-dashed border-[#808080]/30 p-4 sm:p-6 text-center">
@@ -165,8 +175,17 @@ export function TimesheetPanel({
             This week&apos;s non-private calendar events. Allocate each to a project.
           </p>
         </div>
-        <div className="text-xs sm:text-sm text-[#808080]">
-          <span className="text-[#F8F8F8] font-bold">{totalAllocated}</span> / {totalEvents} allocated
+        <div className="flex items-center gap-3">
+          <button
+            onClick={handleRefresh}
+            disabled={isRefreshing}
+            className="rounded-xl border border-[#808080]/30 px-3 py-1.5 text-xs sm:text-sm text-[#D9D9D9] hover:text-[#F8F8F8] hover:border-[#D9D9D9] transition-colors disabled:opacity-40"
+          >
+            {isRefreshing ? "Refreshing…" : "↻ Refresh"}
+          </button>
+          <div className="text-xs sm:text-sm text-[#808080]">
+            <span className="text-[#F8F8F8] font-bold">{totalAllocated}</span> / {totalEvents} allocated
+          </div>
         </div>
       </div>
 

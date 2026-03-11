@@ -48,15 +48,15 @@ function Bar({ value, max, color = "bg-[#F40000]" }: { value: number; max: numbe
 }
 
 /* ── Stat card wrapper ── */
-function S({ children, className = "" }: { children: React.ReactNode; className?: string }) {
+function S({ children, className = "", onClick }: { children: React.ReactNode; className?: string; onClick?: () => void }) {
   return (
-    <div className={`rounded-xl border border-[#808080]/30 p-3 sm:p-4 ${className}`}>
+    <div className={`rounded-xl border border-[#808080]/30 p-3 sm:p-4 ${className}`} onClick={onClick} role={onClick ? "button" : undefined} tabIndex={onClick ? 0 : undefined} onKeyDown={onClick ? (e) => { if (e.key === "Enter" || e.key === " ") onClick(); } : undefined}>
       {children}
     </div>
   );
 }
 
-export function DashboardStats({ data }: { data: DashboardStatsData }) {
+export function DashboardStats({ data, onTodayClick }: { data: DashboardStatsData; onTodayClick?: () => void }) {
   const remainingMinutes = Math.max(0, data.expectedDayHours * 60 - data.todayMinutes);
   const weekMax = Math.max(...data.weekDays.map((d) => d.minutes), 1);
   const daysTracked = data.weekDays.filter((d) => d.minutes > 0).length || 1;
@@ -66,7 +66,7 @@ export function DashboardStats({ data }: { data: DashboardStatsData }) {
   return (
     <div className="grid grid-cols-2 gap-2 lg:grid-cols-1">
       {/* ── 1. Today's Activity ── */}
-      <S>
+      <S className={onTodayClick ? "cursor-pointer hover:border-[#F40000]/50 transition-colors" : ""} onClick={onTodayClick}>
         <div className="text-xs uppercase tracking-wider text-[#808080] font-bold">Today</div>
         <div className="text-xl lg:text-2xl font-bold tabular-nums mt-0.5">{formatMinutes(data.todayMinutes)}</div>
         <div className="text-xs text-[#808080] mt-0.5 space-y-px">
