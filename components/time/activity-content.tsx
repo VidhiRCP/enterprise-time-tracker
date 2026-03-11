@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { Card } from "@/components/ui/card";
 import { DashboardStats, type DashboardStatsData } from "@/components/time/dashboard-stats";
 import { SidebarCalendar } from "@/components/time/sidebar-calendar";
 import { TimerPanel } from "@/components/time/timer-panel";
@@ -46,27 +45,25 @@ function CollapsibleSection({
   children: React.ReactNode;
 }) {
   return (
-    <Card>
-      <div>
-        <button
-          onClick={onToggle}
-          className="w-full flex items-center justify-between text-left"
-        >
-          <div className="min-w-0">
-            <h2 className="text-sm sm:text-base font-bold">{title}</h2>
-            {subtitle && !collapsed && (
-              <p className="text-xs sm:text-sm text-[#808080] mt-0.5">{subtitle}</p>
-            )}
-          </div>
-          <span className="shrink-0 ml-2 text-[#808080] hover:text-[#D9D9D9] transition-colors text-sm">
-            {collapsed ? "▸" : "▾"}
-          </span>
-        </button>
-        {!collapsed && (
-          <div className="mt-3 border-t border-[#F40000]/25 pt-3">{children}</div>
-        )}
-      </div>
-    </Card>
+    <div className="pb-4 border-b border-[#808080]/15">
+      <button
+        onClick={onToggle}
+        className="w-full flex items-center justify-between text-left"
+      >
+        <div className="min-w-0">
+          <h2 className="text-sm sm:text-base font-bold">{title}</h2>
+          {subtitle && !collapsed && (
+            <p className="text-xs sm:text-sm text-[#808080] mt-0.5">{subtitle}</p>
+          )}
+        </div>
+        <span className="shrink-0 ml-2 text-[#808080] hover:text-[#D9D9D9] transition-colors text-sm">
+          {collapsed ? "▸" : "▾"}
+        </span>
+      </button>
+      {!collapsed && (
+        <div className="mt-3 border-t border-[#F40000]/20 pt-3">{children}</div>
+      )}
+    </div>
   );
 }
 
@@ -112,10 +109,10 @@ export function ActivityContent({
       <div className="grid gap-4 lg:grid-cols-[340px_1fr]">
         {/* ── Left sidebar ── */}
         <div className="space-y-3 lg:sticky lg:top-4 lg:self-start">
-          <div className="border border-[#808080]/30 p-3 hidden lg:block">
+          <div className="hidden lg:block">
             <button
               onClick={() => setStatsCollapsed((v) => !v)}
-              className="w-full flex items-center justify-between text-left"
+              className="w-full flex items-center justify-between text-left mb-2"
             >
               <span className="text-xs uppercase tracking-wider text-[#808080] font-bold">Dashboard</span>
               <span className="text-[#808080] hover:text-[#D9D9D9] transition-colors text-sm">
@@ -123,9 +120,7 @@ export function ActivityContent({
               </span>
             </button>
             {!statsCollapsed && (
-              <div className="mt-2">
-                <DashboardStats data={statsData} onTodayClick={handleTodayClick} />
-              </div>
+              <DashboardStats data={statsData} onTodayClick={handleTodayClick} />
             )}
           </div>
           {/* Mobile stats (always visible) */}
@@ -158,19 +153,19 @@ export function ActivityContent({
             <ManualEntryForm projects={projectOptions} />
           </CollapsibleSection>
 
-          <Card>
+          <div className="pt-1">
             <div className="space-y-3">
               <div>
                 <h2 className="text-sm sm:text-base font-bold">Recent Entries</h2>
                 <p className="text-xs sm:text-sm text-[#808080] mt-0.5">Your entries, scoped to your project assignments.</p>
-              </div>              <div className="border-t border-[#F40000]/25" />              <EntryTable
+              </div>              <div className="border-t border-[#F40000]/20" />              <EntryTable
                 entries={entries}
                 projects={projectOptions}
                 calendarDate={selectedDate}
                 onClearCalendarDate={() => setSelectedDate(null)}
               />
             </div>
-          </Card>
+          </div>
         </div>
       </div>
     </div>

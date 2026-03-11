@@ -1,7 +1,6 @@
 import { auth, signOut } from "@/auth";
 import { getDashboardData, getInsightsData } from "@/lib/queries";
 import { getCalendarEvents } from "@/lib/calendar";
-import { Card } from "@/components/ui/card";
 import { SignInCard } from "@/components/sign-in-card";
 import { TimesheetPanel } from "@/components/time/timesheet-panel";
 import { InsightsPanel } from "@/components/time/insights-panel";
@@ -176,14 +175,12 @@ export default async function HomePage() {
           recoveredSession={!!data.session}
           activityContent={
             !hasProjects ? (
-              <Card>
-                <div className="py-6 sm:py-8 text-center">
-                  <p className="text-sm sm:text-base font-bold text-[#D9D9D9]">No projects assigned</p>
-                  <p className="mt-1 text-sm text-[#808080]">
-                    Ask your administrator to assign you to a project before you can track time.
-                  </p>
-                </div>
-              </Card>
+              <div className="py-6 sm:py-8 text-center">
+                <p className="text-sm sm:text-base font-bold text-[#D9D9D9]">No projects assigned</p>
+                <p className="mt-1 text-sm text-[#808080]">
+                  Ask your administrator to assign you to a project before you can track time.
+                </p>
+              </div>
             ) : (
               <ActivityContent
                 statsData={statsData}
@@ -208,19 +205,13 @@ export default async function HomePage() {
             )
           }
           meetingsContent={
-            <Card>
-              <TimesheetPanel groups={calendarGroups} projects={projectOptions} hasToken={!!accessToken} />
-            </Card>
+            <TimesheetPanel groups={calendarGroups} projects={projectOptions} hasToken={!!accessToken} />
           }
           insightsContent={
-            <Card>
-              <InsightsPanel data={insightsData} />
-            </Card>
+            <InsightsPanel data={insightsData} />
           }
           aliasesContent={
-            <Card>
-              <ProjectAliases assignments={aliasEntries} />
-            </Card>
+            <ProjectAliases assignments={aliasEntries} />
           }
         />
       </div>

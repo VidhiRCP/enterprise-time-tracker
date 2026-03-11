@@ -44,9 +44,9 @@ function Bar({ value, max, color = "bg-[#F40000]" }: { value: number; max: numbe
 }
 
 /* ── Stat card wrapper ── */
-function S({ children, className = "", onClick }: { children: React.ReactNode; className?: string; onClick?: () => void }) {
+function S({ children, className = "", onClick, accent = false }: { children: React.ReactNode; className?: string; onClick?: () => void; accent?: boolean }) {
   return (
-    <div className={`border border-[#808080]/30 p-3 sm:p-4 ${className}`} onClick={onClick} role={onClick ? "button" : undefined} tabIndex={onClick ? 0 : undefined} onKeyDown={onClick ? (e) => { if (e.key === "Enter" || e.key === " ") onClick(); } : undefined}>
+    <div className={`py-3 sm:py-4 ${accent ? "border-l-2 border-l-[#F40000] pl-3 sm:pl-4" : "pl-0"} ${className}`} onClick={onClick} role={onClick ? "button" : undefined} tabIndex={onClick ? 0 : undefined} onKeyDown={onClick ? (e) => { if (e.key === "Enter" || e.key === " ") onClick(); } : undefined}>
       {children}
     </div>
   );
@@ -81,7 +81,7 @@ function WeeklyTrendCard({ entries }: { entries: DashboardStatsData["projectEntr
   const weekMax = Math.max(...weekDays.map((d) => d.minutes), 1);
 
   return (
-    <S className="hidden lg:block">
+    <S className="hidden lg:block border-t border-[#808080]/10 mt-1">
       <div className="flex items-center justify-between mb-1.5">
         <div className="text-xs uppercase tracking-wider text-[#808080] font-bold">Weekly Trend</div>
         <div className="flex items-center gap-1.5">
@@ -156,7 +156,7 @@ function ProjectTimeCard({ entries }: { entries: DashboardStatsData["projectEntr
   const maxMinutes = Math.max(...projectTotals.map((p) => p.minutes), 1);
 
   return (
-    <S className="hidden lg:block">
+    <S className="hidden lg:block border-t border-[#808080]/10 mt-1">
       <div className="flex items-center justify-between mb-2">
         <div className="text-xs uppercase tracking-wider text-[#808080] font-bold">Project Time</div>
         <div className="flex items-center gap-1.5">
@@ -209,9 +209,9 @@ export function DashboardStats({ data, onTodayClick }: { data: DashboardStatsDat
   const weekLabel = `${format(new Date(data.weekStartISO), "d MMM")} – ${format(new Date(data.weekEndISO), "d MMM")}`;
 
   return (
-    <div className="grid grid-cols-2 gap-3 lg:grid-cols-1">
+    <div className="grid grid-cols-2 gap-0 lg:grid-cols-1 lg:divide-y lg:divide-[#808080]/10">
       {/* ── 1. Today's Activity ── */}
-      <S className={onTodayClick ? "cursor-pointer hover:border-[#F40000]/50 transition-colors" : ""} onClick={onTodayClick}>
+      <S accent className={onTodayClick ? "cursor-pointer hover:bg-[#F8F8F8]/5 transition-colors" : ""} onClick={onTodayClick}>
         <div className="text-xs uppercase tracking-wider text-[#808080] font-bold">Today</div>
         <div className="text-lg lg:text-xl font-bold tabular-nums mt-1">{formatMinutes(data.todayMinutes)}</div>
         <div className="text-xs text-[#808080] mt-1 space-y-0.5">

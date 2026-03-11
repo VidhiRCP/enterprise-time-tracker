@@ -192,6 +192,9 @@ export function EntryTable({
   const [filterFrom, setFilterFrom] = useState("");
   const [filterTo, setFilterTo] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [filtersOpen, setFiltersOpen] = useState(false);
+
+  const hasActiveFilters = filterProject !== "ALL" || filterFrom !== "" || filterTo !== "";
 
   // Filter entries
   const filtered = useMemo(() => {
@@ -301,48 +304,27 @@ export function EntryTable({
         </div>
       )}
 
-      {/* ── Filter bar ── */}
-      <div className="flex flex-wrap items-end gap-3">
-        <div className="space-y-1">
-          <label className="text-xs font-medium text-[#D9D9D9]">Project</label>
-          <select
-            value={filterProject}
-            onChange={(e) => setFilterProject(e.target.value)}
-            className="w-full border border-[#808080]/30 bg-black px-2.5 py-1.5 text-xs focus:border-[#F40000] focus:outline-none"
-          >
-            <option value="ALL">All projects</option>
-            {uniqueProjects.map(([id, name]) => (
-              <option key={id} value={id}>{name} ({id})</option>
-            ))}
-          </select>
-        </div>
-        <div className="space-y-1">
-          <label className="text-xs font-medium text-[#D9D9D9]">From</label>
-          <input
-            type="date"
-            value={filterFrom}
-            onChange={(e) => setFilterFrom(e.target.value)}
-            className="w-full border border-[#808080]/30 bg-black px-2.5 py-1.5 text-xs focus:border-[#F40000] focus:outline-none"
-          />
-        </div>
-        <div className="space-y-1">
-          <label className="text-xs font-medium text-[#D9D9D9]">To</label>
-          <input
-            type="date"
-            value={filterTo}
-            onChange={(e) => setFilterTo(e.target.value)}
-            className="w-full border border-[#808080]/30 bg-black px-2.5 py-1.5 text-xs focus:border-[#F40000] focus:outline-none"
-          />
-        </div>
-        {(filterProject !== "ALL" || filterFrom || filterTo) && (
+      {/* ── Filter toolbar ── */}
+      <div className="flex flex-wrap items-center gap-3">
+        <button
+          onClick={() => setFiltersOpen((v) => !v)}
+          className={`border px-2.5 py-1.5 text-xs font-medium transition-colors ${
+            hasActiveFilters
+              ? "border-[#F40000]/40 text-[#F40000] bg-[#F40000]/5"
+              : "border-[#808080]/30 text-[#808080] hover:text-[#D9D9D9]"
+          }`}
+        >
+          {filtersOpen ? "▾ Filter" : "▸ Filter"}{hasActiveFilters ? " · Active" : ""}
+        </button>
+        {hasActiveFilters && (
           <button
             onClick={() => { setFilterProject("ALL"); setFilterFrom(""); setFilterTo(""); }}
-            className="border border-[#808080]/30 px-2.5 py-1.5 text-xs text-[#808080] hover:text-[#D9D9D9] transition-colors"
+            className="text-xs text-[#808080] hover:text-[#F40000] transition-colors"
           >
-            Clear filters
+            ✕ Clear
           </button>
         )}
-        <div className="ml-auto flex items-center gap-2">
+        <div className="ml-auto flex items-center gap-3">
           <span className="text-xs text-[#808080]">
             {filtered.length} {filtered.length === 1 ? "entry" : "entries"} · {formatMinutes(filtered.reduce((s, e) => s + effectiveDuration(e), 0))}
           </span>
@@ -355,6 +337,43 @@ export function EntryTable({
           </button>
         </div>
       </div>
+
+      {/* Collapsible filter fields */}
+      {filtersOpen && (
+        <div className="flex flex-wrap items-end gap-3 border-l-2 border-l-[#F40000]/30 pl-3">
+          <div className="space-y-1">
+            <label className="text-xs font-medium text-[#D9D9D9]">Project</label>
+            <select
+              value={filterProject}
+              onChange={(e) => setFilterProject(e.target.value)}
+              className="w-full border border-[#808080]/30 bg-black px-2.5 py-1.5 text-xs focus:border-[#F40000] focus:outline-none"
+            >
+              <option value="ALL">All projects</option>
+              {uniqueProjects.map(([id, name]) => (
+                <option key={id} value={id}>{name} ({id})</option>
+              ))}
+            </select>
+          </div>
+          <div className="space-y-1">
+            <label className="text-xs font-medium text-[#D9D9D9]">From</label>
+            <input
+              type="date"
+              value={filterFrom}
+              onChange={(e) => setFilterFrom(e.target.value)}
+              className="w-full border border-[#808080]/30 bg-black px-2.5 py-1.5 text-xs focus:border-[#F40000] focus:outline-none"
+            />
+          </div>
+          <div className="space-y-1">
+            <label className="text-xs font-medium text-[#D9D9D9]">To</label>
+            <input
+              type="date"
+              value={filterTo}
+              onChange={(e) => setFilterTo(e.target.value)}
+              className="w-full border border-[#808080]/30 bg-black px-2.5 py-1.5 text-xs focus:border-[#F40000] focus:outline-none"
+            />
+          </div>
+        </div>
+      )}
 
       {/* ── Weekly grouped entries ── */}
       {weekGroups.length === 0 && (
@@ -427,9 +446,9 @@ export function EntryTable({
           </div>
 
           {/* ── Desktop: full table ── */}
-          <div className="hidden md:block overflow-x-auto border border-[#808080]/30">
+          <div className="hidden md:block overflow-x-auto">
             <table className="min-w-full border-collapse text-sm">
-              <thead>
+              <thead className="sticky top-0 z-10 bg-black">
                 <tr>
                   <th className="border-b border-[#808080]/30 px-3 lg:px-4 py-2 lg:py-3 text-left text-xs lg:text-sm font-bold uppercase tracking-wider text-[#808080]">Date</th>
                   <th className="border-b border-[#808080]/30 px-3 lg:px-4 py-2 lg:py-3 text-left text-xs lg:text-sm font-bold uppercase tracking-wider text-[#808080]">Project</th>
@@ -450,7 +469,7 @@ export function EntryTable({
                       </td>
                     </tr>
                   ) : (
-                    <tr key={entry.id} className="hover:bg-[#F8F8F8]/5 transition-colors">
+                    <tr key={entry.id} className="hover:bg-[#F8F8F8]/5 even:bg-[#F8F8F8]/[0.02] transition-colors">
                       <td className="border-b border-[#808080]/10 px-3 lg:px-4 py-2 lg:py-3 text-[#D9D9D9] whitespace-nowrap">
                         {format(new Date(entry.workDate), "dd-MM-yyyy")}
                       </td>

@@ -51,7 +51,7 @@ function EventRow({
   }
 
   return (
-    <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between border border-[#808080]/20 p-3 sm:p-4 hover:bg-[#F8F8F8]/5 transition-colors">
+    <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between border-b border-[#808080]/10 pb-3 sm:pb-4 pt-1 hover:bg-[#F8F8F8]/[0.02] transition-colors">
       <div className="flex-1 min-w-0 space-y-1">
         <div className="flex items-center gap-2">
           <span className="text-xs sm:text-sm font-bold truncate">{event.subject}</span>

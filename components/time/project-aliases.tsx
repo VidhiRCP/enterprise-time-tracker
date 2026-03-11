@@ -62,7 +62,7 @@ export function ProjectAliases({ assignments }: { assignments: AliasEntry[] }) {
         {entries.map((entry) => (
           <div
             key={entry.projectId}
-            className="border border-[#808080]/20 p-3 sm:p-4 space-y-2 hover:bg-[#F8F8F8]/5 transition-colors"
+            className="border-b border-[#808080]/10 pb-4 space-y-2 last:border-b-0"
           >
             <div className="flex items-center justify-between">
               <span className="text-xs sm:text-sm font-bold">{entry.projectName}</span>
@@ -110,7 +110,7 @@ export function ProjectAliases({ assignments }: { assignments: AliasEntry[] }) {
         ))}
       </div>
 
-      <div className="border border-[#808080]/10 p-3 sm:p-4">
+      <div className="border-t border-[#808080]/10 pt-4 mt-1">
         <p className="text-xs sm:text-sm text-[#808080]">
           <span className="font-bold text-[#D9D9D9]">💡 Tip:</span> Use short, distinctive
           keywords from meeting subjects. For example, if your project meetings often contain

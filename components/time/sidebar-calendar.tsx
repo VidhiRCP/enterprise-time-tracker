@@ -34,7 +34,7 @@ export function SidebarCalendar({
   const days = eachDayOfInterval({ start: calStart, end: calEnd });
 
   return (
-    <div className="border border-[#808080]/30 p-3 hidden lg:block">
+    <div className="pt-3 mt-1 border-t border-[#808080]/15 hidden lg:block">
       {/* Month header with nav */}
       <div className="flex items-center justify-between mb-2">
         <button

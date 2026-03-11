@@ -238,22 +238,22 @@ export function InsightsPanel({ data }: { data: InsightsData }) {
 
       {/* ── Summary Cards ── */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-4">
-        <div className="border border-[#808080]/20 p-3 sm:p-4">
+        <div className="border-l-2 border-l-[#808080]/30 pl-3 sm:pl-4 py-1">
           <div className="text-xs uppercase tracking-wider text-[#808080]">Total</div>
           <div className="mt-1.5 text-lg sm:text-xl font-bold">{fmtMin(totalMinutes)}</div>
           <div className="text-xs text-[#808080]">{fmtHours(totalMinutes)}h</div>
         </div>
-        <div className="border border-[#808080]/20 p-3 sm:p-4">
+        <div className="border-l-2 border-l-[#F40000]/50 pl-3 sm:pl-4 py-1">
           <div className="text-xs uppercase tracking-wider text-[#808080]">Activity</div>
           <div className="mt-1.5 text-lg sm:text-xl font-bold text-[#F40000]">{fmtMin(totalActivityMin)}</div>
           <div className="text-xs text-[#808080]">{fmtHours(totalActivityMin)}h</div>
         </div>
-        <div className="border border-[#808080]/20 p-3 sm:p-4">
+        <div className="border-l-2 border-l-blue-400/50 pl-3 sm:pl-4 py-1">
           <div className="text-xs uppercase tracking-wider text-[#808080]">Meetings</div>
           <div className="mt-1.5 text-lg sm:text-xl font-bold text-blue-400">{fmtMin(totalMeetingMin)}</div>
           <div className="text-xs text-[#808080]">{fmtHours(totalMeetingMin)}h</div>
         </div>
-        <div className="border border-[#808080]/20 p-3 sm:p-4">
+        <div className="border-l-2 border-l-[#808080]/30 pl-3 sm:pl-4 py-1">
           <div className="text-xs uppercase tracking-wider text-[#808080]">Avg / day</div>
           <div className="mt-1.5 text-lg sm:text-xl font-bold">{fmtMin(avgDailyMin)}</div>
           <div className="text-xs text-[#808080]">{weekDays} active day{weekDays !== 1 ? "s" : ""}</div>
@@ -282,7 +282,7 @@ export function InsightsPanel({ data }: { data: InsightsData }) {
       {/* ── Stacked Bar Chart: By Project per Day ── */}
       <div className="space-y-2">
         <h3 className="text-xs sm:text-sm font-bold text-[#D9D9D9]">By Project</h3>
-        <div className="border border-[#808080]/20 p-3 sm:p-4">
+        <div className="pt-2">
           {/* Chart */}
           <div className="flex items-end gap-1.5 sm:gap-3" style={{ height: 180 }}>
             {chartData.map((day) => (
@@ -345,9 +345,9 @@ export function InsightsPanel({ data }: { data: InsightsData }) {
         {dailyBreakdown.map((day) => {
           const dayTotal = day.projects.reduce((s, p) => s + p.totalMin, 0);
           return (
-            <div key={day.date} className="border border-[#808080]/20 overflow-hidden">
+            <div key={day.date} className="border-b border-[#808080]/10 last:border-b-0">
               {/* Day header */}
-              <div className="flex items-center justify-between bg-[#808080]/5 px-3 sm:px-4 py-2">
+              <div className="flex items-center justify-between py-2.5 sm:py-3">
                 <span className="text-xs sm:text-sm font-bold text-[#D9D9D9]">
                   {format(new Date(day.date + "T12:00:00"), "EEEE, dd MMM")}
                 </span>
@@ -357,7 +357,7 @@ export function InsightsPanel({ data }: { data: InsightsData }) {
               {/* Project rows */}
               <div className="divide-y divide-[#808080]/10">
                 {day.projects.map((p) => (
-                  <div key={p.projectId} className="grid grid-cols-[1fr_auto_auto_auto] items-center gap-x-4 px-3 sm:px-4 py-2.5">
+                  <div key={p.projectId} className="grid grid-cols-[1fr_auto_auto_auto] items-center gap-x-4 py-1.5">
                     <span className="text-xs sm:text-sm text-[#D9D9D9] truncate">{p.projectName}</span>
                     <span className="text-xs sm:text-sm text-[#F40000] tabular-nums text-right w-14 sm:w-16">
                       {p.activityMin > 0 ? fmtMin(p.activityMin) : "—"}
@@ -373,7 +373,7 @@ export function InsightsPanel({ data }: { data: InsightsData }) {
               </div>
 
               {/* Column labels footer */}
-              <div className="grid grid-cols-[1fr_auto_auto_auto] items-center gap-x-4 px-3 sm:px-4 py-1.5 border-t border-[#808080]/15">
+              <div className="grid grid-cols-[1fr_auto_auto_auto] items-center gap-x-4 py-1.5 border-t border-[#808080]/10">
                 <span />
                 <span className="text-[10px] uppercase tracking-wider text-[#808080] text-right w-14 sm:w-16">Activity</span>
                 <span className="text-[10px] uppercase tracking-wider text-[#808080] text-right w-14 sm:w-16">Meetings</span>
