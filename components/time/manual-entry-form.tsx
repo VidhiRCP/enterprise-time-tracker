@@ -64,15 +64,15 @@ export function ManualEntryForm({ projects }: { projects: ProjectOption[] }) {
   }
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-3">
       {/* ── Row 1: Project + Date side by side ── */}
-      <div className="grid gap-2 sm:grid-cols-[2fr_1fr]">
+      <div className="grid gap-3 sm:grid-cols-[2fr_1fr]">
         <div className="space-y-1">
           <label className="text-sm font-medium text-[#D9D9D9]">Project</label>
           <select
             value={projectId}
             onChange={(e) => setProjectId(e.target.value)}
-            className="w-full rounded-xl border border-[#808080]/30 bg-black px-3 py-2 text-sm focus:border-[#F40000] focus:outline-none"
+            className="w-full border border-[#808080]/30 bg-black px-3 py-2 text-sm focus:border-[#F40000] focus:outline-none"
           >
             {projects.map((project) => (
               <option key={project.projectId} value={project.projectId}>
@@ -83,18 +83,18 @@ export function ManualEntryForm({ projects }: { projects: ProjectOption[] }) {
         </div>
         <div className="space-y-1">
           <label className="text-sm font-medium text-[#D9D9D9]">Date</label>
-          <div className="w-full rounded-xl border border-[#808080]/30 bg-black px-3 py-2 text-sm text-[#D9D9D9]">
+          <div className="w-full border border-[#808080]/30 bg-black px-3 py-2 text-sm text-[#D9D9D9]">
             📅 Today
           </div>
         </div>
       </div>
 
       {/* ── Row 2: Mode toggle + time/duration inputs inline ── */}
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-end">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
         {/* Mode toggle */}
         <div className="space-y-1 shrink-0">
           <label className="text-sm font-medium text-[#D9D9D9]">Entry type</label>
-          <div className="flex rounded-xl border border-[#808080]/30 overflow-hidden">
+          <div className="flex border border-[#808080]/30 overflow-hidden">
             <button
               type="button"
               onClick={() => setMode("duration")}
@@ -131,7 +131,7 @@ export function ManualEntryForm({ projects }: { projects: ProjectOption[] }) {
               min={1}
               step={1}
               placeholder="60"
-              className="w-full rounded-xl border border-[#808080]/30 bg-black px-3 py-2 text-sm focus:border-[#F40000] focus:outline-none"
+              className="w-full border border-[#808080]/30 bg-black px-3 py-2 text-sm focus:border-[#F40000] focus:outline-none"
             />
           </div>
         ) : (
@@ -142,7 +142,7 @@ export function ManualEntryForm({ projects }: { projects: ProjectOption[] }) {
                 type="time"
                 value={startTime}
                 onChange={(e) => setStartTime(e.target.value)}
-                className="w-full rounded-xl border border-[#808080]/30 bg-black px-3 py-2 text-sm focus:border-[#F40000] focus:outline-none"
+                className="w-full border border-[#808080]/30 bg-black px-3 py-2 text-sm focus:border-[#F40000] focus:outline-none"
               />
             </div>
             <div className="space-y-1">
@@ -158,7 +158,7 @@ export function ManualEntryForm({ projects }: { projects: ProjectOption[] }) {
                 type="time"
                 value={endTime}
                 onChange={(e) => setEndTime(e.target.value)}
-                className="w-full rounded-xl border border-[#808080]/30 bg-black px-3 py-2 text-sm focus:border-[#F40000] focus:outline-none"
+                className="w-full border border-[#808080]/30 bg-black px-3 py-2 text-sm focus:border-[#F40000] focus:outline-none"
               />
             </div>
           </div>
@@ -166,7 +166,7 @@ export function ManualEntryForm({ projects }: { projects: ProjectOption[] }) {
       </div>
 
       {/* ── Row 3: Notes + Submit side by side ── */}
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-end">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
         <div className="flex-1 space-y-1">
           <label className="text-sm font-medium text-[#D9D9D9]">
             Notes <span className="text-[#F40000]">*</span>
@@ -175,7 +175,7 @@ export function ManualEntryForm({ projects }: { projects: ProjectOption[] }) {
             type="text"
             value={notes}
             onChange={(e) => { setNotes(e.target.value); setError(""); }}
-            className={`w-full rounded-xl border bg-black px-3 py-2 text-sm focus:border-[#F40000] focus:outline-none ${
+            className={`w-full border bg-black px-3 py-2 text-sm focus:border-[#F40000] focus:outline-none ${
               error && !notes.trim() ? "border-[#F40000]" : "border-[#808080]/30"
             }`}
             placeholder="Describe the work done (required)"
@@ -185,7 +185,7 @@ export function ManualEntryForm({ projects }: { projects: ProjectOption[] }) {
           type="button"
           disabled={isPending}
           onClick={handleSubmit}
-          className="shrink-0 rounded-xl border border-[#808080]/30 px-5 py-2 text-sm font-bold text-[#F8F8F8] hover:border-[#D9D9D9] transition-colors disabled:opacity-40"
+          className="shrink-0 border border-[#808080]/30 px-5 py-2 text-sm font-bold text-[#F8F8F8] hover:border-[#D9D9D9] transition-colors disabled:opacity-40"
         >
           {isPending ? "Saving…" : "Save entry"}
         </button>
@@ -193,12 +193,12 @@ export function ManualEntryForm({ projects }: { projects: ProjectOption[] }) {
 
       {/* Error / Success messages */}
       {error && (
-        <div className="rounded-lg border border-[#F40000]/30 bg-[#F40000]/10 px-3 py-2 text-xs sm:text-sm text-[#F40000]">
+        <div className="border border-[#F40000]/30 bg-[#F40000]/10 px-3 py-2 text-xs sm:text-sm text-[#F40000]">
           {error}
         </div>
       )}
       {success && (
-        <div className="rounded-lg border border-green-400/30 bg-green-400/10 px-3 py-2 text-xs sm:text-sm text-green-400">
+        <div className="border border-green-400/30 bg-green-400/10 px-3 py-2 text-xs sm:text-sm text-green-400">
           ✓ Entry saved successfully
         </div>
       )}

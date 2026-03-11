@@ -154,7 +154,7 @@ export default async function HomePage() {
     <main className="min-h-screen p-2 sm:p-4 md:p-5">
       <div className="mx-auto max-w-[1800px] space-y-3 sm:space-y-4">
         {/* Header */}
-        <div className="flex flex-col gap-2 rounded-2xl border border-[#808080]/30 p-3 sm:p-4 md:flex-row md:items-center md:justify-between">
+        <div className="flex flex-col gap-2 border border-[#808080]/30 p-4 sm:p-5 md:flex-row md:items-center md:justify-between">
           <div className="min-w-0">
             <h1 className="text-lg sm:text-xl md:text-2xl font-bold">RCP Time Tracker</h1>
             <p className="text-xs sm:text-sm text-[#D9D9D9] truncate">{session.user.email}</p>
@@ -165,7 +165,7 @@ export default async function HomePage() {
               await signOut({ redirectTo: "/" });
             }}
           >
-            <button className="rounded-xl border border-[#808080]/30 px-3 py-1.5 text-sm text-[#D9D9D9] hover:text-[#F8F8F8] transition-colors">
+            <button className="border border-[#808080]/30 px-4 py-2 text-sm text-[#D9D9D9] hover:text-[#F8F8F8] transition-colors">
               Sign out
             </button>
           </form>

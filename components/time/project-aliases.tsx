@@ -38,7 +38,7 @@ export function ProjectAliases({ assignments }: { assignments: AliasEntry[] }) {
 
   if (assignments.length === 0) {
     return (
-      <div className="rounded-xl border border-dashed border-[#808080]/30 p-4 sm:p-6 text-center">
+      <div className="border border-dashed border-[#808080]/30 p-4 sm:p-6 text-center">
         <p className="text-xs sm:text-sm text-[#808080]">
           No projects assigned. Ask your administrator to assign you to a project.
         </p>
@@ -56,11 +56,11 @@ export function ProjectAliases({ assignments }: { assignments: AliasEntry[] }) {
         </p>
       </div>
 
-      <div className="space-y-3">
+      <div className="space-y-4">
         {entries.map((entry) => (
           <div
             key={entry.projectId}
-            className="rounded-xl border border-[#808080]/20 p-3 sm:p-4 space-y-2 hover:bg-[#F8F8F8]/5 transition-colors"
+            className="border border-[#808080]/20 p-3 sm:p-4 space-y-2 hover:bg-[#F8F8F8]/5 transition-colors"
           >
             <div className="flex items-center justify-between">
               <span className="text-xs sm:text-sm font-bold">{entry.projectName}</span>
@@ -77,12 +77,12 @@ export function ProjectAliases({ assignments }: { assignments: AliasEntry[] }) {
                 value={entry.aliases}
                 onChange={(e) => handleChange(entry.projectId, e.target.value)}
                 placeholder="e.g. standup, sprint review, retro, project-x"
-                className="flex-1 rounded-xl border border-[#808080]/30 bg-black px-3 py-2 text-xs sm:text-sm placeholder:text-[#808080]/60 focus:border-[#F40000] focus:outline-none"
+                className="flex-1 border border-[#808080]/30 bg-black px-3 py-2 text-xs sm:text-sm placeholder:text-[#808080]/60 focus:border-[#F40000] focus:outline-none"
               />
               <button
                 onClick={() => handleSave(entry.projectId)}
                 disabled={isPending}
-                className="rounded-xl bg-[#F40000] px-4 py-2 text-xs sm:text-sm font-medium text-white hover:bg-[#F40000]/80 disabled:opacity-40 transition-all shrink-0"
+                className="bg-[#F40000] px-4 py-2 text-xs sm:text-sm font-medium text-white hover:bg-[#F40000]/80 disabled:opacity-40 transition-all shrink-0"
               >
                 {isPending ? "Saving…" : "Save"}
               </button>
@@ -108,7 +108,7 @@ export function ProjectAliases({ assignments }: { assignments: AliasEntry[] }) {
         ))}
       </div>
 
-      <div className="rounded-xl border border-[#808080]/10 p-3 sm:p-4">
+      <div className="border border-[#808080]/10 p-3 sm:p-4">
         <p className="text-xs sm:text-sm text-[#808080]">
           <span className="font-bold text-[#D9D9D9]">💡 Tip:</span> Use short, distinctive
           keywords from meeting subjects. For example, if your project meetings often contain

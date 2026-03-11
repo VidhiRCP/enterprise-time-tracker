@@ -37,8 +37,8 @@ export type DashboardStatsData = {
 function Bar({ value, max, color = "bg-[#F40000]" }: { value: number; max: number; color?: string }) {
   const pct = max > 0 ? Math.min(100, (value / max) * 100) : 0;
   return (
-    <div className="h-1.5 w-full rounded bg-[#808080]/10 overflow-hidden">
-      <div className={`h-full rounded ${color} transition-all`} style={{ width: `${pct}%` }} />
+    <div className="h-1.5 w-full bg-[#808080]/10 overflow-hidden">
+      <div className={`h-full ${color} transition-all`} style={{ width: `${pct}%` }} />
     </div>
   );
 }
@@ -46,7 +46,7 @@ function Bar({ value, max, color = "bg-[#F40000]" }: { value: number; max: numbe
 /* ── Stat card wrapper ── */
 function S({ children, className = "", onClick }: { children: React.ReactNode; className?: string; onClick?: () => void }) {
   return (
-    <div className={`rounded-xl border border-[#808080]/30 p-2.5 sm:p-3 ${className}`} onClick={onClick} role={onClick ? "button" : undefined} tabIndex={onClick ? 0 : undefined} onKeyDown={onClick ? (e) => { if (e.key === "Enter" || e.key === " ") onClick(); } : undefined}>
+    <div className={`border border-[#808080]/30 p-3 sm:p-4 ${className}`} onClick={onClick} role={onClick ? "button" : undefined} tabIndex={onClick ? 0 : undefined} onKeyDown={onClick ? (e) => { if (e.key === "Enter" || e.key === " ") onClick(); } : undefined}>
       {children}
     </div>
   );
@@ -185,9 +185,9 @@ function ProjectTimeCard({ entries }: { entries: DashboardStatsData["projectEntr
                 <span className="text-xs text-[#D9D9D9] truncate max-w-[70%]">{p.projectName}</span>
                 <span className="text-xs font-bold tabular-nums text-[#D9D9D9] shrink-0">{formatMinutes(p.minutes)}</span>
               </div>
-              <div className="h-2 w-full rounded bg-[#808080]/10 overflow-hidden">
+              <div className="h-2 w-full bg-[#808080]/10 overflow-hidden">
                 <div
-                  className="h-full rounded bg-[#F40000] transition-all"
+                  className="h-full bg-[#F40000] transition-all"
                   style={{ width: `${(p.minutes / maxMinutes) * 100}%` }}
                 />
               </div>
@@ -209,12 +209,12 @@ export function DashboardStats({ data, onTodayClick }: { data: DashboardStatsDat
   const weekLabel = `${format(new Date(data.weekStartISO), "d MMM")} – ${format(new Date(data.weekEndISO), "d MMM")}`;
 
   return (
-    <div className="grid grid-cols-2 gap-2 lg:grid-cols-1">
+    <div className="grid grid-cols-2 gap-3 lg:grid-cols-1">
       {/* ── 1. Today's Activity ── */}
       <S className={onTodayClick ? "cursor-pointer hover:border-[#F40000]/50 transition-colors" : ""} onClick={onTodayClick}>
         <div className="text-xs uppercase tracking-wider text-[#808080] font-bold">Today</div>
-        <div className="text-lg lg:text-xl font-bold tabular-nums mt-0.5">{formatMinutes(data.todayMinutes)}</div>
-        <div className="text-xs text-[#808080] mt-0.5 space-y-px">
+        <div className="text-lg lg:text-xl font-bold tabular-nums mt-1">{formatMinutes(data.todayMinutes)}</div>
+        <div className="text-xs text-[#808080] mt-1 space-y-0.5">
           <div>{data.todayProjectsCount} project{data.todayProjectsCount !== 1 ? "s" : ""} worked on</div>
           {data.lastActivityAgo && <div>Last: {data.lastActivityAgo}</div>}
         </div>
@@ -223,7 +223,7 @@ export function DashboardStats({ data, onTodayClick }: { data: DashboardStatsDat
       {/* ── 2. Remaining Today ── */}
       <S>
         <div className="text-xs uppercase tracking-wider text-[#808080] font-bold">Remaining Today</div>
-        <div className={`text-lg lg:text-xl font-bold tabular-nums mt-0.5 ${remainingMinutes > 0 ? "" : "text-green-400"}`}>
+        <div className={`text-lg lg:text-xl font-bold tabular-nums mt-1 ${remainingMinutes > 0 ? "" : "text-green-400"}`}>
           {remainingMinutes > 0 ? formatMinutes(remainingMinutes) : "✓ Done"}
         </div>
         <Bar
@@ -231,7 +231,7 @@ export function DashboardStats({ data, onTodayClick }: { data: DashboardStatsDat
           max={data.expectedDayHours * 60}
           color={data.todayMinutes >= data.expectedDayHours * 60 ? "bg-green-400" : "bg-[#F40000]"}
         />
-        <div className="text-xs text-[#808080] mt-0.5">
+        <div className="text-xs text-[#808080] mt-1">
           {formatMinutes(data.todayMinutes)} / {data.expectedDayHours}h target
         </div>
       </S>
@@ -241,8 +241,8 @@ export function DashboardStats({ data, onTodayClick }: { data: DashboardStatsDat
         <div className="text-xs uppercase tracking-wider text-[#808080] font-bold">
           Week · {weekLabel}
         </div>
-        <div className="text-lg lg:text-xl font-bold tabular-nums mt-0.5">{formatMinutes(data.weekTotalMinutes)}</div>
-        <div className="text-xs text-[#808080] mt-0.5">
+        <div className="text-lg lg:text-xl font-bold tabular-nums mt-1">{formatMinutes(data.weekTotalMinutes)}</div>
+        <div className="text-xs text-[#808080] mt-1">
           Avg {formatMinutes(Math.round(avgPerDay))}/day
         </div>
       </S>

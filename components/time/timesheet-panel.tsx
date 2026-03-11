@@ -51,12 +51,12 @@ function EventRow({
   }
 
   return (
-    <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between rounded-xl border border-[#808080]/20 p-3 sm:p-4 hover:bg-[#F8F8F8]/5 transition-colors">
+    <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between border border-[#808080]/20 p-3 sm:p-4 hover:bg-[#F8F8F8]/5 transition-colors">
       <div className="flex-1 min-w-0 space-y-1">
         <div className="flex items-center gap-2">
           <span className="text-xs sm:text-sm font-bold truncate">{event.subject}</span>
           {event.isAllDay && (
-            <span className="text-xs uppercase tracking-wider text-[#808080] border border-[#808080]/30 px-1.5 py-0.5 rounded">
+            <span className="text-xs uppercase tracking-wider text-[#808080] border border-[#808080]/30 px-1.5 py-0.5">
               All day
             </span>
           )}
@@ -98,7 +98,7 @@ function EventRow({
           value={event.allocatedProjectId ?? ""}
           onChange={(e) => handleChange(e.target.value)}
           disabled={isPending}
-          className={`w-full sm:w-48 rounded-xl border bg-black px-2 py-1.5 sm:px-3 sm:py-2 text-xs sm:text-sm focus:border-[#F40000] focus:outline-none disabled:opacity-40 transition-opacity ${
+          className={`w-full sm:w-48 border bg-black px-2 py-1.5 sm:px-3 sm:py-2 text-xs sm:text-sm focus:border-[#F40000] focus:outline-none disabled:opacity-40 transition-opacity ${
             hasSuggestion
               ? "border-yellow-400/40"
               : "border-[#808080]/30"
@@ -136,7 +136,7 @@ export function TimesheetPanel({
 
   if (!hasToken) {
     return (
-      <div className="rounded-xl border border-dashed border-[#808080]/30 p-4 sm:p-6 text-center">
+      <div className="border border-dashed border-[#808080]/30 p-4 sm:p-6 text-center">
         <p className="text-xs sm:text-sm font-bold text-[#D9D9D9]">
           Calendar access not available
         </p>
@@ -149,7 +149,7 @@ export function TimesheetPanel({
 
   if (!groups.length) {
     return (
-      <div className="rounded-xl border border-dashed border-[#808080]/30 p-4 sm:p-6 text-center">
+      <div className="border border-dashed border-[#808080]/30 p-4 sm:p-6 text-center">
         <p className="text-xs sm:text-sm text-[#808080]">
           No calendar events found for this week.
         </p>
@@ -179,7 +179,7 @@ export function TimesheetPanel({
           <button
             onClick={handleRefresh}
             disabled={isRefreshing}
-            className="rounded-xl border border-[#808080]/30 px-3 py-1.5 text-xs sm:text-sm text-[#D9D9D9] hover:text-[#F8F8F8] hover:border-[#D9D9D9] transition-colors disabled:opacity-40"
+            className="border border-[#808080]/30 px-3 py-1.5 text-xs sm:text-sm text-[#D9D9D9] hover:text-[#F8F8F8] hover:border-[#D9D9D9] transition-colors disabled:opacity-40"
           >
             {isRefreshing ? "Refreshing…" : "↻ Refresh"}
           </button>
@@ -191,7 +191,7 @@ export function TimesheetPanel({
 
       {groups.map((group) => (
         <div key={group.date} className="space-y-2">
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-4">
             <h3 className="text-xs sm:text-sm font-bold text-[#D9D9D9]">
               {format(new Date(group.date + "T12:00:00"), "EEEE, dd-MM-yyyy")}
             </h3>
@@ -201,7 +201,7 @@ export function TimesheetPanel({
             </span>
           </div>
 
-          <div className="space-y-2">
+          <div className="space-y-3">
             {group.events.map((event) => (
               <EventRow key={event.id} event={event} projects={projects} />
             ))}

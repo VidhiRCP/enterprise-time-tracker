@@ -194,7 +194,7 @@ export function InsightsPanel({ data }: { data: InsightsData }) {
   const hasAnyData = entries.length > 0 || allocations.length > 0;
   if (!hasAnyData) {
     return (
-      <div className="rounded-xl border border-dashed border-[#808080]/30 p-4 sm:p-6 text-center">
+      <div className="border border-dashed border-[#808080]/30 p-4 sm:p-6 text-center">
         <p className="text-xs sm:text-sm font-bold text-[#D9D9D9]">No data yet</p>
         <p className="mt-1 text-xs sm:text-sm text-[#808080]">
           Track time with the Activity Tracker or allocate meetings in the Meeting Tracker.
@@ -204,7 +204,7 @@ export function InsightsPanel({ data }: { data: InsightsData }) {
   }
 
   return (
-    <div className="space-y-4 sm:space-y-5">
+    <div className="space-y-5 sm:space-y-6">
       {/* ── Header + Week Nav ── */}
       <div className="flex items-center justify-between">
         <div>
@@ -217,7 +217,7 @@ export function InsightsPanel({ data }: { data: InsightsData }) {
           <button
             onClick={() => setWeekOffset((o) => o - 1)}
             disabled={weekOffset <= -7}
-            className="rounded-lg border border-[#808080]/30 px-2 py-1 text-xs text-[#D9D9D9] hover:text-[#F8F8F8] transition-colors disabled:opacity-30"
+            className="border border-[#808080]/30 px-2 py-1 text-xs text-[#D9D9D9] hover:text-[#F8F8F8] transition-colors disabled:opacity-30"
           >
             ‹
           </button>
@@ -227,7 +227,7 @@ export function InsightsPanel({ data }: { data: InsightsData }) {
           <button
             onClick={() => setWeekOffset((o) => o + 1)}
             disabled={weekOffset >= 0}
-            className="rounded-lg border border-[#808080]/30 px-2 py-1 text-xs text-[#D9D9D9] hover:text-[#F8F8F8] transition-colors disabled:opacity-30"
+            className="border border-[#808080]/30 px-2 py-1 text-xs text-[#D9D9D9] hover:text-[#F8F8F8] transition-colors disabled:opacity-30"
           >
             ›
           </button>
@@ -235,32 +235,32 @@ export function InsightsPanel({ data }: { data: InsightsData }) {
       </div>
 
       {/* ── Summary Cards ── */}
-      <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 sm:gap-3">
-        <div className="rounded-xl border border-[#808080]/20 p-3">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-4">
+        <div className="border border-[#808080]/20 p-3 sm:p-4">
           <div className="text-xs uppercase tracking-wider text-[#808080]">Total</div>
-          <div className="mt-1 text-lg sm:text-xl font-bold">{fmtMin(totalMinutes)}</div>
+          <div className="mt-1.5 text-lg sm:text-xl font-bold">{fmtMin(totalMinutes)}</div>
           <div className="text-xs text-[#808080]">{fmtHours(totalMinutes)}h</div>
         </div>
-        <div className="rounded-xl border border-[#808080]/20 p-3">
+        <div className="border border-[#808080]/20 p-3 sm:p-4">
           <div className="text-xs uppercase tracking-wider text-[#808080]">Activity</div>
-          <div className="mt-1 text-lg sm:text-xl font-bold text-[#F40000]">{fmtMin(totalActivityMin)}</div>
+          <div className="mt-1.5 text-lg sm:text-xl font-bold text-[#F40000]">{fmtMin(totalActivityMin)}</div>
           <div className="text-xs text-[#808080]">{fmtHours(totalActivityMin)}h</div>
         </div>
-        <div className="rounded-xl border border-[#808080]/20 p-3">
+        <div className="border border-[#808080]/20 p-3 sm:p-4">
           <div className="text-xs uppercase tracking-wider text-[#808080]">Meetings</div>
-          <div className="mt-1 text-lg sm:text-xl font-bold text-blue-400">{fmtMin(totalMeetingMin)}</div>
+          <div className="mt-1.5 text-lg sm:text-xl font-bold text-blue-400">{fmtMin(totalMeetingMin)}</div>
           <div className="text-xs text-[#808080]">{fmtHours(totalMeetingMin)}h</div>
         </div>
-        <div className="rounded-xl border border-[#808080]/20 p-3">
+        <div className="border border-[#808080]/20 p-3 sm:p-4">
           <div className="text-xs uppercase tracking-wider text-[#808080]">Avg / day</div>
-          <div className="mt-1 text-lg sm:text-xl font-bold">{fmtMin(avgDailyMin)}</div>
+          <div className="mt-1.5 text-lg sm:text-xl font-bold">{fmtMin(avgDailyMin)}</div>
           <div className="text-xs text-[#808080]">{weekDays} active day{weekDays !== 1 ? "s" : ""}</div>
         </div>
       </div>
 
       {/* ── AI Insight Box ── */}
       {totalMinutes > 0 && (
-        <div className="rounded-xl border border-[#F40000]/30 bg-[#F40000]/5 px-3 py-2.5 sm:px-4 sm:py-3">
+        <div className="border border-[#F40000]/30 bg-[#F40000]/5 px-4 py-3 sm:px-5 sm:py-4">
           <div className="flex items-start gap-2">
             <span className="text-sm">✨</span>
             <div className="text-xs sm:text-sm text-[#D9D9D9] space-y-0.5">
@@ -280,7 +280,7 @@ export function InsightsPanel({ data }: { data: InsightsData }) {
       {/* ── Stacked Bar Chart: By Project per Day ── */}
       <div className="space-y-2">
         <h3 className="text-xs sm:text-sm font-bold text-[#D9D9D9]">By Project</h3>
-        <div className="rounded-xl border border-[#808080]/20 p-3 sm:p-4">
+        <div className="border border-[#808080]/20 p-3 sm:p-4">
           {/* Chart */}
           <div className="flex items-end gap-1.5 sm:gap-3" style={{ height: 180 }}>
             {chartData.map((day) => (
@@ -331,11 +331,11 @@ export function InsightsPanel({ data }: { data: InsightsData }) {
       </div>
 
       {/* ── Daily Breakdown ── */}
-      <div className="space-y-3">
+      <div className="space-y-4">
         <h3 className="text-xs sm:text-sm font-bold text-[#D9D9D9]">Daily Breakdown</h3>
 
         {dailyBreakdown.length === 0 && (
-          <div className="rounded-xl border border-dashed border-[#808080]/20 p-4 text-center text-xs text-[#808080]">
+          <div className="border border-dashed border-[#808080]/20 p-4 text-center text-xs text-[#808080]">
             No tracked time this week.
           </div>
         )}
@@ -343,7 +343,7 @@ export function InsightsPanel({ data }: { data: InsightsData }) {
         {dailyBreakdown.map((day) => {
           const dayTotal = day.projects.reduce((s, p) => s + p.totalMin, 0);
           return (
-            <div key={day.date} className="rounded-xl border border-[#808080]/20 overflow-hidden">
+            <div key={day.date} className="border border-[#808080]/20 overflow-hidden">
               {/* Day header */}
               <div className="flex items-center justify-between bg-[#808080]/5 px-3 sm:px-4 py-2">
                 <span className="text-xs sm:text-sm font-bold text-[#D9D9D9]">
@@ -355,7 +355,7 @@ export function InsightsPanel({ data }: { data: InsightsData }) {
               {/* Project rows */}
               <div className="divide-y divide-[#808080]/10">
                 {day.projects.map((p) => (
-                  <div key={p.projectId} className="grid grid-cols-[1fr_auto_auto_auto] items-center gap-x-4 px-3 sm:px-4 py-2">
+                  <div key={p.projectId} className="grid grid-cols-[1fr_auto_auto_auto] items-center gap-x-4 px-3 sm:px-4 py-2.5">
                     <span className="text-xs sm:text-sm text-[#D9D9D9] truncate">{p.projectName}</span>
                     <span className="text-xs sm:text-sm text-[#F40000] tabular-nums text-right w-14 sm:w-16">
                       {p.activityMin > 0 ? fmtMin(p.activityMin) : "—"}

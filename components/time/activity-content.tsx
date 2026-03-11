@@ -53,16 +53,16 @@ function CollapsibleSection({
           className="w-full flex items-center justify-between text-left"
         >
           <div className="min-w-0">
-            <h2 className="text-sm font-bold">{title}</h2>
+            <h2 className="text-sm sm:text-base font-bold">{title}</h2>
             {subtitle && !collapsed && (
-              <p className="text-xs text-[#808080]">{subtitle}</p>
+              <p className="text-xs sm:text-sm text-[#808080] mt-0.5">{subtitle}</p>
             )}
           </div>
           <span className="shrink-0 ml-2 text-[#808080] hover:text-[#D9D9D9] transition-colors text-sm">
             {collapsed ? "▸" : "▾"}
           </span>
         </button>
-        {!collapsed && <div className="mt-2">{children}</div>}
+        {!collapsed && <div className="mt-3">{children}</div>}
       </div>
     </Card>
   );
@@ -100,17 +100,17 @@ export function ActivityContent({
   const showRecoveryBanner = hasRecoveredSession && activeSession?.status !== "RUNNING";
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-4">
       {showRecoveryBanner && (
-        <div className="rounded-xl border-l-2 border-l-[#F40000] border border-[#808080]/20 px-3 py-2 text-sm text-[#D9D9D9]">
+        <div className="border-l-2 border-l-[#F40000] border border-[#808080]/20 px-3 py-2 text-sm text-[#D9D9D9]">
           Recovered an unfinished timer session. Resume, pause, save, or discard it.
         </div>
       )}
 
-      <div className="grid gap-3 lg:grid-cols-[320px_1fr]">
+      <div className="grid gap-4 lg:grid-cols-[340px_1fr]">
         {/* ── Left sidebar ── */}
-        <div className="space-y-2 lg:sticky lg:top-4 lg:self-start">
-          <div className="rounded-xl border border-[#808080]/30 p-3 hidden lg:block">
+        <div className="space-y-3 lg:sticky lg:top-4 lg:self-start">
+          <div className="border border-[#808080]/30 p-3 hidden lg:block">
             <button
               onClick={() => setStatsCollapsed((v) => !v)}
               className="w-full flex items-center justify-between text-left"
@@ -138,7 +138,7 @@ export function ActivityContent({
         </div>
 
         {/* ── Right main content ── */}
-        <div className="space-y-3">
+        <div className="space-y-4">
           <CollapsibleSection
             title="Timer"
             collapsed={timerCollapsed}
@@ -157,10 +157,10 @@ export function ActivityContent({
           </CollapsibleSection>
 
           <Card>
-            <div className="space-y-2">
+            <div className="space-y-3">
               <div>
-                <h2 className="text-sm font-bold">Recent entries</h2>
-                <p className="text-xs text-[#808080]">Your entries, scoped to your project assignments.</p>
+                <h2 className="text-sm sm:text-base font-bold">Recent entries</h2>
+                <p className="text-xs sm:text-sm text-[#808080] mt-0.5">Your entries, scoped to your project assignments.</p>
               </div>
               <EntryTable
                 entries={entries}

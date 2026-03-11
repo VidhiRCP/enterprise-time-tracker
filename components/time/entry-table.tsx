@@ -125,7 +125,7 @@ function EditManualRow({
   }
 
   return (
-    <div className="rounded-xl border border-[#F40000]/30 bg-[#F40000]/5 p-3 space-y-2">
+    <div className="border border-[#F40000]/30 bg-[#F40000]/5 p-3 space-y-2">
       <div className="flex items-center justify-between">
         <span className="text-xs sm:text-sm font-bold text-[#F40000] uppercase tracking-wider">Edit manual entry</span>
         <button onClick={onClose} className="text-xs text-[#808080] hover:text-[#D9D9D9]">Cancel</button>
@@ -134,7 +134,7 @@ function EditManualRow({
         <select
           value={projectId}
           onChange={(e) => setProjectId(e.target.value)}
-          className="rounded-lg border border-[#808080]/30 bg-black px-2 py-1.5 text-xs focus:border-[#F40000] focus:outline-none"
+          className="border border-[#808080]/30 bg-black px-2 py-1.5 text-xs focus:border-[#F40000] focus:outline-none"
         >
           {projects.map((p) => (
             <option key={p.projectId} value={p.projectId}>{p.projectName} ({p.projectId})</option>
@@ -144,7 +144,7 @@ function EditManualRow({
           type="date"
           value={workDate}
           onChange={(e) => setWorkDate(e.target.value)}
-          className="rounded-lg border border-[#808080]/30 bg-black px-2 py-1.5 text-xs focus:border-[#F40000] focus:outline-none"
+          className="border border-[#808080]/30 bg-black px-2 py-1.5 text-xs focus:border-[#F40000] focus:outline-none"
         />
         <input
           type="number"
@@ -152,12 +152,12 @@ function EditManualRow({
           onChange={(e) => setDurationMinutes(e.target.value)}
           min={1}
           placeholder="Minutes"
-          className="rounded-lg border border-[#808080]/30 bg-black px-2 py-1.5 text-xs focus:border-[#F40000] focus:outline-none"
+          className="border border-[#808080]/30 bg-black px-2 py-1.5 text-xs focus:border-[#F40000] focus:outline-none"
         />
         <button
           onClick={handleSave}
           disabled={isPending}
-          className="rounded-lg bg-[#F40000] px-3 py-1.5 text-xs font-bold text-white hover:bg-[#F40000]/80 transition-colors disabled:opacity-40"
+          className="bg-[#F40000] px-3 py-1.5 text-xs font-bold text-white hover:bg-[#F40000]/80 transition-colors disabled:opacity-40"
         >
           {isPending ? "Saving…" : "Save"}
         </button>
@@ -167,7 +167,7 @@ function EditManualRow({
         onChange={(e) => setNotes(e.target.value)}
         rows={2}
         placeholder="Notes (required)"
-        className="w-full rounded-lg border border-[#808080]/30 bg-black px-2 py-1.5 text-xs focus:border-[#F40000] focus:outline-none"
+        className="w-full border border-[#808080]/30 bg-black px-2 py-1.5 text-xs focus:border-[#F40000] focus:outline-none"
       />
       {error && (
         <div className="text-xs text-[#F40000]">{error}</div>
@@ -278,17 +278,17 @@ export function EntryTable({
 
   if (!entries.length) {
     return (
-      <div className="rounded-xl border border-dashed border-[#808080]/30 p-4 sm:p-6 text-xs sm:text-sm text-[#808080]">
+      <div className="border border-dashed border-[#808080]/30 p-4 sm:p-6 text-xs sm:text-sm text-[#808080]">
         No entries yet.
       </div>
     );
   }
 
   return (
-    <div className="space-y-3 sm:space-y-4">
+    <div className="space-y-4 sm:space-y-5">
       {/* ── Calendar date badge ── */}
       {calendarDate && (
-        <div className="flex items-center gap-2 rounded-xl border border-[#F40000]/30 bg-[#F40000]/5 px-3 py-2">
+        <div className="flex items-center gap-2 border border-[#F40000]/30 bg-[#F40000]/5 px-3 py-2">
           <span className="text-sm text-[#D9D9D9]">
             📅 Showing entries for <span className="font-bold text-[#F8F8F8]">{format(new Date(calendarDate + "T12:00:00"), "EEEE, dd MMM yyyy")}</span>
           </span>
@@ -302,13 +302,13 @@ export function EntryTable({
       )}
 
       {/* ── Filter bar ── */}
-      <div className="flex flex-wrap items-end gap-2">
+      <div className="flex flex-wrap items-end gap-3">
         <div className="space-y-1">
           <label className="text-xs font-medium text-[#D9D9D9]">Project</label>
           <select
             value={filterProject}
             onChange={(e) => setFilterProject(e.target.value)}
-            className="w-full rounded-xl border border-[#808080]/30 bg-black px-2.5 py-1.5 text-xs focus:border-[#F40000] focus:outline-none"
+            className="w-full border border-[#808080]/30 bg-black px-2.5 py-1.5 text-xs focus:border-[#F40000] focus:outline-none"
           >
             <option value="ALL">All projects</option>
             {uniqueProjects.map(([id, name]) => (
@@ -322,7 +322,7 @@ export function EntryTable({
             type="date"
             value={filterFrom}
             onChange={(e) => setFilterFrom(e.target.value)}
-            className="w-full rounded-xl border border-[#808080]/30 bg-black px-2.5 py-1.5 text-xs focus:border-[#F40000] focus:outline-none"
+            className="w-full border border-[#808080]/30 bg-black px-2.5 py-1.5 text-xs focus:border-[#F40000] focus:outline-none"
           />
         </div>
         <div className="space-y-1">
@@ -331,13 +331,13 @@ export function EntryTable({
             type="date"
             value={filterTo}
             onChange={(e) => setFilterTo(e.target.value)}
-            className="w-full rounded-xl border border-[#808080]/30 bg-black px-2.5 py-1.5 text-xs focus:border-[#F40000] focus:outline-none"
+            className="w-full border border-[#808080]/30 bg-black px-2.5 py-1.5 text-xs focus:border-[#F40000] focus:outline-none"
           />
         </div>
         {(filterProject !== "ALL" || filterFrom || filterTo) && (
           <button
             onClick={() => { setFilterProject("ALL"); setFilterFrom(""); setFilterTo(""); }}
-            className="rounded-xl border border-[#808080]/30 px-2.5 py-1.5 text-xs text-[#808080] hover:text-[#D9D9D9] transition-colors"
+            className="border border-[#808080]/30 px-2.5 py-1.5 text-xs text-[#808080] hover:text-[#D9D9D9] transition-colors"
           >
             Clear filters
           </button>
@@ -349,7 +349,7 @@ export function EntryTable({
           <button
             onClick={() => exportToExcel(filtered)}
             disabled={filtered.length === 0}
-            className="rounded-xl border border-[#808080]/30 px-2.5 py-1.5 text-xs font-medium text-[#D9D9D9] hover:text-[#F8F8F8] hover:border-[#D9D9D9] transition-colors disabled:opacity-40"
+            className="border border-[#808080]/30 px-2.5 py-1.5 text-xs font-medium text-[#D9D9D9] hover:text-[#F8F8F8] hover:border-[#D9D9D9] transition-colors disabled:opacity-40"
           >
             ⬇ Export
           </button>
@@ -358,15 +358,15 @@ export function EntryTable({
 
       {/* ── Weekly grouped entries ── */}
       {weekGroups.length === 0 && (
-        <div className="rounded-xl border border-dashed border-[#808080]/30 p-4 text-xs text-[#808080]">
+        <div className="border border-dashed border-[#808080]/30 p-4 text-xs text-[#808080]">
           No entries match filters.
         </div>
       )}
 
       {weekGroups.map((group) => (
-        <div key={group.weekStart.toISOString()} className="space-y-2">
+        <div key={group.weekStart.toISOString()} className="space-y-3">
           {/* Week header */}
-          <div className="flex items-center justify-between px-1">
+          <div className="flex items-center justify-between px-1 py-1">
             <span className="text-xs sm:text-sm font-bold text-[#808080] uppercase tracking-wider">
               Week of {format(group.weekStart, "MMM d")} – {format(group.weekEnd, "MMM d, yyyy")}
             </span>
@@ -376,13 +376,13 @@ export function EntryTable({
           </div>
 
           {/* ── Mobile: stacked cards ── */}
-          <div className="space-y-2 md:hidden">
+          <div className="space-y-3 md:hidden">
             {group.entries.map((entry) => (
               <div key={entry.id}>
                 {editingId === entry.id ? (
                   <EditManualRow entry={entry} projects={projects} onClose={() => setEditingId(null)} />
                 ) : (
-                  <div className="rounded-xl border border-[#808080]/30 p-3 space-y-2">
+                  <div className="border border-[#808080]/30 p-3 sm:p-4 space-y-2.5">
                     <div className="flex items-start justify-between gap-2">
                       <div>
                         <div className="text-sm font-bold">
@@ -427,7 +427,7 @@ export function EntryTable({
           </div>
 
           {/* ── Desktop: full table ── */}
-          <div className="hidden md:block overflow-x-auto rounded-xl border border-[#808080]/30">
+          <div className="hidden md:block overflow-x-auto border border-[#808080]/30">
             <table className="min-w-full border-collapse text-sm">
               <thead>
                 <tr>

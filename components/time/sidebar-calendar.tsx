@@ -34,7 +34,7 @@ export function SidebarCalendar({
   const days = eachDayOfInterval({ start: calStart, end: calEnd });
 
   return (
-    <div className="rounded-xl border border-[#808080]/30 p-3 hidden lg:block">
+    <div className="border border-[#808080]/30 p-3 hidden lg:block">
       {/* Month header with nav */}
       <div className="flex items-center justify-between mb-2">
         <button
@@ -80,7 +80,7 @@ export function SidebarCalendar({
               type="button"
               disabled={!clickable}
               onClick={() => clickable && onDateSelect?.(key)}
-              className={`relative text-xs text-center py-1 rounded transition-colors ${
+              className={`relative text-xs text-center py-1 transition-colors ${
                 !inMonth
                   ? "text-[#808080]/20 cursor-default"
                   : future
