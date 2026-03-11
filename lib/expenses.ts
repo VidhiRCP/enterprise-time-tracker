@@ -43,7 +43,19 @@ export async function uploadReceiptAndExtract(file: File) {
     throw new Error("Upload failed: " + msg);
   }
 
-  const publicUrl = supabase.storage.from(bucketName).getPublicUrl(filename).data.publicUrl;
+  // Create a short-lived signed URL so receipts can remain private
+  const expiresIn = 60 * 60; // 1 hour
+  const { data: signed, error: signErr } = await supabase.storage.from(bucketName).createSignedUrl(filename, expiresIn);
+  if (signErr) {
+    // fallback to public URL if signed URL fails for some reason
+    const publicFallback = supabase.storage.from(bucketName).getPublicUrl(filename).data.publicUrl;
+    if (!publicFallback) throw new Error("Failed to create signed URL and no public URL available: " + String(signErr.message ?? signErr));
+    console.warn("createSignedUrl failed, falling back to public URL:", signErr);
+    var publicUrl = publicFallback;
+  } else {
+    // supabase client may return signedURL or signedUrl depending on version
+    var publicUrl = (signed as any).signedURL ?? (signed as any).signedUrl ?? null;
+  }
 
   // Call OpenAI to extract fields (server-side only)
   const openaiKey = process.env.OPENAI_API_KEY;
@@ -185,7 +197,19 @@ export async function getUserExpenses() {
   const bucketName = process.env.SUPABASE_BUCKET ?? "receipts";
 
   const results = await Promise.all(entries.map(async (e) => {
-    const publicUrl = e.receipt ? supabase.storage.from(bucketName).getPublicUrl(e.receipt.filePath).data.publicUrl : null;
+    let publicUrl = null;
+    if (e.receipt) {
+      try {
+        const { data: signed, error: signErr } = await supabase.storage.from(bucketName).createSignedUrl(e.receipt.filePath, 60 * 60);
+        if (signErr) {
+          publicUrl = supabase.storage.from(bucketName).getPublicUrl(e.receipt.filePath).data.publicUrl;
+        } else {
+          publicUrl = (signed as any).signedURL ?? (signed as any).signedUrl ?? null;
+        }
+      } catch (err) {
+        publicUrl = supabase.storage.from(bucketName).getPublicUrl(e.receipt.filePath).data.publicUrl;
+      }
+    }
     return {
       id: e.id,
       expenseDate: e.expenseDate.toISOString().slice(0,10),
