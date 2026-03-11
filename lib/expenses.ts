@@ -46,15 +46,16 @@ export async function uploadReceiptAndExtract(file: File) {
   // Create a short-lived signed URL so receipts can remain private
   const expiresIn = 60 * 60; // 1 hour
   const { data: signed, error: signErr } = await supabase.storage.from(bucketName).createSignedUrl(filename, expiresIn);
+  let publicUrl: string | null = null;
   if (signErr) {
     // fallback to public URL if signed URL fails for some reason
     const publicFallback = supabase.storage.from(bucketName).getPublicUrl(filename).data.publicUrl;
     if (!publicFallback) throw new Error("Failed to create signed URL and no public URL available: " + String(signErr.message ?? signErr));
     console.warn("createSignedUrl failed, falling back to public URL:", signErr);
-    var publicUrl = publicFallback;
+    publicUrl = publicFallback;
   } else {
     // supabase client may return signedURL or signedUrl depending on version
-    var publicUrl = (signed as any).signedURL ?? (signed as any).signedUrl ?? null;
+    publicUrl = (signed as any).signedURL ?? (signed as any).signedUrl ?? null;
   }
 
   // Call OpenAI to extract fields (server-side only)
