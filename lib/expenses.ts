@@ -23,20 +23,27 @@ export async function uploadReceiptAndExtract(file: File) {
   if (!supabaseUrl) throw new Error("SUPABASE_URL environment variable is required. Add SUPABASE_URL to your .env.");
   if (!supabaseKey) throw new Error("SUPABASE_SERVICE_ROLE_KEY environment variable is required. Add SUPABASE_SERVICE_ROLE_KEY to your .env.");
   const supabase = createClient(supabaseUrl, supabaseKey, { auth: { persistSession: false } });
+  const bucketName = process.env.SUPABASE_BUCKET ?? "receipts";
 
   const userId = (session.user as any).id;
   const timestamp = Date.now();
   const filename = `${userId}/${timestamp}-${file.name}`;
 
   // Upload to 'receipts' bucket
-  const { data: up, error: upErr } = await supabase.storage.from("receipts").upload(filename, file, {
+  const { data: up, error: upErr } = await supabase.storage.from(bucketName).upload(filename, file, {
     cacheControl: "3600",
     upsert: false,
     contentType: file.type,
   });
-  if (upErr) throw new Error("Upload failed: " + upErr.message);
+  if (upErr) {
+    const msg = String(upErr.message ?? upErr);
+    if (msg.toLowerCase().includes("bucket not found")) {
+      throw new Error(`Upload failed: bucket '${bucketName}' not found. Create the bucket in Supabase Storage or set SUPABASE_BUCKET to the correct bucket name.`);
+    }
+    throw new Error("Upload failed: " + msg);
+  }
 
-  const publicUrl = supabase.storage.from("receipts").getPublicUrl(filename).data.publicUrl;
+  const publicUrl = supabase.storage.from(bucketName).getPublicUrl(filename).data.publicUrl;
 
   // Call OpenAI to extract fields (server-side only)
   const openaiKey = process.env.OPENAI_API_KEY;
@@ -175,9 +182,10 @@ export async function getUserExpenses() {
   if (!supabaseUrl) throw new Error("SUPABASE_URL environment variable is required. Add SUPABASE_URL to your .env.");
   if (!supabaseKey) throw new Error("SUPABASE_SERVICE_ROLE_KEY environment variable is required. Add SUPABASE_SERVICE_ROLE_KEY to your .env.");
   const supabase = createClient(supabaseUrl, supabaseKey, { auth: { persistSession: false } });
+  const bucketName = process.env.SUPABASE_BUCKET ?? "receipts";
 
   const results = await Promise.all(entries.map(async (e) => {
-    const publicUrl = e.receipt ? supabase.storage.from("receipts").getPublicUrl(e.receipt.filePath).data.publicUrl : null;
+    const publicUrl = e.receipt ? supabase.storage.from(bucketName).getPublicUrl(e.receipt.filePath).data.publicUrl : null;
     return {
       id: e.id,
       expenseDate: e.expenseDate.toISOString().slice(0,10),
