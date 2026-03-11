@@ -17,11 +17,14 @@ function computeDashboardStats(
   const now = new Date();
   const todayStr = now.toISOString().slice(0, 10);
 
-  // Wall-clock duration for timer entries so display matches start→stop times
+  // Wall-clock duration for timer entries — truncate to displayed minute
   const effectiveMinutes = (e: (typeof data.entries)[number]) => {
     if (e.timerSession?.startedAt && e.timerSession?.stoppedAt) {
-      const ms = new Date(e.timerSession.stoppedAt).getTime() - new Date(e.timerSession.startedAt).getTime();
-      return Math.max(1, Math.round(ms / 60_000));
+      const start = new Date(e.timerSession.startedAt);
+      const stop = new Date(e.timerSession.stoppedAt);
+      start.setSeconds(0, 0);
+      stop.setSeconds(0, 0);
+      return Math.max(1, Math.round((stop.getTime() - start.getTime()) / 60_000));
     }
     return e.durationMinutes;
   };

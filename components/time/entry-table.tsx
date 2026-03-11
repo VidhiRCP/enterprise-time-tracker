@@ -31,13 +31,16 @@ function formatTime(date: Date | string) {
   return format(new Date(date), "HH:mm");
 }
 
-/** Derive display duration from wall-clock start/stop for TIMER entries
- *  so the number always matches the HH:MM range the user sees. */
+/** Derive display duration from wall-clock start/stop for TIMER entries.
+ *  Truncate both timestamps to the displayed minute (floor) so the number
+ *  always matches the HH:MM → HH:MM range the user sees. */
 function effectiveDuration(entry: Entry): number {
   if (entry.timerSession?.startedAt && entry.timerSession?.stoppedAt) {
-    const startMs = new Date(entry.timerSession.startedAt).getTime();
-    const stopMs = new Date(entry.timerSession.stoppedAt).getTime();
-    return Math.max(1, Math.round((stopMs - startMs) / 60_000));
+    const start = new Date(entry.timerSession.startedAt);
+    const stop = new Date(entry.timerSession.stoppedAt);
+    start.setSeconds(0, 0);
+    stop.setSeconds(0, 0);
+    return Math.max(1, Math.round((stop.getTime() - start.getTime()) / 60_000));
   }
   return entry.durationMinutes;
 }

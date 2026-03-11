@@ -39,11 +39,14 @@ function fmtHours(mins: number) {
   return (mins / 60).toFixed(1);
 }
 
-/** Wall-clock duration for timer entries */
+/** Wall-clock duration for timer entries — truncate to displayed minute */
 function effectiveMin(e: EntryRow): number {
   if (e.startedAt && e.stoppedAt) {
-    const ms = new Date(e.stoppedAt).getTime() - new Date(e.startedAt).getTime();
-    return Math.max(1, Math.round(ms / 60_000));
+    const start = new Date(e.startedAt);
+    const stop = new Date(e.stoppedAt);
+    start.setSeconds(0, 0);
+    stop.setSeconds(0, 0);
+    return Math.max(1, Math.round((stop.getTime() - start.getTime()) / 60_000));
   }
   return e.durationMinutes;
 }
