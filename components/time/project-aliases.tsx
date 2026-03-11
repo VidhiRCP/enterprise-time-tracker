@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { updateProjectAliases } from "@/lib/actions";
+import { Card } from "@/components/ui/card";
 
 type AliasEntry = {
   projectId: string;
@@ -58,13 +59,10 @@ export function ProjectAliases({ assignments }: { assignments: AliasEntry[] }) {
 
       <div className="border-t border-[#F40000]/25" />
 
-      <div className="space-y-4">
+      <div className="space-y-8 sm:space-y-10">
         {entries.map((entry) => (
-          <div
-            key={entry.projectId}
-            className="border border-[#808080]/15 p-4 space-y-2"
-          >
-            <div className="flex items-center justify-between">
+          <Card accent={true} key={entry.projectId}>
+            <div className="flex items-center justify-between mb-3">
               <span className="text-xs sm:text-sm font-bold">{entry.projectName}</span>
               {saved[entry.projectId] && (
                 <span className="text-xs sm:text-sm text-green-400 font-medium animate-pulse">
@@ -72,7 +70,6 @@ export function ProjectAliases({ assignments }: { assignments: AliasEntry[] }) {
                 </span>
               )}
             </div>
-
             <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
               <input
                 type="text"
@@ -89,7 +86,6 @@ export function ProjectAliases({ assignments }: { assignments: AliasEntry[] }) {
                 {isPending ? "Saving…" : "Save"}
               </button>
             </div>
-
             {entry.aliases && (
               <div className="flex flex-wrap gap-1.5 mt-1">
                 {entry.aliases
@@ -106,7 +102,7 @@ export function ProjectAliases({ assignments }: { assignments: AliasEntry[] }) {
                   ))}
               </div>
             )}
-          </div>
+          </Card>
         ))}
       </div>
 

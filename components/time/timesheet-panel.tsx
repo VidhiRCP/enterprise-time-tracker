@@ -5,6 +5,7 @@ import { useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { allocateCalendarEvent } from "@/lib/actions";
 import type { GroupedEvents, CalendarEvent } from "@/lib/calendar";
+import { Card } from "@/components/ui/card";
 
 type ProjectOption = {
   projectId: string;
@@ -192,8 +193,8 @@ export function TimesheetPanel({
       <div className="border-t border-[#F40000]/25" />
 
       {groups.map((group) => (
-        <div key={group.date} className="border border-[#808080]/15 p-4 sm:p-5">
-          <div className="flex items-center gap-4">
+        <Card accent className="p-7 mb-8" key={group.date}>
+          <div className="flex items-center gap-4 mb-4">
             <h3 className="text-xs sm:text-sm font-bold text-[#D9D9D9]">
               {format(new Date(group.date + "T12:00:00"), "EEEE, dd-MM-yyyy")}
             </h3>
@@ -202,13 +203,12 @@ export function TimesheetPanel({
               {group.events.length} event{group.events.length !== 1 ? "s" : ""}
             </span>
           </div>
-
-          <div className="mt-3 space-y-3">
+          <div className="space-y-3">
             {group.events.map((event) => (
               <EventRow key={event.id} event={event} projects={projects} />
             ))}
           </div>
-        </div>
+        </Card>
       ))}
     </div>
   );

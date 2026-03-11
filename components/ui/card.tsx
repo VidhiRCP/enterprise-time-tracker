@@ -9,7 +9,7 @@ export function Card({
 }) {
   return (
     <section
-      className={`border border-[#808080]/15 ${accent ? "border-t-2 border-t-[#F40000]/40" : ""} p-4 sm:p-5 ${className}`}
+      className={`bg-[#181818] border border-[#232323]/40 ${accent ? "border-t-2 border-t-[#F40000]/40" : ""} p-6 sm:p-7 rounded-none ${className}`}
     >
       {children}
     </section>

@@ -6,6 +6,7 @@ import { SidebarCalendar } from "@/components/time/sidebar-calendar";
 import { TimerPanel } from "@/components/time/timer-panel";
 import { ManualEntryForm } from "@/components/time/manual-entry-form";
 import { EntryTable } from "@/components/time/entry-table";
+import { Card } from "@/components/ui/card";
 
 type ProjectOption = { projectId: string; projectName: string };
 
@@ -99,73 +100,80 @@ export function ActivityContent({
   const showRecoveryBanner = hasRecoveredSession && activeSession?.status !== "RUNNING";
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-8">
       {showRecoveryBanner && (
-        <div className="border-l-2 border-l-[#F40000] border border-[#808080]/20 px-3 py-2 text-sm text-[#D9D9D9]">
+        <div className="border-l-2 border-l-[#F40000] border border-[#232323]/40 bg-[#181818] px-4 py-3 text-sm text-[#D9D9D9]">
           Recovered an unfinished timer session. Resume, pause, save, or discard it.
         </div>
       )}
 
-      <div className="grid gap-4 lg:grid-cols-[340px_1fr]">
+      <div className="grid gap-8 lg:grid-cols-[360px_1fr]">
         {/* ── Left sidebar ── */}
-        <div className="space-y-3 lg:sticky lg:top-4 lg:self-start">
+        <div className="space-y-8 lg:sticky lg:top-4 lg:self-start">
           {/* Desktop stats card */}
-          <div className="hidden lg:block border border-[#808080]/15 border-t-2 border-t-[#F40000]/40 p-4">
-            <button
-              onClick={() => setStatsCollapsed((v) => !v)}
-              className="w-full flex items-center justify-between text-left"
-            >
-              <span className="text-xs uppercase tracking-wider text-[#808080] font-bold">Dashboard</span>
-              <span className="text-[#808080] hover:text-[#D9D9D9] transition-colors text-sm">
-                {statsCollapsed ? "▸" : "▾"}
-              </span>
-            </button>
-            {!statsCollapsed && (
-              <div className="mt-3 border-t border-[#808080]/10 pt-2">
-                <DashboardStats data={statsData} onTodayClick={handleTodayClick} />
-              </div>
-            )}
+          <div className="hidden lg:block">
+            <Card accent className="p-7">
+              <button
+                onClick={() => setStatsCollapsed((v) => !v)}
+                className="w-full flex items-center justify-between text-left mb-2"
+              >
+                <span className="text-xs uppercase tracking-wider text-[#808080] font-bold">Dashboard</span>
+                <span className="text-[#808080] hover:text-[#D9D9D9] transition-colors text-sm">
+                  {statsCollapsed ? "▸" : "▾"}
+                </span>
+              </button>
+              {!statsCollapsed && (
+                <div className="mt-4">
+                  <DashboardStats data={statsData} onTodayClick={handleTodayClick} />
+                </div>
+              )}
+            </Card>
           </div>
           {/* Mobile stats (always visible) */}
           <div className="lg:hidden">
             <DashboardStats data={statsData} onTodayClick={handleTodayClick} />
           </div>
           {/* Calendar card */}
-          <div className="hidden lg:block border border-[#808080]/15 p-4">
-            <SidebarCalendar
-              entryDates={entryDateStrings}
-              selectedDate={selectedDate}
-              onDateSelect={handleDateSelect}
-            />
+          <div className="hidden lg:block">
+            <Card accent className="p-7">
+              <SidebarCalendar
+                entryDates={entryDateStrings}
+                selectedDate={selectedDate}
+                onDateSelect={handleDateSelect}
+              />
+            </Card>
           </div>
         </div>
 
         {/* ── Right main content ── */}
-        <div className="space-y-4">
-          <CollapsibleSection
-            title="Timer"
-            collapsed={timerCollapsed}
-            onToggle={() => setTimerCollapsed((v) => !v)}
-          >
-            <TimerPanel projects={projectOptions} activeSession={activeSession} />
-          </CollapsibleSection>
+        <div className="space-y-8">
+          <Card accent>
+            <CollapsibleSection
+              title="Timer"
+              collapsed={timerCollapsed}
+              onToggle={() => setTimerCollapsed((v) => !v)}
+            >
+              <TimerPanel projects={projectOptions} activeSession={activeSession} />
+            </CollapsibleSection>
+          </Card>
 
-          <CollapsibleSection
-            title="Manual Entry"
-            subtitle="Add time for work already completed."
-            collapsed={manualCollapsed}
-            onToggle={() => setManualCollapsed((v) => !v)}
-          >
-            <ManualEntryForm projects={projectOptions} />
-          </CollapsibleSection>
+          <Card accent>
+            <CollapsibleSection
+              title="Manual Entry"
+              subtitle="Add time for work already completed."
+              collapsed={manualCollapsed}
+              onToggle={() => setManualCollapsed((v) => !v)}
+            >
+              <ManualEntryForm projects={projectOptions} />
+            </CollapsibleSection>
+          </Card>
 
-          <div className="border border-[#808080]/15 border-t-2 border-t-[#F40000]/40 p-4 sm:p-5">
-            <div className="space-y-3">
+          <Card accent>
+            <div className="space-y-4">
               <div>
-                <h2 className="text-sm sm:text-base font-bold">Recent Entries</h2>
-                <p className="text-xs sm:text-sm text-[#808080] mt-0.5">Your entries, scoped to your project assignments.</p>
+                <h2 className="text-base sm:text-lg font-bold mb-2">Recent Entries</h2>
+                <p className="text-xs sm:text-sm text-[#808080] mb-3">Your entries, scoped to your project assignments.</p>
               </div>
-              <div className="border-t border-[#808080]/10" />
               <EntryTable
                 entries={entries}
                 projects={projectOptions}
@@ -173,7 +181,7 @@ export function ActivityContent({
                 onClearCalendarDate={() => setSelectedDate(null)}
               />
             </div>
-          </div>
+          </Card>
         </div>
       </div>
     </div>

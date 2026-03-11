@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from "react";
 import { format, addDays } from "date-fns";
+import { Card } from "@/components/ui/card";
 
 /* ── Types ── */
 type EntryRow = {
@@ -204,66 +205,60 @@ export function InsightsPanel({ data }: { data: InsightsData }) {
   }
 
   return (
-    <div className="space-y-5 sm:space-y-6">
-      {/* ── Header + Week Nav ── */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-base sm:text-lg font-bold">Weekly Insights</h2>
-          <p className="mt-0.5 text-xs sm:text-sm text-[#808080]">
-            Activity + Meetings combined
-          </p>
+    <div className="space-y-8">
+      <Card accent className="p-7">
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h2 className="text-base sm:text-lg font-bold">Weekly Insights</h2>
+            <p className="mt-1 text-xs sm:text-sm text-[#808080]">Activity + Meetings combined</p>
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setWeekOffset((o) => o - 1)}
+              disabled={weekOffset <= -7}
+              className="border border-[#808080]/30 px-2 py-1 text-xs text-[#D9D9D9] hover:text-[#F8F8F8] transition-colors disabled:opacity-30"
+            >
+              
+            </button>
+            <span className="text-xs sm:text-sm font-medium text-[#D9D9D9] min-w-[140px] text-center">
+              {weekLabel}
+            </span>
+            <button
+              onClick={() => setWeekOffset((o) => o + 1)}
+              disabled={weekOffset >= 0}
+              className="border border-[#808080]/30 px-2 py-1 text-xs text-[#D9D9D9] hover:text-[#F8F8F8] transition-colors disabled:opacity-30"
+            >
+              
+            </button>
+          </div>
         </div>
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => setWeekOffset((o) => o - 1)}
-            disabled={weekOffset <= -7}
-            className="border border-[#808080]/30 px-2 py-1 text-xs text-[#D9D9D9] hover:text-[#F8F8F8] transition-colors disabled:opacity-30"
-          >
-            ‹
-          </button>
-          <span className="text-xs sm:text-sm font-medium text-[#D9D9D9] min-w-[140px] text-center">
-            {weekLabel}
-          </span>
-          <button
-            onClick={() => setWeekOffset((o) => o + 1)}
-            disabled={weekOffset >= 0}
-            className="border border-[#808080]/30 px-2 py-1 text-xs text-[#D9D9D9] hover:text-[#F8F8F8] transition-colors disabled:opacity-30"
-          >
-            ›
-          </button>
+        <div className="border-t border-[#F40000]/25 mb-7" />
+        {/* Summary Cards */}
+        <div className="grid grid-cols-2 gap-6 sm:grid-cols-4 sm:gap-8 mb-7">
+          <div className="border-l-2 border-l-[#808080]/30 pl-3 sm:pl-4 py-1">
+            <div className="text-xs uppercase tracking-wider text-[#808080]">Total</div>
+            <div className="mt-1.5 text-lg sm:text-xl font-bold">{fmtMin(totalMinutes)}</div>
+            <div className="text-xs text-[#808080]">{fmtHours(totalMinutes)}h</div>
+          </div>
+          <div className="border-l-2 border-l-[#F40000]/50 pl-3 sm:pl-4 py-1">
+            <div className="text-xs uppercase tracking-wider text-[#808080]">Activity</div>
+            <div className="mt-1.5 text-lg sm:text-xl font-bold text-[#F40000]">{fmtMin(totalActivityMin)}</div>
+            <div className="text-xs text-[#808080]">{fmtHours(totalActivityMin)}h</div>
+          </div>
+          <div className="border-l-2 border-l-blue-400/50 pl-3 sm:pl-4 py-1">
+            <div className="text-xs uppercase tracking-wider text-[#808080]">Meetings</div>
+            <div className="mt-1.5 text-lg sm:text-xl font-bold text-blue-400">{fmtMin(totalMeetingMin)}</div>
+            <div className="text-xs text-[#808080]">{fmtHours(totalMeetingMin)}h</div>
+          </div>
+          <div className="border-l-2 border-l-[#808080]/30 pl-3 sm:pl-4 py-1">
+            <div className="text-xs uppercase tracking-wider text-[#808080]">Avg / day</div>
+            <div className="mt-1.5 text-lg sm:text-xl font-bold">{fmtMin(avgDailyMin)}</div>
+            <div className="text-xs text-[#808080]">{weekDays} active day{weekDays !== 1 ? "s" : ""}</div>
+          </div>
         </div>
-      </div>
-
-      <div className="border-t border-[#F40000]/25" />
-
-      {/* ── Summary Cards ── */}
-      <div className="border border-[#808080]/15 p-4 sm:p-5">
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-4">
-        <div className="border-l-2 border-l-[#808080]/30 pl-3 sm:pl-4 py-1">
-          <div className="text-xs uppercase tracking-wider text-[#808080]">Total</div>
-          <div className="mt-1.5 text-lg sm:text-xl font-bold">{fmtMin(totalMinutes)}</div>
-          <div className="text-xs text-[#808080]">{fmtHours(totalMinutes)}h</div>
-        </div>
-        <div className="border-l-2 border-l-[#F40000]/50 pl-3 sm:pl-4 py-1">
-          <div className="text-xs uppercase tracking-wider text-[#808080]">Activity</div>
-          <div className="mt-1.5 text-lg sm:text-xl font-bold text-[#F40000]">{fmtMin(totalActivityMin)}</div>
-          <div className="text-xs text-[#808080]">{fmtHours(totalActivityMin)}h</div>
-        </div>
-        <div className="border-l-2 border-l-blue-400/50 pl-3 sm:pl-4 py-1">
-          <div className="text-xs uppercase tracking-wider text-[#808080]">Meetings</div>
-          <div className="mt-1.5 text-lg sm:text-xl font-bold text-blue-400">{fmtMin(totalMeetingMin)}</div>
-          <div className="text-xs text-[#808080]">{fmtHours(totalMeetingMin)}h</div>
-        </div>
-        <div className="border-l-2 border-l-[#808080]/30 pl-3 sm:pl-4 py-1">
-          <div className="text-xs uppercase tracking-wider text-[#808080]">Avg / day</div>
-          <div className="mt-1.5 text-lg sm:text-xl font-bold">{fmtMin(avgDailyMin)}</div>
-          <div className="text-xs text-[#808080]">{weekDays} active day{weekDays !== 1 ? "s" : ""}</div>
-        </div>
-      </div>
-
-        {/* ── AI Insight Box ── */}
+        {/* AI Insight Box */}
         {totalMinutes > 0 && (
-          <div className="border border-[#F40000]/30 bg-[#F40000]/5 px-4 py-3 sm:px-5 sm:py-4 mt-4">
+          <div className="border border-[#F40000]/30 bg-[#F40000]/5 px-5 py-4 sm:px-6 sm:py-5 mt-4">
             <div className="flex items-start gap-2">
               <span className="text-sm">✨</span>
               <div className="text-xs sm:text-sm text-[#D9D9D9] space-y-0.5">
@@ -279,9 +274,9 @@ export function InsightsPanel({ data }: { data: InsightsData }) {
             </div>
           </div>
         )}
-      </div>
-      <div className="border border-[#808080]/15 p-4 sm:p-5">
-        <h3 className="text-xs sm:text-sm font-bold text-[#D9D9D9]">By Project</h3>
+      </Card>
+      <Card accent className="p-7">
+        <h3 className="text-xs sm:text-sm font-bold text-[#D9D9D9] mb-4">By Project</h3>
         <div className="pt-3">
           {/* Chart */}
           <div className="flex items-end gap-1.5 sm:gap-3" style={{ height: 180 }}>
@@ -315,7 +310,6 @@ export function InsightsPanel({ data }: { data: InsightsData }) {
               </div>
             ))}
           </div>
-
           {/* Legend */}
           <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1.5 border-t border-[#808080]/15 pt-3">
             {projectTotals.map((p) => (
@@ -330,18 +324,14 @@ export function InsightsPanel({ data }: { data: InsightsData }) {
             ))}
           </div>
         </div>
-      </div>
-
-      {/* ── Daily Breakdown ── */}
-      <div className="border border-[#808080]/15 p-4 sm:p-5">
-        <h3 className="text-xs sm:text-sm font-bold text-[#D9D9D9] mb-3">Daily Breakdown</h3>
-
+      </Card>
+      <Card accent className="p-7">
+        <h3 className="text-xs sm:text-sm font-bold text-[#D9D9D9] mb-4">Daily Breakdown</h3>
         {dailyBreakdown.length === 0 && (
           <div className="border border-dashed border-[#808080]/20 p-4 text-center text-xs text-[#808080]">
             No tracked time this week.
           </div>
         )}
-
         {dailyBreakdown.map((day) => {
           const dayTotal = day.projects.reduce((s, p) => s + p.totalMin, 0);
           return (
@@ -353,7 +343,6 @@ export function InsightsPanel({ data }: { data: InsightsData }) {
                 </span>
                 <span className="text-xs sm:text-sm font-bold text-[#F8F8F8]">{fmtMin(dayTotal)}</span>
               </div>
-
               {/* Project rows */}
               <div className="divide-y divide-[#808080]/10">
                 {day.projects.map((p) => (
@@ -371,7 +360,6 @@ export function InsightsPanel({ data }: { data: InsightsData }) {
                   </div>
                 ))}
               </div>
-
               {/* Column labels footer */}
               <div className="grid grid-cols-[1fr_auto_auto_auto] items-center gap-x-4 py-1.5 border-t border-[#808080]/10">
                 <span />
@@ -382,7 +370,7 @@ export function InsightsPanel({ data }: { data: InsightsData }) {
             </div>
           );
         })}
-      </div>
+      </Card>
     </div>
   );
 }
