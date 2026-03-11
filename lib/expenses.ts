@@ -20,6 +20,8 @@ export async function uploadReceiptAndExtract(file: File) {
   // Init Supabase admin client
   const supabaseUrl = process.env.SUPABASE_URL!;
   const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+  if (!supabaseUrl) throw new Error("SUPABASE_URL environment variable is required. Add SUPABASE_URL to your .env.");
+  if (!supabaseKey) throw new Error("SUPABASE_SERVICE_ROLE_KEY environment variable is required. Add SUPABASE_SERVICE_ROLE_KEY to your .env.");
   const supabase = createClient(supabaseUrl, supabaseKey, { auth: { persistSession: false } });
 
   const userId = (session.user as any).id;
@@ -170,6 +172,8 @@ export async function getUserExpenses() {
   // Build public URLs for receipts
   const supabaseUrl = process.env.SUPABASE_URL!;
   const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+  if (!supabaseUrl) throw new Error("SUPABASE_URL environment variable is required. Add SUPABASE_URL to your .env.");
+  if (!supabaseKey) throw new Error("SUPABASE_SERVICE_ROLE_KEY environment variable is required. Add SUPABASE_SERVICE_ROLE_KEY to your .env.");
   const supabase = createClient(supabaseUrl, supabaseKey, { auth: { persistSession: false } });
 
   const results = await Promise.all(entries.map(async (e) => {
