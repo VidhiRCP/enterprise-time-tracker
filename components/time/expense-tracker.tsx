@@ -44,7 +44,7 @@ export function ExpenseTracker({ projects, userId }: { projects: { projectId: st
     try {
       const fd = new FormData();
       fd.append("file", f);
-      const res = await fetch("/api/expenses/upload", { method: "POST", body: fd });
+      const res = await fetch("/api/expenses/upload", { method: "POST", body: fd, credentials: "include" });
       if (!res.ok) throw new Error(await res.text());
       const data = await res.json();
       setExtraction(data.extracted ?? null);
@@ -79,8 +79,9 @@ export function ExpenseTracker({ projects, userId }: { projects: { projectId: st
       return;
     }
     try {
-      const res = await fetch("/api/expenses/save", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(form) });
-      if (!res.ok) throw new Error(await res.text());
+      const res = await fetch("/api/expenses/save", { method: "POST", credentials: "include", headers: { "Content-Type": "application/json" }, body: JSON.stringify(form) });
+      const text = await res.text();
+      if (!res.ok) throw new Error(text || res.statusText);
       await loadExpenses();
       // clear
       setFile(null);
@@ -93,7 +94,7 @@ export function ExpenseTracker({ projects, userId }: { projects: { projectId: st
 
   async function loadExpenses() {
     try {
-      const res = await fetch("/api/expenses/list");
+      const res = await fetch("/api/expenses/list", { credentials: "include" });
       if (!res.ok) throw new Error(await res.text());
       const data = await res.json();
       setExpenses(data ?? []);
