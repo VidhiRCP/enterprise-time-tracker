@@ -237,7 +237,8 @@ export function InsightsPanel({ data }: { data: InsightsData }) {
       <div className="border-t border-[#F40000]/25" />
 
       {/* ── Summary Cards ── */}
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-4">
+      <div className="border border-[#808080]/15 p-4 sm:p-5">
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-4">
         <div className="border-l-2 border-l-[#808080]/30 pl-3 sm:pl-4 py-1">
           <div className="text-xs uppercase tracking-wider text-[#808080]">Total</div>
           <div className="mt-1.5 text-lg sm:text-xl font-bold">{fmtMin(totalMinutes)}</div>
@@ -260,29 +261,28 @@ export function InsightsPanel({ data }: { data: InsightsData }) {
         </div>
       </div>
 
-      {/* ── AI Insight Box ── */}
-      {totalMinutes > 0 && (
-        <div className="border border-[#F40000]/30 bg-[#F40000]/5 px-4 py-3 sm:px-5 sm:py-4">
-          <div className="flex items-start gap-2">
-            <span className="text-sm">✨</span>
-            <div className="text-xs sm:text-sm text-[#D9D9D9] space-y-0.5">
-              <p>
-                You tracked <span className="font-bold text-[#F8F8F8]">{fmtMin(totalMinutes)}</span> across{" "}
-                <span className="font-bold text-[#F8F8F8]">{projectTotals.length}</span> project{projectTotals.length !== 1 ? "s" : ""}.
-                {topProject && (
-                  <> Top: <span className="font-bold text-[#F8F8F8]">{topProject.projectName}</span> ({fmtMin(topProject.totalMin)}).</>
-                )}
-                {meetingPct > 0 && <> Meetings: <span className="font-bold text-[#F8F8F8]">{meetingPct}%</span>.</>}
-              </p>
+        {/* ── AI Insight Box ── */}
+        {totalMinutes > 0 && (
+          <div className="border border-[#F40000]/30 bg-[#F40000]/5 px-4 py-3 sm:px-5 sm:py-4 mt-4">
+            <div className="flex items-start gap-2">
+              <span className="text-sm">✨</span>
+              <div className="text-xs sm:text-sm text-[#D9D9D9] space-y-0.5">
+                <p>
+                  You tracked <span className="font-bold text-[#F8F8F8]">{fmtMin(totalMinutes)}</span> across{" "}
+                  <span className="font-bold text-[#F8F8F8]">{projectTotals.length}</span> project{projectTotals.length !== 1 ? "s" : ""}.
+                  {topProject && (
+                    <> Top: <span className="font-bold text-[#F8F8F8]">{topProject.projectName}</span> ({fmtMin(topProject.totalMin)}).</>
+                  )}
+                  {meetingPct > 0 && <> Meetings: <span className="font-bold text-[#F8F8F8]">{meetingPct}%</span>.</>}
+                </p>
+              </div>
             </div>
           </div>
-        </div>
-      )}
-
-      {/* ── Stacked Bar Chart: By Project per Day ── */}
-      <div className="space-y-2">
+        )}
+      </div>
+      <div className="border border-[#808080]/15 p-4 sm:p-5">
         <h3 className="text-xs sm:text-sm font-bold text-[#D9D9D9]">By Project</h3>
-        <div className="pt-2">
+        <div className="pt-3">
           {/* Chart */}
           <div className="flex items-end gap-1.5 sm:gap-3" style={{ height: 180 }}>
             {chartData.map((day) => (
@@ -333,8 +333,8 @@ export function InsightsPanel({ data }: { data: InsightsData }) {
       </div>
 
       {/* ── Daily Breakdown ── */}
-      <div className="space-y-4">
-        <h3 className="text-xs sm:text-sm font-bold text-[#D9D9D9]">Daily Breakdown</h3>
+      <div className="border border-[#808080]/15 p-4 sm:p-5">
+        <h3 className="text-xs sm:text-sm font-bold text-[#D9D9D9] mb-3">Daily Breakdown</h3>
 
         {dailyBreakdown.length === 0 && (
           <div className="border border-dashed border-[#808080]/20 p-4 text-center text-xs text-[#808080]">

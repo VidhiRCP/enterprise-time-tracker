@@ -62,7 +62,7 @@ export function ProjectAliases({ assignments }: { assignments: AliasEntry[] }) {
         {entries.map((entry) => (
           <div
             key={entry.projectId}
-            className="border-b border-[#808080]/10 pb-4 space-y-2 last:border-b-0"
+            className="border border-[#808080]/15 p-4 space-y-2"
           >
             <div className="flex items-center justify-between">
               <span className="text-xs sm:text-sm font-bold">{entry.projectName}</span>

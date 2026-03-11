@@ -46,7 +46,7 @@ function Bar({ value, max, color = "bg-[#F40000]" }: { value: number; max: numbe
 /* ── Stat card wrapper ── */
 function S({ children, className = "", onClick, accent = false }: { children: React.ReactNode; className?: string; onClick?: () => void; accent?: boolean }) {
   return (
-    <div className={`py-3 sm:py-4 ${accent ? "border-l-2 border-l-[#F40000] pl-3 sm:pl-4" : "pl-0"} ${className}`} onClick={onClick} role={onClick ? "button" : undefined} tabIndex={onClick ? 0 : undefined} onKeyDown={onClick ? (e) => { if (e.key === "Enter" || e.key === " ") onClick(); } : undefined}>
+    <div className={`py-3 sm:py-4 ${accent ? "border-l-2 border-l-[#F40000] pl-3 sm:pl-4" : ""} ${className}`} onClick={onClick} role={onClick ? "button" : undefined} tabIndex={onClick ? 0 : undefined} onKeyDown={onClick ? (e) => { if (e.key === "Enter" || e.key === " ") onClick(); } : undefined}>
       {children}
     </div>
   );
@@ -81,7 +81,7 @@ function WeeklyTrendCard({ entries }: { entries: DashboardStatsData["projectEntr
   const weekMax = Math.max(...weekDays.map((d) => d.minutes), 1);
 
   return (
-    <S className="hidden lg:block border-t border-[#808080]/10 mt-1">
+    <S className="hidden lg:block">
       <div className="flex items-center justify-between mb-1.5">
         <div className="text-xs uppercase tracking-wider text-[#808080] font-bold">Weekly Trend</div>
         <div className="flex items-center gap-1.5">
@@ -156,7 +156,7 @@ function ProjectTimeCard({ entries }: { entries: DashboardStatsData["projectEntr
   const maxMinutes = Math.max(...projectTotals.map((p) => p.minutes), 1);
 
   return (
-    <S className="hidden lg:block border-t border-[#808080]/10 mt-1">
+    <S className="hidden lg:block">
       <div className="flex items-center justify-between mb-2">
         <div className="text-xs uppercase tracking-wider text-[#808080] font-bold">Project Time</div>
         <div className="flex items-center gap-1.5">

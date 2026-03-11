@@ -192,7 +192,7 @@ export function TimesheetPanel({
       <div className="border-t border-[#F40000]/25" />
 
       {groups.map((group) => (
-        <div key={group.date} className="space-y-2">
+        <div key={group.date} className="border border-[#808080]/15 p-4 sm:p-5">
           <div className="flex items-center gap-4">
             <h3 className="text-xs sm:text-sm font-bold text-[#D9D9D9]">
               {format(new Date(group.date + "T12:00:00"), "EEEE, dd-MM-yyyy")}
@@ -203,7 +203,7 @@ export function TimesheetPanel({
             </span>
           </div>
 
-          <div className="space-y-3">
+          <div className="mt-3 space-y-3">
             {group.events.map((event) => (
               <EventRow key={event.id} event={event} projects={projects} />
             ))}

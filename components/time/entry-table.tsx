@@ -446,7 +446,7 @@ export function EntryTable({
           </div>
 
           {/* ── Desktop: full table ── */}
-          <div className="hidden md:block overflow-x-auto">
+          <div className="hidden md:block overflow-x-auto border border-[#808080]/10">
             <table className="min-w-full border-collapse text-sm">
               <thead className="sticky top-0 z-10 bg-black">
                 <tr>

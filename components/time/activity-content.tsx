@@ -30,7 +30,7 @@ type Entry = {
   timerSession?: { startedAt: Date; stoppedAt: Date | null } | null;
 };
 
-/* ── Collapsible section wrapper ── */
+/* ── Collapsible section wrapper — subtle card with red top accent ── */
 function CollapsibleSection({
   title,
   subtitle,
@@ -45,7 +45,7 @@ function CollapsibleSection({
   children: React.ReactNode;
 }) {
   return (
-    <div className="pb-4 border-b border-[#808080]/15">
+    <div className="border border-[#808080]/15 border-t-2 border-t-[#F40000]/40 p-4 sm:p-5">
       <button
         onClick={onToggle}
         className="w-full flex items-center justify-between text-left"
@@ -61,7 +61,7 @@ function CollapsibleSection({
         </span>
       </button>
       {!collapsed && (
-        <div className="mt-3 border-t border-[#F40000]/20 pt-3">{children}</div>
+        <div className="mt-3 border-t border-[#808080]/10 pt-3">{children}</div>
       )}
     </div>
   );
@@ -109,10 +109,11 @@ export function ActivityContent({
       <div className="grid gap-4 lg:grid-cols-[340px_1fr]">
         {/* ── Left sidebar ── */}
         <div className="space-y-3 lg:sticky lg:top-4 lg:self-start">
-          <div className="hidden lg:block">
+          {/* Desktop stats card */}
+          <div className="hidden lg:block border border-[#808080]/15 border-t-2 border-t-[#F40000]/40 p-4">
             <button
               onClick={() => setStatsCollapsed((v) => !v)}
-              className="w-full flex items-center justify-between text-left mb-2"
+              className="w-full flex items-center justify-between text-left"
             >
               <span className="text-xs uppercase tracking-wider text-[#808080] font-bold">Dashboard</span>
               <span className="text-[#808080] hover:text-[#D9D9D9] transition-colors text-sm">
@@ -120,18 +121,23 @@ export function ActivityContent({
               </span>
             </button>
             {!statsCollapsed && (
-              <DashboardStats data={statsData} onTodayClick={handleTodayClick} />
+              <div className="mt-3 border-t border-[#808080]/10 pt-2">
+                <DashboardStats data={statsData} onTodayClick={handleTodayClick} />
+              </div>
             )}
           </div>
           {/* Mobile stats (always visible) */}
           <div className="lg:hidden">
             <DashboardStats data={statsData} onTodayClick={handleTodayClick} />
           </div>
-          <SidebarCalendar
-            entryDates={entryDateStrings}
-            selectedDate={selectedDate}
-            onDateSelect={handleDateSelect}
-          />
+          {/* Calendar card */}
+          <div className="hidden lg:block border border-[#808080]/15 p-4">
+            <SidebarCalendar
+              entryDates={entryDateStrings}
+              selectedDate={selectedDate}
+              onDateSelect={handleDateSelect}
+            />
+          </div>
         </div>
 
         {/* ── Right main content ── */}
@@ -153,12 +159,14 @@ export function ActivityContent({
             <ManualEntryForm projects={projectOptions} />
           </CollapsibleSection>
 
-          <div className="pt-1">
+          <div className="border border-[#808080]/15 border-t-2 border-t-[#F40000]/40 p-4 sm:p-5">
             <div className="space-y-3">
               <div>
                 <h2 className="text-sm sm:text-base font-bold">Recent Entries</h2>
                 <p className="text-xs sm:text-sm text-[#808080] mt-0.5">Your entries, scoped to your project assignments.</p>
-              </div>              <div className="border-t border-[#F40000]/20" />              <EntryTable
+              </div>
+              <div className="border-t border-[#808080]/10" />
+              <EntryTable
                 entries={entries}
                 projects={projectOptions}
                 calendarDate={selectedDate}
