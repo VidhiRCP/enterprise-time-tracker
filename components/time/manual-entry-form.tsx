@@ -11,7 +11,7 @@ type ProjectOption = {
 
 export function ManualEntryForm({ projects }: { projects: ProjectOption[] }) {
   const [projectId, setProjectId] = useState(projects[0]?.projectId ?? "");
-  const [workDate, setWorkDate] = useState(localDateInputValue());
+  const workDate = localDateInputValue();
   const [mode, setMode] = useState<"duration" | "range">("range");
   const [durationMinutes, setDurationMinutes] = useState("");
   const [startTime, setStartTime] = useState("");
@@ -83,13 +83,9 @@ export function ManualEntryForm({ projects }: { projects: ProjectOption[] }) {
         </div>
         <div className="space-y-1">
           <label className="text-sm font-medium text-[#D9D9D9]">Date</label>
-          <input
-            type="date"
-            value={workDate}
-            max={localDateInputValue()}
-            onChange={(e) => setWorkDate(e.target.value)}
-            className="w-full rounded-xl border border-[#808080]/30 bg-black px-3 py-2 text-sm focus:border-[#F40000] focus:outline-none"
-          />
+          <div className="w-full rounded-xl border border-[#808080]/30 bg-black px-3 py-2 text-sm text-[#D9D9D9]">
+            📅 Today
+          </div>
         </div>
       </div>
 
