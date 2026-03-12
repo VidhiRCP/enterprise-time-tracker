@@ -19,14 +19,16 @@ export function ExpenseTracker({ projects, userId }: { projects: { projectId: st
     const [file, setFile] = useState<File | null>(null);
     const [uploading, setUploading] = useState(false);
     const [extraction, setExtraction] = useState<any | null>(null);
+    const [previewUrl, setPreviewUrl] = useState<string | null>(null);
     const [form, setForm] = useState({
-        receiptId: "",
-        expenseDate: "",
-        amount: "",
-        currency: "",
-        merchant: "",
-        details: "",
-        projectId: "",
+      receiptId: "",
+      receiptFileName: "",
+      expenseDate: "",
+      amount: "",
+      currency: "",
+      merchant: "",
+      details: "",
+      projectId: "",
     });
     const [error, setError] = useState<string | null>(null);
     const [confirmed, setConfirmed] = useState(false);
@@ -37,8 +39,16 @@ export function ExpenseTracker({ projects, userId }: { projects: { projectId: st
   function handleFileChange(f: File) {
     setFile(f);
     setExtraction(null);
-    setForm({ receiptId: "", expenseDate: "", amount: "", currency: "", merchant: "", details: "", projectId: "" });
+    setForm({ receiptId: "", receiptFileName: f.name ?? "", expenseDate: "", amount: "", currency: "", merchant: "", details: "", projectId: "" });
     setError(null);
+    // manage preview URL
+    try {
+      if (previewUrl) {
+        try { URL.revokeObjectURL(previewUrl); } catch {}
+      }
+      const url = URL.createObjectURL(f);
+      setPreviewUrl(url);
+    } catch {}
     // TODO: upload to Supabase, trigger extraction
     uploadAndExtract(f);
   }
@@ -61,6 +71,7 @@ export function ExpenseTracker({ projects, userId }: { projects: { projectId: st
       setExtraction(extracted);
       setForm({
         receiptId: data.receiptId ?? "",
+        receiptFileName: f.name ?? "",
         expenseDate: extracted.date ?? "",
         amount: extracted.amount ?? "",
         currency: extracted.currency ?? "",
@@ -70,8 +81,7 @@ export function ExpenseTracker({ projects, userId }: { projects: { projectId: st
       });
       // reset confirmation because new extraction
       setConfirmed(false);
-      // preview URL
-      setExpenses(prev => prev);
+      // preserve preview URL (already set client-side)
     } catch (e: any) {
       setError(String(e.message ?? e));
     } finally {
@@ -127,7 +137,7 @@ export function ExpenseTracker({ projects, userId }: { projects: { projectId: st
       // clear
       setFile(null);
       setExtraction(null);
-      setForm({ receiptId: "", expenseDate: "", amount: "", currency: "", merchant: "", details: "", projectId: "" });
+      setForm({ receiptId: "", receiptFileName: "", expenseDate: "", amount: "", currency: "", merchant: "", details: "", projectId: "" });
     } catch (e: any) {
       setError(String(e.message ?? e));
     }
@@ -145,6 +155,15 @@ export function ExpenseTracker({ projects, userId }: { projects: { projectId: st
   }
 
   useEffect(() => { loadExpenses(); }, []);
+
+  // revoke preview object URL when preview changes or component unmounts
+  useEffect(() => {
+    return () => {
+      if (previewUrl) {
+        try { URL.revokeObjectURL(previewUrl); } catch {}
+      }
+    };
+  }, [previewUrl]);
 
   return (
     <div className="space-y-8">
@@ -169,78 +188,100 @@ export function ExpenseTracker({ projects, userId }: { projects: { projectId: st
         </div>
         {/* Extraction loading state */}
         {uploading && <div className="text-xs text-[#808080] mb-4">Extracting data from receipt...</div>}
-        {/* Editable review form */}
+        {/* Editable review form + receipt preview */}
         {file && (
-          <form className="space-y-4">
-            <div>
-              <label className="text-xs font-bold mb-1 block">Date</label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">📅</div>
-                <input
-                  name="expenseDate"
-                  type="date"
-                  value={form.expenseDate}
-                  onChange={handleFormChange}
-                  className="w-full border border-[#808080]/30 bg-black pl-10 pr-3 py-2 text-xs sm:text-sm"
-                />
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <form className="space-y-4 md:col-span-2">
+              <div>
+                <label className="text-xs font-bold mb-1 block">Date</label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">📅</div>
+                  <input
+                    name="expenseDate"
+                    type="date"
+                    value={form.expenseDate}
+                    onChange={handleFormChange}
+                    className="w-full border border-[#808080]/30 bg-black pl-10 pr-3 py-2 text-xs sm:text-sm"
+                  />
+                </div>
               </div>
-            </div>
-            <div>
-              <label className="text-xs font-bold mb-1 block">Amount</label>
-              <input name="amount" type="number" value={form.amount} onChange={handleFormChange} className="w-full border border-[#808080]/30 bg-black px-3 py-2 text-xs sm:text-sm" />
-            </div>
-            <div>
-              <label className="text-xs font-bold mb-1 block">Currency</label>
-              <input name="currency" type="text" value={form.currency} onChange={handleFormChange} className="w-full border border-[#808080]/30 bg-black px-3 py-2 text-xs sm:text-sm" />
-            </div>
-            <div>
-              <label className="text-xs font-bold mb-1 block">Merchant/Vendor</label>
-              <input name="merchant" type="text" value={form.merchant} onChange={handleFormChange} className="w-full border border-[#808080]/30 bg-black px-3 py-2 text-xs sm:text-sm" />
-            </div>
-            <div>
-              <label className="text-xs font-bold mb-1 block">Details</label>
-              <textarea name="details" value={form.details} onChange={handleFormChange} className="w-full border border-[#808080]/30 bg-black px-3 py-2 text-xs sm:text-sm" />
-            </div>
-            <div>
-              <label className="text-xs font-bold mb-1 block">Project</label>
-              <select name="projectId" value={form.projectId} onChange={handleFormChange} className="w-full border border-[#808080]/30 bg-black px-3 py-2 text-xs sm:text-sm">
-                <option value="">Select project</option>
-                {projects.map(p => (
-                  <option key={p.projectId} value={p.projectId}>{p.projectName}</option>
-                ))}
-              </select>
-            </div>
-            {extraction && (
-              <div className="text-xs text-[#D9D9D9] mt-2">
-                <div className="font-bold mb-1">AI extraction preview</div>
-                <div className="mb-1">Date: {extraction.date || '—'}</div>
-                <div className="mb-1">Amount: {extraction.amount || '—'}</div>
-                <div className="mb-1">Currency: {extraction.currency || '—'}</div>
-                <div className="mb-1">Merchant: {extraction.merchant || '—'}</div>
-                <div className="mb-1">Details: {extraction.details || '—'}</div>
-                <label className="inline-flex items-center mt-2">
-                  <input type="checkbox" checked={confirmed} onChange={e => setConfirmed(e.target.checked)} className="mr-2" />
-                  <span className="text-xs">I confirm the extracted info is correct</span>
-                </label>
+              <div>
+                <label className="text-xs font-bold mb-1 block">Amount</label>
+                <input name="amount" type="number" value={form.amount} onChange={handleFormChange} className="w-full border border-[#808080]/30 bg-black px-3 py-2 text-xs sm:text-sm" />
               </div>
-            )}
-            {error && <div className="text-xs text-red-500">{error}</div>}
-            <button
-              type="button"
-              onClick={async () => {
-                setIsSaving(true);
-                try {
-                  await handleSave();
-                } finally {
-                  setIsSaving(false);
-                }
-              }}
-              disabled={uploading || !form.receiptId || !form.projectId || !confirmed || isSaving}
-              className="bg-[#F40000] px-4 py-2 text-xs sm:text-sm font-medium text-white hover:bg-[#F40000]/80 disabled:opacity-40 transition-all"
-            >
-              {isSaving ? "Saving…" : "Save Expense"}
-            </button>
-          </form>
+              <div>
+                <label className="text-xs font-bold mb-1 block">Currency</label>
+                <input name="currency" type="text" value={form.currency} onChange={handleFormChange} className="w-full border border-[#808080]/30 bg-black px-3 py-2 text-xs sm:text-sm" />
+              </div>
+              <div>
+                <label className="text-xs font-bold mb-1 block">Merchant/Vendor</label>
+                <input name="merchant" type="text" value={form.merchant} onChange={handleFormChange} className="w-full border border-[#808080]/30 bg-black px-3 py-2 text-xs sm:text-sm" />
+              </div>
+              <div>
+                <label className="text-xs font-bold mb-1 block">Details</label>
+                <textarea name="details" value={form.details} onChange={handleFormChange} className="w-full border border-[#808080]/30 bg-black px-3 py-2 text-xs sm:text-sm" />
+              </div>
+              <div>
+                <label className="text-xs font-bold mb-1 block">Project</label>
+                <select name="projectId" value={form.projectId} onChange={handleFormChange} className="w-full border border-[#808080]/30 bg-black px-3 py-2 text-xs sm:text-sm">
+                  <option value="">Select project</option>
+                  {projects.map(p => (
+                    <option key={p.projectId} value={p.projectId}>{p.projectName}</option>
+                  ))}
+                </select>
+              </div>
+
+              {error && <div className="text-xs text-red-500">{error}</div>}
+
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={async () => {
+                    setIsSaving(true);
+                    try {
+                      await handleSave();
+                    } finally {
+                      setIsSaving(false);
+                    }
+                  }}
+                  disabled={uploading || !form.receiptId || !form.projectId || !confirmed || isSaving}
+                  className="bg-[#F40000] px-4 py-2 text-xs sm:text-sm font-medium text-white hover:bg-[#F40000]/80 disabled:opacity-40 transition-all"
+                >
+                  {isSaving ? "Saving…" : "Save Expense"}
+                </button>
+                <div className="text-xs text-[#808080]">{form.receiptFileName ? `File: ${form.receiptFileName}` : ''}</div>
+              </div>
+            </form>
+
+            <aside className="md:col-span-1 bg-[#121212] border border-[#808080]/10 p-3">
+              <div className="text-xs font-bold text-[#D9D9D9] mb-2">AI extraction preview</div>
+              <div className="text-xs text-[#D9D9D9] mb-3">
+                <div className="mb-1">Date: {extraction?.date || '—'}</div>
+                <div className="mb-1">Amount: {extraction?.amount || '—'}</div>
+                <div className="mb-1">Currency: {extraction?.currency || '—'}</div>
+                <div className="mb-1">Merchant: {extraction?.merchant || '—'}</div>
+                <div className="mb-1">Details: {extraction?.details || '—'}</div>
+              </div>
+
+              <div className="mb-3">
+                <div className="text-xs font-bold text-[#D9D9D9] mb-2">Receipt</div>
+                {previewUrl ? (
+                  file?.type.startsWith('image/') ? (
+                    <img src={previewUrl} alt={form.receiptFileName} className="w-full max-h-72 object-contain bg-black" />
+                  ) : (
+                    <object data={previewUrl} type={file?.type} className="w-full h-72">Preview not available</object>
+                  )
+                ) : (
+                  <div className="text-xs text-[#808080]">No preview available</div>
+                )}
+              </div>
+
+              <label className="inline-flex items-center mt-1">
+                <input type="checkbox" checked={confirmed} onChange={e => setConfirmed(e.target.checked)} className="mr-2" />
+                <span className="text-xs">I confirm the extracted info is correct</span>
+              </label>
+            </aside>
+          </div>
         )}
       </Card>
       {/* Table listing saved expenses */}
