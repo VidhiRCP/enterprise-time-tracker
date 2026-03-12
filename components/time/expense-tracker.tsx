@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Card } from "@/components/ui/card";
 import { z } from "zod";
 
@@ -20,6 +20,7 @@ export function ExpenseTracker({ projects, userId }: { projects: { projectId: st
     const [uploading, setUploading] = useState(false);
     const [extraction, setExtraction] = useState<any | null>(null);
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+    const fileInputRef = useRef<HTMLInputElement | null>(null);
     // hold the selected file locally until user clicks Save
     const [pendingFile, setPendingFile] = useState<File | null>(null);
     const [form, setForm] = useState({
@@ -70,12 +71,15 @@ export function ExpenseTracker({ projects, userId }: { projects: { projectId: st
         const fallback = await fetch("/api/expenses/upload", { method: "POST", body: fd, credentials: "include" });
         if (!fallback.ok) throw new Error(await fallback.text());
         const data = await fallback.json();
-        const extracted = data.extracted ?? { date: "", amount: "", currency: "", merchant: "", details: "" };
-        extracted.date = String(extracted.date ?? "");
-        extracted.amount = String(extracted.amount ?? "");
-        extracted.currency = String(extracted.currency ?? "");
-        extracted.merchant = String(extracted.merchant ?? "");
-        extracted.details = String(extracted.details ?? "");
+        const extracted = data.extracted ?? { date: null, amount: null, amount_total: null, currency: null, merchant: null, details: null };
+        // map new/old keys safely
+        const mapped = {
+          date: extracted.date ?? extracted.date ?? null,
+          amount: String(extracted.amount_total ?? extracted.amount ?? "").trim() || "",
+          currency: String(extracted.currency ?? "").trim() || "",
+          merchant: String(extracted.merchant ?? "").trim() || "",
+          details: String(extracted.details ?? "").trim() || "",
+        };
         setExtraction(extracted);
         // fallback upload returned a persisted receiptId; use it
         // Normalize currency
@@ -87,23 +91,25 @@ export function ExpenseTracker({ projects, userId }: { projects: { projectId: st
           else if (/CAD/.test(c)) fbCurrency = "CAD";
           else if (c.length === 3) fbCurrency = c;
         } catch {}
-        setForm((cur) => ({ ...cur, receiptId: data.receiptId ?? cur.receiptId, receiptFileName: f.name ?? cur.receiptFileName, expenseDate: extracted.date, amount: extracted.amount, currency: fbCurrency, merchant: extracted.merchant, details: extracted.details }));
+        setForm((cur) => ({ ...cur, receiptId: data.receiptId ?? cur.receiptId, receiptFileName: f.name ?? cur.receiptFileName, expenseDate: mapped.date ?? cur.expenseDate, amount: mapped.amount ?? cur.amount, currency: fbCurrency, merchant: mapped.merchant ?? cur.merchant, details: mapped.details ?? cur.details }));
         // since file was uploaded by fallback, clear pendingFile
         setPendingFile(null);
       } else {
         const data = await res.json();
-        const extracted = data.extracted ?? { date: "", amount: "", currency: "", merchant: "", details: "" };
-        extracted.date = String(extracted.date ?? "");
-        extracted.amount = String(extracted.amount ?? "");
-        extracted.currency = String(extracted.currency ?? "");
-        extracted.merchant = String(extracted.merchant ?? "");
-        extracted.details = String(extracted.details ?? "");
+        const extracted = data.extracted ?? { date: null, amount: null, amount_total: null, currency: null, merchant: null, details: null };
+        const mapped = {
+          date: extracted.date ?? extracted.date ?? null,
+          amount: String(extracted.amount_total ?? extracted.amount ?? "").trim() || "",
+          currency: String(extracted.currency ?? "").trim() || "",
+          merchant: String(extracted.merchant ?? "").trim() || "",
+          details: String(extracted.details ?? "").trim() || "",
+        };
         setExtraction(extracted);
         // Normalize date to YYYY-MM-DD for the date input
         let normDate = "";
         try {
-          if (extracted.date) {
-            const d = new Date(extracted.date);
+          if (mapped.date) {
+            const d = new Date(mapped.date as any);
             if (!isNaN(d.getTime())) normDate = d.toISOString().slice(0, 10);
           }
         } catch {
@@ -112,8 +118,8 @@ export function ExpenseTracker({ projects, userId }: { projects: { projectId: st
         // Normalize amount to numeric string (strip currency symbols)
         let normAmount = "";
         try {
-          if (extracted.amount) {
-            const cleaned = String(extracted.amount).replace(/[^0-9.\-]/g, "");
+          if (mapped.amount) {
+            const cleaned = String(mapped.amount).replace(/[^0-9.\-]/g, "");
             if (cleaned) normAmount = String(parseFloat(cleaned));
           }
         } catch {
@@ -124,13 +130,13 @@ export function ExpenseTracker({ projects, userId }: { projects: { projectId: st
         // Normalize currency from extraction
         let normCurrency = "NZD";
         try {
-          const c = String(extracted.currency ?? "").trim().toUpperCase();
+          const c = String(mapped.currency ?? "").trim().toUpperCase();
           if (/USD/.test(c) || /\bUS\b/.test(c)) normCurrency = "USD";
           else if (/NZD|\bNZ\b/.test(c)) normCurrency = "NZD";
           else if (/CAD/.test(c)) normCurrency = "CAD";
           else if (c.length === 3) normCurrency = c;
         } catch {}
-        setForm((cur) => ({ ...cur, receiptId: data.filePath ?? cur.receiptId, receiptFileName: f.name ?? cur.receiptFileName, expenseDate: normDate, amount: normAmount, currency: normCurrency, merchant: extracted.merchant, details: extracted.details }));
+        setForm((cur) => ({ ...cur, receiptId: data.filePath ?? cur.receiptId, receiptFileName: f.name ?? cur.receiptFileName, expenseDate: normDate, amount: normAmount, currency: normCurrency, merchant: mapped.merchant, details: mapped.details }));
         // since extract endpoint uploaded the file, clear pendingFile to avoid double upload
         setPendingFile(null);
       }
@@ -250,6 +256,7 @@ export function ExpenseTracker({ projects, userId }: { projects: { projectId: st
             </svg>
             <span className="text-[#D9D9D9]">{file ? file.name : "Choose file or drop here"}</span>
             <input
+              ref={fileInputRef}
               type="file"
               accept="image/*,application/pdf"
               onChange={e => {
@@ -279,6 +286,15 @@ export function ExpenseTracker({ projects, userId }: { projects: { projectId: st
                   />
                 </div>
               </div>
+              {/* Debug: raw extraction JSON (toggleable) */}
+              {extraction && (
+                <div className="mt-3 text-xs text-[#808080]">
+                  <details>
+                    <summary className="cursor-pointer">Show raw extraction JSON</summary>
+                    <pre className="whitespace-pre-wrap break-all mt-2 p-2 bg-[#0b0b0b] border border-[#333] text-[11px]">{JSON.stringify(extraction, null, 2)}</pre>
+                  </details>
+                </div>
+              )}
               <div>
                 <label className="text-xs font-bold mb-1 block">Amount</label>
                 <input name="amount" type="number" value={form.amount} onChange={handleFormChange} className="w-full border border-[#808080]/30 bg-black px-3 py-2 text-xs sm:text-sm" />
@@ -336,11 +352,14 @@ export function ExpenseTracker({ projects, userId }: { projects: { projectId: st
                   type="button"
                   onClick={() => {
                     // discard pending upload and reset form
+                    try { if (previewUrl) { URL.revokeObjectURL(previewUrl); } } catch {}
                     setFile(null);
                     setPendingFile(null);
                     setExtraction(null);
                     setPreviewUrl(null);
-                    setForm({ receiptId: "", receiptFileName: "", expenseDate: "", amount: "", currency: "", merchant: "", details: "", projectId: "" });
+                    // clear native file input so same file can be re-selected instantly
+                    try { if (fileInputRef.current) fileInputRef.current.value = ""; } catch {}
+                    setForm({ receiptId: "", receiptFileName: "", expenseDate: "", amount: "", currency: "NZD", merchant: "", details: "", projectId: "" });
                     setConfirmed(false);
                     setError(null);
                   }}

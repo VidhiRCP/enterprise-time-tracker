@@ -25,7 +25,9 @@ export async function uploadReceiptAndExtract(file: File) {
   const supabase = createClient(supabaseUrl, supabaseKey, { auth: { persistSession: false } });
   const bucketName = process.env.SUPABASE_BUCKET ?? "receipts";
 
-  const userId = (session.user as any).id;
+  // Resolve DB user id to ensure filename uses the canonical user id from the database
+  const dbUser = await prisma.user.findUniqueOrThrow({ where: { email: userEmail } });
+  const userId = dbUser.id;
   const timestamp = Date.now();
   const filename = `${userId}/${timestamp}-${file.name}`;
 
@@ -120,6 +122,7 @@ Return this exact JSON shape:
 
 The receipt is accessible at: ${publicUrl}`;
 
+  // Send a multimodal request to OpenAI: include the prompt and the image URL so the model can read the receipt image.
   const resp = await fetch("https://api.openai.com/v1/chat/completions", {
     method: "POST",
     headers: {
@@ -128,9 +131,14 @@ The receipt is accessible at: ${publicUrl}`;
     },
     body: JSON.stringify({
       model: process.env.OPENAI_MODEL ?? "gpt-4o-mini",
+      // Include system and a multimodal user message: text prompt + image_url
       messages: [
         { role: "system", content: "You extract structured JSON from receipts. Return JSON only." },
-        { role: "user", content: prompt },
+        { role: "user", content: [
+            { type: "input_text", text: prompt },
+            { type: "input_image", image_url: publicUrl }
+          ]
+        },
       ],
       max_tokens: 800,
     }),
@@ -179,11 +187,10 @@ The receipt is accessible at: ${publicUrl}`;
   }
 
   // Persist receipt record
-  const user = await prisma.user.findUniqueOrThrow({ where: { email: userEmail } });
   const receipt = await prisma.expenseReceipt.create({
     // Use unchecked/explicit shape to avoid generated type constraints for optional relations
     data: ({
-      userId: user.id,
+      userId: userId,
       filePath: filename,
     } as any),
   });
@@ -302,9 +309,14 @@ The receipt is accessible at: ${publicUrl}`;
     },
     body: JSON.stringify({
       model: process.env.OPENAI_MODEL ?? "gpt-4o-mini",
+      // Include system and a multimodal user message: text prompt + image_url
       messages: [
         { role: "system", content: "You extract structured JSON from receipts. Return JSON only." },
-        { role: "user", content: prompt },
+        { role: "user", content: [
+            { type: "input_text", text: prompt },
+            { type: "input_image", image_url: publicUrl }
+          ]
+        },
       ],
       max_tokens: 800,
     }),
