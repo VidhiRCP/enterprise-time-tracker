@@ -31,6 +31,7 @@ export function ExpenseTracker({ projects, userId }: { projects: { projectId: st
     const [error, setError] = useState<string | null>(null);
     const [confirmed, setConfirmed] = useState(false);
     const [expenses, setExpenses] = useState<any[]>([]); // TODO: fetch from server
+    const [isSaving, setIsSaving] = useState(false);
 
   // Drag-and-drop/upload handler
   function handleFileChange(f: File) {
@@ -152,12 +153,19 @@ export function ExpenseTracker({ projects, userId }: { projects: { projectId: st
         {/* Drag-and-drop/upload area */}
         <div className="mb-6">
           <label className="block text-xs font-bold mb-2">Upload Receipt (Image or PDF)</label>
-          <input
-            type="file"
-            accept="image/*,application/pdf"
-            onChange={e => e.target.files && handleFileChange(e.target.files[0])}
-            className="block w-full border border-[#808080]/30 bg-black px-3 py-2 text-xs sm:text-sm"
-          />
+          <label className="flex items-center gap-3 w-full border border-[#808080]/30 bg-black px-3 py-2 text-xs sm:text-sm cursor-pointer hover:bg-[#0f0f0f]">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="shrink-0" aria-hidden>
+              <path d="M21 15v4a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1h11" stroke="#D9D9D9" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" />
+              <path d="M17 3v6a2 2 0 0 1-2 2H7" stroke="#D9D9D9" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+            <span className="text-[#D9D9D9]">{file ? file.name : "Choose file or drop here"}</span>
+            <input
+              type="file"
+              accept="image/*,application/pdf"
+              onChange={e => e.target.files && handleFileChange(e.target.files[0])}
+              className="sr-only"
+            />
+          </label>
         </div>
         {/* Extraction loading state */}
         {uploading && <div className="text-xs text-[#808080] mb-4">Extracting data from receipt...</div>}
@@ -166,7 +174,16 @@ export function ExpenseTracker({ projects, userId }: { projects: { projectId: st
           <form className="space-y-4">
             <div>
               <label className="text-xs font-bold mb-1 block">Date</label>
-              <input name="expenseDate" type="date" value={form.expenseDate} onChange={handleFormChange} className="w-full border border-[#808080]/30 bg-black px-3 py-2 text-xs sm:text-sm" />
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">📅</div>
+                <input
+                  name="expenseDate"
+                  type="date"
+                  value={form.expenseDate}
+                  onChange={handleFormChange}
+                  className="w-full border border-[#808080]/30 bg-black pl-10 pr-3 py-2 text-xs sm:text-sm"
+                />
+              </div>
             </div>
             <div>
               <label className="text-xs font-bold mb-1 block">Amount</label>
@@ -210,11 +227,18 @@ export function ExpenseTracker({ projects, userId }: { projects: { projectId: st
             {error && <div className="text-xs text-red-500">{error}</div>}
             <button
               type="button"
-              onClick={handleSave}
-              disabled={uploading || !form.receiptId || !form.projectId || !confirmed}
+              onClick={async () => {
+                setIsSaving(true);
+                try {
+                  await handleSave();
+                } finally {
+                  setIsSaving(false);
+                }
+              }}
+              disabled={uploading || !form.receiptId || !form.projectId || !confirmed || isSaving}
               className="bg-[#F40000] px-4 py-2 text-xs sm:text-sm font-medium text-white hover:bg-[#F40000]/80 disabled:opacity-40 transition-all"
             >
-              Save Expense
+              {isSaving ? "Saving…" : "Save Expense"}
             </button>
           </form>
         )}

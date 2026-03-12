@@ -38,15 +38,17 @@ function CollapsibleSection({
   collapsed,
   onToggle,
   children,
+  noBox = false,
 }: {
   title: string;
   subtitle?: string;
   collapsed: boolean;
   onToggle: () => void;
   children: React.ReactNode;
+  noBox?: boolean;
 }) {
   return (
-    <div className="border border-[#808080]/15 border-t-2 border-t-[#F40000]/40 p-4 sm:p-5">
+    <div className={`${noBox ? "p-0" : "border border-[#808080]/15 border-t-2 border-t-[#F40000]/40 p-4 sm:p-5"}`}>
       <button
         onClick={onToggle}
         className="w-full flex items-center justify-between text-left"
@@ -62,7 +64,7 @@ function CollapsibleSection({
         </span>
       </button>
       {!collapsed && (
-        <div className="mt-3 border-t border-[#808080]/10 pt-3">{children}</div>
+        <div className={`${noBox ? "mt-3 pt-3" : "mt-3 border-t border-[#808080]/10 pt-3"}`}>{children}</div>
       )}
     </div>
   );
@@ -100,7 +102,7 @@ export function ActivityContent({
   const showRecoveryBanner = hasRecoveredSession && activeSession?.status !== "RUNNING";
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-10">
       {showRecoveryBanner && (
         <div className="border-l-2 border-l-[#F40000] border border-[#232323]/40 bg-[#181818] px-4 py-3 text-sm text-[#D9D9D9]">
           Recovered an unfinished timer session. Resume, pause, save, or discard it.
@@ -109,7 +111,7 @@ export function ActivityContent({
 
       <div className="grid gap-8 lg:grid-cols-[360px_1fr]">
         {/* ── Left sidebar ── */}
-        <div className="space-y-8 lg:sticky lg:top-4 lg:self-start">
+        <div className="space-y-10 lg:sticky lg:top-4 lg:self-start">
           {/* Desktop stats card */}
           <div className="hidden lg:block">
             <Card accent className="p-7">
@@ -152,8 +154,11 @@ export function ActivityContent({
               title="Timer"
               collapsed={timerCollapsed}
               onToggle={() => setTimerCollapsed((v) => !v)}
+              noBox
             >
-              <TimerPanel projects={projectOptions} activeSession={activeSession} />
+              <div className="px-0">{/* keep padding consistent when noBox is used */}
+                <TimerPanel projects={projectOptions} activeSession={activeSession} />
+              </div>
             </CollapsibleSection>
           </Card>
 
@@ -163,8 +168,11 @@ export function ActivityContent({
               subtitle="Add time for work already completed."
               collapsed={manualCollapsed}
               onToggle={() => setManualCollapsed((v) => !v)}
+              noBox
             >
-              <ManualEntryForm projects={projectOptions} />
+              <div className="px-0">
+                <ManualEntryForm projects={projectOptions} />
+              </div>
             </CollapsibleSection>
           </Card>
 
