@@ -144,7 +144,12 @@ export function ExpenseTracker({ projects, userId }: { projects: { projectId: st
 
   // Review form change
   function handleFormChange(e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) {
-    setForm({ ...form, [e.target.name]: e.target.value });
+    const target = (e && ((e.target as any) ?? (e.currentTarget as any))) ?? null;
+    if (!target) return;
+    const name = target.name as string | undefined;
+    const value = target.value;
+    if (!name) return;
+    setForm(prev => ({ ...prev, [name]: value }));
   }
 
   // Save handler

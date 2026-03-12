@@ -62,8 +62,63 @@ export async function uploadReceiptAndExtract(file: File) {
   const openaiKey = process.env.OPENAI_API_KEY;
   if (!openaiKey) throw new Error("OpenAI API key not configured");
 
-  const prompt = `Extract the following fields from the receipt accessible at ${publicUrl}.
-Respond with a single JSON object containing these keys: \n{\n  "date": "YYYY-MM-DD or empty",\n  "amount": "numeric string (no currency symbol) or empty",\n  "currency": "ISO currency code like USD, NZD, CAD or empty",\n  "merchant": "vendor name or empty",\n  "details": "short free-text summary"\n}\nImportant: if any of the named fields are missing or uncertain, include the available contextual information and any notes (what was missing or why uncertain) in 'details' so the UI can show meaningful text. Always return 'details' (use an empty string only if there is truly nothing else to say). Return JSON ONLY.`;
+  const prompt = `You are a precise receipt extraction engine for enterprise expense tracking.
+Be conservative.
+If you are uncertain, return null.
+Never guess missing values.
+Return valid JSON only.
+
+You are extracting structured expense data from a receipt image or PDF for an enterprise expense tracker.
+
+Your job is to read the receipt and return only valid JSON.
+
+Extract these fields:
+
+- date: the receipt purchase date in YYYY-MM-DD format if possible, otherwise null
+- amount_total: the final total amount paid, as a number, otherwise null
+- currency: 3-letter currency code like NZD, AUD, USD, GBP, EUR, otherwise null
+- merchant: merchant or vendor name, otherwise null
+- details: a short clean summary of the purchase, otherwise null
+- subtotal: subtotal before tax/tip if visible, otherwise null
+- tax: tax/GST/VAT amount if visible, otherwise null
+- tip: tip/gratuity amount if visible, otherwise null
+- receipt_number: receipt, invoice, transaction, or reference number if visible, otherwise null
+- payment_method: card, cash, visa, mastercard, amex, debit, etc. if visible, otherwise null
+- merchant_address: merchant address if clearly visible, otherwise null
+- confidence: a number from 0 to 1 representing confidence in the extraction
+- warnings: array of short strings for ambiguity or missing fields
+
+Rules:
+1. Return JSON only. No markdown. No explanation.
+2. If a field is unclear, return null instead of guessing.
+3. amount_total must be the final amount paid, not subtotal.
+4. If multiple totals appear, prefer the one explicitly labeled total, amount due, amount paid, or balance paid.
+5. If the receipt appears to be a tax invoice, still extract the final amount paid as amount_total.
+6. details should be a short human-friendly summary of the purchase.
+7. Normalize currency to ISO-style 3-letter code if you are confident. Otherwise null.
+8. Normalize date to YYYY-MM-DD if you are confident. Otherwise null.
+9. Do not invent project codes or allocations.
+10. Do not include fields outside the requested schema.
+
+Return this exact JSON shape:
+
+{
+  "date": null,
+  "amount_total": null,
+  "currency": null,
+  "merchant": null,
+  "details": null,
+  "subtotal": null,
+  "tax": null,
+  "tip": null,
+  "receipt_number": null,
+  "payment_method": null,
+  "merchant_address": null,
+  "confidence": 0,
+  "warnings": []
+}
+
+The receipt is accessible at: ${publicUrl}`;
 
   const resp = await fetch("https://api.openai.com/v1/chat/completions", {
     method: "POST",
@@ -95,8 +150,32 @@ Respond with a single JSON object containing these keys: \n{\n  "date": "YYYY-MM
   } catch (e) {
     // Try to find JSON substring
     const m = text.match(/\{[\s\S]*\}/);
-    if (m) extracted = JSON.parse(m[0]);
-    else extracted = { date: "", amount: "", currency: "", merchant: "", details: "" };
+    if (m) {
+      try { extracted = JSON.parse(m[0]); } catch (_err) {
+        extracted = null;
+      }
+    } else {
+      extracted = null;
+    }
+  }
+
+  // Ensure the extracted shape exists and falls back to nulls/confidence 0
+  if (!extracted || typeof extracted !== 'object') {
+    extracted = {
+      date: null,
+      amount_total: null,
+      currency: null,
+      merchant: null,
+      details: null,
+      subtotal: null,
+      tax: null,
+      tip: null,
+      receipt_number: null,
+      payment_method: null,
+      merchant_address: null,
+      confidence: 0,
+      warnings: [],
+    };
   }
 
   // Persist receipt record
@@ -157,8 +236,63 @@ export async function uploadToStorageAndExtractOnly(file: File) {
   const openaiKey = process.env.OPENAI_API_KEY;
   if (!openaiKey) throw new Error("OpenAI API key not configured");
 
-  const prompt = `Extract the following fields from the receipt accessible at ${publicUrl}.
-Respond with a single JSON object containing these keys: \n{\n  "date": "YYYY-MM-DD or empty",\n  "amount": "numeric string (no currency symbol) or empty",\n  "currency": "ISO currency code like USD, NZD, CAD or empty",\n  "merchant": "vendor name or empty",\n  "details": "short free-text summary"\n}\nImportant: if any of the named fields are missing or uncertain, include the available contextual information and any notes (what was missing or why uncertain) in 'details' so the UI can show meaningful text. Always return 'details' (use an empty string only if there is truly nothing else to say). Return JSON ONLY.`;
+  const prompt = `You are a precise receipt extraction engine for enterprise expense tracking.
+Be conservative.
+If you are uncertain, return null.
+Never guess missing values.
+Return valid JSON only.
+
+You are extracting structured expense data from a receipt image or PDF for an enterprise expense tracker.
+
+Your job is to read the receipt and return only valid JSON.
+
+Extract these fields:
+
+- date: the receipt purchase date in YYYY-MM-DD format if possible, otherwise null
+- amount_total: the final total amount paid, as a number, otherwise null
+- currency: 3-letter currency code like NZD, AUD, USD, GBP, EUR, otherwise null
+- merchant: merchant or vendor name, otherwise null
+- details: a short clean summary of the purchase, otherwise null
+- subtotal: subtotal before tax/tip if visible, otherwise null
+- tax: tax/GST/VAT amount if visible, otherwise null
+- tip: tip/gratuity amount if visible, otherwise null
+- receipt_number: receipt, invoice, transaction, or reference number if visible, otherwise null
+- payment_method: card, cash, visa, mastercard, amex, debit, etc. if visible, otherwise null
+- merchant_address: merchant address if clearly visible, otherwise null
+- confidence: a number from 0 to 1 representing confidence in the extraction
+- warnings: array of short strings for ambiguity or missing fields
+
+Rules:
+1. Return JSON only. No markdown. No explanation.
+2. If a field is unclear, return null instead of guessing.
+3. amount_total must be the final amount paid, not subtotal.
+4. If multiple totals appear, prefer the one explicitly labeled total, amount due, amount paid, or balance paid.
+5. If the receipt appears to be a tax invoice, still extract the final amount paid as amount_total.
+6. details should be a short human-friendly summary of the purchase.
+7. Normalize currency to ISO-style 3-letter code if you are confident. Otherwise null.
+8. Normalize date to YYYY-MM-DD if you are confident. Otherwise null.
+9. Do not invent project codes or allocations.
+10. Do not include fields outside the requested schema.
+
+Return this exact JSON shape:
+
+{
+  "date": null,
+  "amount_total": null,
+  "currency": null,
+  "merchant": null,
+  "details": null,
+  "subtotal": null,
+  "tax": null,
+  "tip": null,
+  "receipt_number": null,
+  "payment_method": null,
+  "merchant_address": null,
+  "confidence": 0,
+  "warnings": []
+}
+
+The receipt is accessible at: ${publicUrl}`;
 
   const resp = await fetch("https://api.openai.com/v1/chat/completions", {
     method: "POST",
@@ -188,8 +322,29 @@ Respond with a single JSON object containing these keys: \n{\n  "date": "YYYY-MM
     extracted = JSON.parse(text);
   } catch (e) {
     const m = text.match(/\{[\s\S]*\}/);
-    if (m) extracted = JSON.parse(m[0]);
-    else extracted = { date: "", amount: "", currency: "", merchant: "", details: "" };
+    if (m) {
+      try { extracted = JSON.parse(m[0]); } catch (_err) { extracted = null; }
+    } else {
+      extracted = null;
+    }
+  }
+
+  if (!extracted || typeof extracted !== 'object') {
+    extracted = {
+      date: null,
+      amount_total: null,
+      currency: null,
+      merchant: null,
+      details: null,
+      subtotal: null,
+      tax: null,
+      tip: null,
+      receipt_number: null,
+      payment_method: null,
+      merchant_address: null,
+      confidence: 0,
+      warnings: [],
+    };
   }
 
   // Return file path + publicUrl + extraction but DO NOT persist DB rows.
