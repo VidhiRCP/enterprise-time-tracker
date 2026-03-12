@@ -6,34 +6,36 @@ import { z } from "zod";
 
 // Zod schema for review form
 const ExpenseSchema = z.object({
-  expenseDate: z.string(),
-  amount: z.string(),
-  currency: z.string(),
+  receiptId: z.string().min(1),
+  expenseDate: z.string().min(1),
+  amount: z.string().min(1),
+  currency: z.string().min(1),
   merchant: z.string(),
   details: z.string(),
-  projectId: z.string(),
+  projectId: z.string().min(1),
 });
 
 export function ExpenseTracker({ projects, userId }: { projects: { projectId: string; projectName: string }[]; userId: string }) {
-  const [file, setFile] = useState<File | null>(null);
-  const [uploading, setUploading] = useState(false);
-  const [extraction, setExtraction] = useState<any | null>(null);
-  const [form, setForm] = useState({
-    expenseDate: "",
-    amount: "",
-    currency: "",
-    merchant: "",
-    details: "",
-    projectId: "",
-  });
-  const [error, setError] = useState<string | null>(null);
-  const [expenses, setExpenses] = useState<any[]>([]); // TODO: fetch from server
+    const [file, setFile] = useState<File | null>(null);
+    const [uploading, setUploading] = useState(false);
+    const [extraction, setExtraction] = useState<any | null>(null);
+    const [form, setForm] = useState({
+        receiptId: "",
+        expenseDate: "",
+        amount: "",
+        currency: "",
+        merchant: "",
+        details: "",
+        projectId: "",
+    });
+    const [error, setError] = useState<string | null>(null);
+    const [expenses, setExpenses] = useState<any[]>([]); // TODO: fetch from server
 
   // Drag-and-drop/upload handler
   function handleFileChange(f: File) {
     setFile(f);
     setExtraction(null);
-    setForm({ expenseDate: "", amount: "", currency: "", merchant: "", details: "", projectId: "" });
+    setForm({ receiptId: "", expenseDate: "", amount: "", currency: "", merchant: "", details: "", projectId: "" });
     setError(null);
     // TODO: upload to Supabase, trigger extraction
     uploadAndExtract(f);
@@ -47,15 +49,16 @@ export function ExpenseTracker({ projects, userId }: { projects: { projectId: st
       const res = await fetch("/api/expenses/upload", { method: "POST", body: fd, credentials: "include" });
       if (!res.ok) throw new Error(await res.text());
       const data = await res.json();
-      setExtraction(data.extracted ?? null);
-      setForm({
-        expenseDate: data.extracted?.date ?? "",
-        amount: data.extracted?.amount ?? "",
-        currency: data.extracted?.currency ?? "",
-        merchant: data.extracted?.merchant ?? "",
-        details: data.extracted?.details ?? "",
-        projectId: "",
-      });
+        setExtraction(data.extracted ?? null);
+        setForm({
+            receiptId: data.receiptId ?? "",
+            expenseDate: data.extracted?.date ?? "",
+            amount: String(data.extracted?.amount ?? ""),
+            currency: data.extracted?.currency ?? "",
+            merchant: data.extracted?.merchant ?? "",
+            details: data.extracted?.details ?? "",
+            projectId: "",
+        });
       // preview URL
       setExpenses(prev => prev);
     } catch (e: any) {
@@ -73,20 +76,47 @@ export function ExpenseTracker({ projects, userId }: { projects: { projectId: st
   // Save handler
   async function handleSave() {
     setError(null);
-    const parsed = ExpenseSchema.safeParse(form);
+    // ensure receipt was uploaded
+    if (!form.receiptId) {
+      setError("No receipt uploaded. Please upload a receipt before saving.");
+      return;
+    }
+
+    const payload = {
+      receiptId: form.receiptId,
+      projectId: form.projectId,
+      expenseDate: form.expenseDate,
+      amount: form.amount,
+      currency: form.currency,
+      merchant: form.merchant,
+      details: form.details,
+    };
+
+    const parsed = ExpenseSchema.safeParse(payload);
     if (!parsed.success) {
       setError("Please fill all fields correctly.");
       return;
     }
+
     try {
-      const res = await fetch("/api/expenses/save", { method: "POST", credentials: "include", headers: { "Content-Type": "application/json" }, body: JSON.stringify(form) });
-      const text = await res.text();
-      if (!res.ok) throw new Error(text || res.statusText);
+      const res = await fetch("/api/expenses/save", { method: "POST", credentials: "include", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
+      if (!res.ok) {
+        // try to parse JSON error body
+        const txt = await res.text();
+        try {
+          const j = JSON.parse(txt);
+          setError(j.error ?? JSON.stringify(j));
+          throw new Error(j.error ?? txt);
+        } catch (_e) {
+          throw new Error(txt || res.statusText);
+        }
+      }
+
       await loadExpenses();
       // clear
       setFile(null);
       setExtraction(null);
-      setForm({ expenseDate: "", amount: "", currency: "", merchant: "", details: "", projectId: "" });
+      setForm({ receiptId: "", expenseDate: "", amount: "", currency: "", merchant: "", details: "", projectId: "" });
     } catch (e: any) {
       setError(String(e.message ?? e));
     }
@@ -154,7 +184,14 @@ export function ExpenseTracker({ projects, userId }: { projects: { projectId: st
               </select>
             </div>
             {error && <div className="text-xs text-red-500">{error}</div>}
-            <button type="button" onClick={handleSave} className="bg-[#F40000] px-4 py-2 text-xs sm:text-sm font-medium text-white hover:bg-[#F40000]/80 disabled:opacity-40 transition-all">Save Expense</button>
+            <button
+              type="button"
+              onClick={handleSave}
+              disabled={uploading || !form.receiptId || !form.projectId}
+              className="bg-[#F40000] px-4 py-2 text-xs sm:text-sm font-medium text-white hover:bg-[#F40000]/80 disabled:opacity-40 transition-all"
+            >
+              Save Expense
+            </button>
           </form>
         )}
       </Card>
