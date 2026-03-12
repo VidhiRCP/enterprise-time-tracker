@@ -20,6 +20,8 @@ export function ExpenseTracker({ projects, userId }: { projects: { projectId: st
     const [uploading, setUploading] = useState(false);
     const [extraction, setExtraction] = useState<any | null>(null);
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+    // hold the selected file locally until user clicks Save
+    const [pendingFile, setPendingFile] = useState<File | null>(null);
     const [form, setForm] = useState({
       receiptId: "",
       receiptFileName: "",
@@ -38,6 +40,7 @@ export function ExpenseTracker({ projects, userId }: { projects: { projectId: st
   // Drag-and-drop/upload handler
   function handleFileChange(f: File) {
     setFile(f);
+    setPendingFile(f);
     setExtraction(null);
     setForm({ receiptId: "", receiptFileName: f.name ?? "", expenseDate: "", amount: "", currency: "", merchant: "", details: "", projectId: "" });
     setError(null);
@@ -49,39 +52,49 @@ export function ExpenseTracker({ projects, userId }: { projects: { projectId: st
       const url = URL.createObjectURL(f);
       setPreviewUrl(url);
     } catch {}
-    // TODO: upload to Supabase, trigger extraction
+    // run extraction only (do not persist file or create DB rows yet)
     uploadAndExtract(f);
   }
 
   async function uploadAndExtract(f: File) {
+    // call a non-persisting extraction endpoint (server should only run OCR/AI and return extracted fields)
     setUploading(true);
     try {
       const fd = new FormData();
       fd.append("file", f);
-      const res = await fetch("/api/expenses/upload", { method: "POST", body: fd, credentials: "include" });
-      if (!res.ok) throw new Error(await res.text());
-      const data = await res.json();
-      // normalize extracted shape and ensure strings
-      const extracted = data.extracted ?? { date: "", amount: "", currency: "", merchant: "", details: "" };
-      extracted.date = String(extracted.date ?? "");
-      extracted.amount = String(extracted.amount ?? "");
-      extracted.currency = String(extracted.currency ?? "");
-      extracted.merchant = String(extracted.merchant ?? "");
-      extracted.details = String(extracted.details ?? "");
-      setExtraction(extracted);
-      setForm({
-        receiptId: data.receiptId ?? "",
-        receiptFileName: f.name ?? "",
-        expenseDate: extracted.date ?? "",
-        amount: extracted.amount ?? "",
-        currency: extracted.currency ?? "",
-        merchant: extracted.merchant ?? "",
-        details: extracted.details ?? "",
-        projectId: "",
-      });
-      // reset confirmation because new extraction
+      // try an extract-only endpoint; if your server doesn't have this, you can point to the same upload endpoint but ensure server doesn't persist until Save
+      const res = await fetch("/api/expenses/extract", { method: "POST", body: fd, credentials: "include" });
+      if (!res.ok) {
+        // fall back to the upload endpoint if extract isn't available
+        const fallback = await fetch("/api/expenses/upload", { method: "POST", body: fd, credentials: "include" });
+        if (!fallback.ok) throw new Error(await fallback.text());
+        const data = await fallback.json();
+        const extracted = data.extracted ?? { date: "", amount: "", currency: "", merchant: "", details: "" };
+        extracted.date = String(extracted.date ?? "");
+        extracted.amount = String(extracted.amount ?? "");
+        extracted.currency = String(extracted.currency ?? "");
+        extracted.merchant = String(extracted.merchant ?? "");
+        extracted.details = String(extracted.details ?? "");
+        setExtraction(extracted);
+        // fallback upload returned a persisted receiptId; use it
+        setForm((cur) => ({ ...cur, receiptId: data.receiptId ?? cur.receiptId, receiptFileName: f.name ?? cur.receiptFileName, expenseDate: extracted.date, amount: extracted.amount, currency: extracted.currency, merchant: extracted.merchant, details: extracted.details }));
+        // since file was uploaded by fallback, clear pendingFile
+        setPendingFile(null);
+      } else {
+        const data = await res.json();
+        const extracted = data.extracted ?? { date: "", amount: "", currency: "", merchant: "", details: "" };
+        extracted.date = String(extracted.date ?? "");
+        extracted.amount = String(extracted.amount ?? "");
+        extracted.currency = String(extracted.currency ?? "");
+        extracted.merchant = String(extracted.merchant ?? "");
+        extracted.details = String(extracted.details ?? "");
+        setExtraction(extracted);
+        // uploadToStorageAndExtractOnly returned a filePath; store it in receiptId so Save can use it to create DB rows without re-upload
+        setForm((cur) => ({ ...cur, receiptId: data.filePath ?? cur.receiptId, receiptFileName: f.name ?? cur.receiptFileName, expenseDate: extracted.date, amount: extracted.amount, currency: extracted.currency, merchant: extracted.merchant, details: extracted.details }));
+        // since extract endpoint uploaded the file, clear pendingFile to avoid double upload
+        setPendingFile(null);
+      }
       setConfirmed(false);
-      // preserve preview URL (already set client-side)
     } catch (e: any) {
       setError(String(e.message ?? e));
     } finally {
@@ -97,32 +110,44 @@ export function ExpenseTracker({ projects, userId }: { projects: { projectId: st
   // Save handler
   async function handleSave() {
     setError(null);
-    // ensure receipt was uploaded
-    if (!form.receiptId) {
-      setError("No receipt uploaded. Please upload a receipt before saving.");
-      return;
-    }
-
-    const payload = {
-      receiptId: form.receiptId,
-      projectId: form.projectId,
-      expenseDate: form.expenseDate,
-      amount: form.amount,
-      currency: form.currency,
-      merchant: form.merchant,
-      details: form.details,
-    };
-
-    const parsed = ExpenseSchema.safeParse(payload);
-    if (!parsed.success) {
-      setError("Please fill all fields correctly.");
-      return;
-    }
-
     try {
+      // If there's a pending file, upload it first to get a receiptId
+      let receiptId = form.receiptId;
+      if (pendingFile) {
+        const fd = new FormData();
+        fd.append("file", pendingFile);
+        const resUpload = await fetch("/api/expenses/upload", { method: "POST", body: fd, credentials: "include" });
+        if (!resUpload.ok) {
+          throw new Error(await resUpload.text());
+        }
+        const up = await resUpload.json();
+        receiptId = up.receiptId ?? "";
+      }
+
+      if (!receiptId) {
+        setError("No receipt available to save. Please upload a receipt before saving.");
+        return;
+      }
+
+      const payload = {
+        receiptId,
+        projectId: form.projectId,
+        expenseDate: form.expenseDate,
+        amount: form.amount,
+        currency: form.currency,
+        merchant: form.merchant,
+        details: form.details,
+        rawExtraction: extraction ?? undefined,
+      };
+
+      const parsed = ExpenseSchema.safeParse({ ...payload, receiptId });
+      if (!parsed.success) {
+        setError("Please fill all fields correctly.");
+        return;
+      }
+
       const res = await fetch("/api/expenses/save", { method: "POST", credentials: "include", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
       if (!res.ok) {
-        // try to parse JSON error body
         const txt = await res.text();
         try {
           const j = JSON.parse(txt);
@@ -136,6 +161,7 @@ export function ExpenseTracker({ projects, userId }: { projects: { projectId: st
       await loadExpenses();
       // clear
       setFile(null);
+      setPendingFile(null);
       setExtraction(null);
       setForm({ receiptId: "", receiptFileName: "", expenseDate: "", amount: "", currency: "", merchant: "", details: "", projectId: "" });
     } catch (e: any) {
@@ -234,6 +260,11 @@ export function ExpenseTracker({ projects, userId }: { projects: { projectId: st
               {error && <div className="text-xs text-red-500">{error}</div>}
 
               <div className="flex items-center gap-3">
+                <label className="inline-flex items-center mr-4">
+                  <input type="checkbox" checked={confirmed} onChange={e => setConfirmed(e.target.checked)} className="mr-2" />
+                  <span className="text-xs">I confirm the extracted info is correct</span>
+                </label>
+
                 <button
                   type="button"
                   onClick={async () => {
@@ -244,7 +275,7 @@ export function ExpenseTracker({ projects, userId }: { projects: { projectId: st
                       setIsSaving(false);
                     }
                   }}
-                  disabled={uploading || !form.receiptId || !form.projectId || !confirmed || isSaving}
+                  disabled={uploading || (!pendingFile && !form.receiptId) || !form.projectId || !confirmed || isSaving}
                   className="bg-[#F40000] px-4 py-2 text-xs sm:text-sm font-medium text-white hover:bg-[#F40000]/80 disabled:opacity-40 transition-all"
                 >
                   {isSaving ? "Saving…" : "Save Expense"}
@@ -254,32 +285,18 @@ export function ExpenseTracker({ projects, userId }: { projects: { projectId: st
             </form>
 
             <aside className="md:col-span-1 bg-[#121212] border border-[#808080]/10 p-3">
-              <div className="text-xs font-bold text-[#D9D9D9] mb-2">AI extraction preview</div>
-              <div className="text-xs text-[#D9D9D9] mb-3">
-                <div className="mb-1">Date: {extraction?.date || '—'}</div>
-                <div className="mb-1">Amount: {extraction?.amount || '—'}</div>
-                <div className="mb-1">Currency: {extraction?.currency || '—'}</div>
-                <div className="mb-1">Merchant: {extraction?.merchant || '—'}</div>
-                <div className="mb-1">Details: {extraction?.details || '—'}</div>
-              </div>
-
+              <div className="text-xs font-bold text-[#D9D9D9] mb-2">Preview</div>
               <div className="mb-3">
-                <div className="text-xs font-bold text-[#D9D9D9] mb-2">Receipt</div>
                 {previewUrl ? (
                   file?.type.startsWith('image/') ? (
-                    <img src={previewUrl} alt={form.receiptFileName} className="w-full max-h-72 object-contain bg-black" />
+                    <img src={previewUrl} alt={form.receiptFileName} className="w-full max-h-[420px] object-contain bg-black" />
                   ) : (
-                    <object data={previewUrl} type={file?.type} className="w-full h-72">Preview not available</object>
+                    <object data={previewUrl} type={file?.type} className="w-full h-[420px]">Preview not available</object>
                   )
                 ) : (
                   <div className="text-xs text-[#808080]">No preview available</div>
                 )}
               </div>
-
-              <label className="inline-flex items-center mt-1">
-                <input type="checkbox" checked={confirmed} onChange={e => setConfirmed(e.target.checked)} className="mr-2" />
-                <span className="text-xs">I confirm the extracted info is correct</span>
-              </label>
             </aside>
           </div>
         )}
