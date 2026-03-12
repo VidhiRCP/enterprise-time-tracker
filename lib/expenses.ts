@@ -131,14 +131,10 @@ The receipt is accessible at: ${publicUrl}`;
     },
     body: JSON.stringify({
       model: process.env.OPENAI_MODEL ?? "gpt-4o-mini",
-      // Include system and a multimodal user message: text prompt + image_url
+      // Include system and a user message that contains the prompt and the image URL inline
       messages: [
         { role: "system", content: "You extract structured JSON from receipts. Return JSON only." },
-        { role: "user", content: [
-            { type: "input_text", text: prompt },
-            { type: "input_image", image_url: publicUrl }
-          ]
-        },
+        { role: "user", content: `${prompt}\n\nImage URL: ${publicUrl}` },
       ],
       max_tokens: 800,
     }),
@@ -149,6 +145,7 @@ The receipt is accessible at: ${publicUrl}`;
     throw new Error("OpenAI request failed: " + txt);
   }
   const data = await resp.json();
+  const rawResponse = data;
   const text = data.choices?.[0]?.message?.content ?? data.choices?.[0]?.text ?? "";
 
   // Try to parse JSON
@@ -203,7 +200,7 @@ The receipt is accessible at: ${publicUrl}`;
     },
   });
 
-  return { receiptId: receipt.id, filePath: filename, publicUrl, extracted };
+  return { receiptId: receipt.id, filePath: filename, publicUrl, extracted, rawResponse };
 }
 
 // Upload file to storage and run AI extraction but do NOT persist any DB rows.
@@ -309,14 +306,10 @@ The receipt is accessible at: ${publicUrl}`;
     },
     body: JSON.stringify({
       model: process.env.OPENAI_MODEL ?? "gpt-4o-mini",
-      // Include system and a multimodal user message: text prompt + image_url
+      // Include system and a user message that contains the prompt and the image URL inline
       messages: [
         { role: "system", content: "You extract structured JSON from receipts. Return JSON only." },
-        { role: "user", content: [
-            { type: "input_text", text: prompt },
-            { type: "input_image", image_url: publicUrl }
-          ]
-        },
+        { role: "user", content: `${prompt}\n\nImage URL: ${publicUrl}` },
       ],
       max_tokens: 800,
     }),
@@ -327,6 +320,7 @@ The receipt is accessible at: ${publicUrl}`;
     throw new Error("OpenAI request failed: " + txt);
   }
   const data = await resp.json();
+  const rawResponse = data;
   const text = data.choices?.[0]?.message?.content ?? data.choices?.[0]?.text ?? "";
 
   let extracted: any = {};
@@ -359,8 +353,8 @@ The receipt is accessible at: ${publicUrl}`;
     };
   }
 
-  // Return file path + publicUrl + extraction but DO NOT persist DB rows.
-  return { filePath: filename, publicUrl, extracted };
+  // Return file path + publicUrl + extraction but DO NOT persist DB rows. Include raw OpenAI response for debugging.
+  return { filePath: filename, publicUrl, extracted, rawResponse };
 }
 
 export async function saveExpenseReview(input: {

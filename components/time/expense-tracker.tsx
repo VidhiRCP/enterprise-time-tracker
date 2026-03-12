@@ -19,6 +19,7 @@ export function ExpenseTracker({ projects, userId }: { projects: { projectId: st
     const [file, setFile] = useState<File | null>(null);
     const [uploading, setUploading] = useState(false);
     const [extraction, setExtraction] = useState<any | null>(null);
+    const [rawResponse, setRawResponse] = useState<any | null>(null);
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
     const fileInputRef = useRef<HTMLInputElement | null>(null);
     // hold the selected file locally until user clicks Save
@@ -71,6 +72,8 @@ export function ExpenseTracker({ projects, userId }: { projects: { projectId: st
         const fallback = await fetch("/api/expenses/upload", { method: "POST", body: fd, credentials: "include" });
         if (!fallback.ok) throw new Error(await fallback.text());
         const data = await fallback.json();
+        // capture raw response if provided for debugging
+        setRawResponse(data.rawResponse ?? data ?? null);
         const extracted = data.extracted ?? { date: null, amount: null, amount_total: null, currency: null, merchant: null, details: null };
         // map new/old keys safely
         const mapped = {
@@ -96,6 +99,7 @@ export function ExpenseTracker({ projects, userId }: { projects: { projectId: st
         setPendingFile(null);
       } else {
         const data = await res.json();
+        setRawResponse(data.rawResponse ?? data ?? null);
         const extracted = data.extracted ?? { date: null, amount: null, amount_total: null, currency: null, merchant: null, details: null };
         const mapped = {
           date: extracted.date ?? extracted.date ?? null,
@@ -291,10 +295,11 @@ export function ExpenseTracker({ projects, userId }: { projects: { projectId: st
                 <div className="mt-3 text-xs text-[#808080]">
                   <details>
                     <summary className="cursor-pointer">Show raw extraction JSON</summary>
-                    <pre className="whitespace-pre-wrap break-all mt-2 p-2 bg-[#0b0b0b] border border-[#333] text-[11px]">{JSON.stringify(extraction, null, 2)}</pre>
+                    <pre className="whitespace-pre-wrap break-all mt-2 p-2 bg-[#0b0b0b] border border-[#333] text-[11px]">{JSON.stringify(rawResponse ?? extraction, null, 2)}</pre>
                   </details>
                 </div>
               )}
+              
               <div>
                 <label className="text-xs font-bold mb-1 block">Amount</label>
                 <input name="amount" type="number" value={form.amount} onChange={handleFormChange} className="w-full border border-[#808080]/30 bg-black px-3 py-2 text-xs sm:text-sm" />
@@ -357,6 +362,7 @@ export function ExpenseTracker({ projects, userId }: { projects: { projectId: st
                     setPendingFile(null);
                     setExtraction(null);
                     setPreviewUrl(null);
+                    setRawResponse(null);
                     // clear native file input so same file can be re-selected instantly
                     try { if (fileInputRef.current) fileInputRef.current.value = ""; } catch {}
                     setForm({ receiptId: "", receiptFileName: "", expenseDate: "", amount: "", currency: "NZD", merchant: "", details: "", projectId: "" });
