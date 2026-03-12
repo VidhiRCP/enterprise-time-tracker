@@ -89,8 +89,29 @@ export function ExpenseTracker({ projects, userId }: { projects: { projectId: st
         extracted.merchant = String(extracted.merchant ?? "");
         extracted.details = String(extracted.details ?? "");
         setExtraction(extracted);
+        // Normalize date to YYYY-MM-DD for the date input
+        let normDate = "";
+        try {
+          if (extracted.date) {
+            const d = new Date(extracted.date);
+            if (!isNaN(d.getTime())) normDate = d.toISOString().slice(0, 10);
+          }
+        } catch {
+          normDate = "";
+        }
+        // Normalize amount to numeric string (strip currency symbols)
+        let normAmount = "";
+        try {
+          if (extracted.amount) {
+            const cleaned = String(extracted.amount).replace(/[^0-9.\-]/g, "");
+            if (cleaned) normAmount = String(parseFloat(cleaned));
+          }
+        } catch {
+          normAmount = "";
+        }
+
         // uploadToStorageAndExtractOnly returned a filePath; store it in receiptId so Save can use it to create DB rows without re-upload
-        setForm((cur) => ({ ...cur, receiptId: data.filePath ?? cur.receiptId, receiptFileName: f.name ?? cur.receiptFileName, expenseDate: extracted.date, amount: extracted.amount, currency: extracted.currency, merchant: extracted.merchant, details: extracted.details }));
+        setForm((cur) => ({ ...cur, receiptId: data.filePath ?? cur.receiptId, receiptFileName: f.name ?? cur.receiptFileName, expenseDate: normDate, amount: normAmount, currency: extracted.currency, merchant: extracted.merchant, details: extracted.details }));
         // since extract endpoint uploaded the file, clear pendingFile to avoid double upload
         setPendingFile(null);
       }
