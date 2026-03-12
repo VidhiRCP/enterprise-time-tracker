@@ -63,9 +63,7 @@ export async function uploadReceiptAndExtract(file: File) {
   if (!openaiKey) throw new Error("OpenAI API key not configured");
 
   const prompt = `Extract the following fields from the receipt accessible at ${publicUrl}.
-Respond with a single JSON object containing: date (YYYY-MM-DD or empty), amount (numeric as string), currency (e.g. USD), merchant (vendor name if available), details (short description).
-If a field is not present, return an empty string for it.
-JSON ONLY.`;
+Respond with a single JSON object containing these keys: \n{\n  "date": "YYYY-MM-DD or empty",\n  "amount": "numeric string (no currency symbol) or empty",\n  "currency": "ISO currency code like USD, NZD, CAD or empty",\n  "merchant": "vendor name or empty",\n  "details": "short free-text summary"\n}\nImportant: if any of the named fields are missing or uncertain, include the available contextual information and any notes (what was missing or why uncertain) in 'details' so the UI can show meaningful text. Always return 'details' (use an empty string only if there is truly nothing else to say). Return JSON ONLY.`;
 
   const resp = await fetch("https://api.openai.com/v1/chat/completions", {
     method: "POST",
@@ -74,7 +72,7 @@ JSON ONLY.`;
       Authorization: `Bearer ${openaiKey}`,
     },
     body: JSON.stringify({
-      model: "gpt-4o-mini",
+      model: process.env.OPENAI_MODEL ?? "gpt-4o-mini",
       messages: [
         { role: "system", content: "You extract structured JSON from receipts. Return JSON only." },
         { role: "user", content: prompt },
@@ -160,9 +158,7 @@ export async function uploadToStorageAndExtractOnly(file: File) {
   if (!openaiKey) throw new Error("OpenAI API key not configured");
 
   const prompt = `Extract the following fields from the receipt accessible at ${publicUrl}.
-Respond with a single JSON object containing: date (YYYY-MM-DD or empty), amount (numeric as string), currency (e.g. USD), merchant (vendor name if available), details (short description).
-If a field is not present, return an empty string for it.
-JSON ONLY.`;
+Respond with a single JSON object containing these keys: \n{\n  "date": "YYYY-MM-DD or empty",\n  "amount": "numeric string (no currency symbol) or empty",\n  "currency": "ISO currency code like USD, NZD, CAD or empty",\n  "merchant": "vendor name or empty",\n  "details": "short free-text summary"\n}\nImportant: if any of the named fields are missing or uncertain, include the available contextual information and any notes (what was missing or why uncertain) in 'details' so the UI can show meaningful text. Always return 'details' (use an empty string only if there is truly nothing else to say). Return JSON ONLY.`;
 
   const resp = await fetch("https://api.openai.com/v1/chat/completions", {
     method: "POST",
