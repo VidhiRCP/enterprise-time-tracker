@@ -29,6 +29,7 @@ export function ExpenseTracker({ projects, userId }: { projects: { projectId: st
         projectId: "",
     });
     const [error, setError] = useState<string | null>(null);
+    const [confirmed, setConfirmed] = useState(false);
     const [expenses, setExpenses] = useState<any[]>([]); // TODO: fetch from server
 
   // Drag-and-drop/upload handler
@@ -49,16 +50,25 @@ export function ExpenseTracker({ projects, userId }: { projects: { projectId: st
       const res = await fetch("/api/expenses/upload", { method: "POST", body: fd, credentials: "include" });
       if (!res.ok) throw new Error(await res.text());
       const data = await res.json();
-        setExtraction(data.extracted ?? null);
-        setForm({
-            receiptId: data.receiptId ?? "",
-            expenseDate: data.extracted?.date ?? "",
-            amount: String(data.extracted?.amount ?? ""),
-            currency: data.extracted?.currency ?? "",
-            merchant: data.extracted?.merchant ?? "",
-            details: data.extracted?.details ?? "",
-            projectId: "",
-        });
+      // normalize extracted shape and ensure strings
+      const extracted = data.extracted ?? { date: "", amount: "", currency: "", merchant: "", details: "" };
+      extracted.date = String(extracted.date ?? "");
+      extracted.amount = String(extracted.amount ?? "");
+      extracted.currency = String(extracted.currency ?? "");
+      extracted.merchant = String(extracted.merchant ?? "");
+      extracted.details = String(extracted.details ?? "");
+      setExtraction(extracted);
+      setForm({
+        receiptId: data.receiptId ?? "",
+        expenseDate: extracted.date ?? "",
+        amount: extracted.amount ?? "",
+        currency: extracted.currency ?? "",
+        merchant: extracted.merchant ?? "",
+        details: extracted.details ?? "",
+        projectId: "",
+      });
+      // reset confirmation because new extraction
+      setConfirmed(false);
       // preview URL
       setExpenses(prev => prev);
     } catch (e: any) {
@@ -183,11 +193,25 @@ export function ExpenseTracker({ projects, userId }: { projects: { projectId: st
                 ))}
               </select>
             </div>
+            {extraction && (
+              <div className="text-xs text-[#D9D9D9] mt-2">
+                <div className="font-bold mb-1">AI extraction preview</div>
+                <div className="mb-1">Date: {extraction.date || '—'}</div>
+                <div className="mb-1">Amount: {extraction.amount || '—'}</div>
+                <div className="mb-1">Currency: {extraction.currency || '—'}</div>
+                <div className="mb-1">Merchant: {extraction.merchant || '—'}</div>
+                <div className="mb-1">Details: {extraction.details || '—'}</div>
+                <label className="inline-flex items-center mt-2">
+                  <input type="checkbox" checked={confirmed} onChange={e => setConfirmed(e.target.checked)} className="mr-2" />
+                  <span className="text-xs">I confirm the extracted info is correct</span>
+                </label>
+              </div>
+            )}
             {error && <div className="text-xs text-red-500">{error}</div>}
             <button
               type="button"
               onClick={handleSave}
-              disabled={uploading || !form.receiptId || !form.projectId}
+              disabled={uploading || !form.receiptId || !form.projectId || !confirmed}
               className="bg-[#F40000] px-4 py-2 text-xs sm:text-sm font-medium text-white hover:bg-[#F40000]/80 disabled:opacity-40 transition-all"
             >
               Save Expense
