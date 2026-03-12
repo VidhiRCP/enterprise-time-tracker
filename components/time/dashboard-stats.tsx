@@ -83,7 +83,7 @@ function WeeklyTrendCard({ entries }: { entries: DashboardStatsData["projectEntr
   return (
     <S className="hidden lg:block">
       <div className="flex items-center justify-between mb-1.5">
-        <div className="text-xs uppercase tracking-wider text-[#808080] font-bold">Weekly Trend</div>
+        <div className="text-sm sm:text-base font-bold">Weekly Trend</div>
         <div className="flex items-center gap-1.5">
           <button
             onClick={() => setWeekOffset((v) => v - 1)}
@@ -158,7 +158,7 @@ function ProjectTimeCard({ entries }: { entries: DashboardStatsData["projectEntr
   return (
     <S className="hidden lg:block">
       <div className="flex items-center justify-between mb-2">
-        <div className="text-xs uppercase tracking-wider text-[#808080] font-bold">Project Time</div>
+        <div className="text-sm sm:text-base font-bold">Project Time</div>
         <div className="flex items-center gap-1.5">
           <button
             onClick={() => setWeekOffset((v) => v - 1)}
@@ -212,7 +212,7 @@ export function DashboardStats({ data, onTodayClick }: { data: DashboardStatsDat
     <div className="grid grid-cols-2 gap-0 lg:grid-cols-1 lg:divide-y lg:divide-[#808080]/10">
       {/* ── 1. Today's Activity ── */}
       <S accent className={onTodayClick ? "cursor-pointer hover:bg-[#F8F8F8]/5 transition-colors" : ""} onClick={onTodayClick}>
-        <div className="text-xs uppercase tracking-wider text-[#808080] font-bold">Today</div>
+        <div className="text-sm sm:text-base font-bold">Today</div>
         <div className="text-lg lg:text-xl font-bold tabular-nums mt-1">{formatMinutes(data.todayMinutes)}</div>
         <div className="text-xs text-[#808080] mt-1 space-y-0.5">
           <div>{data.todayProjectsCount} project{data.todayProjectsCount !== 1 ? "s" : ""} worked on</div>
@@ -222,7 +222,7 @@ export function DashboardStats({ data, onTodayClick }: { data: DashboardStatsDat
 
       {/* ── 2. Remaining Today ── */}
       <S>
-        <div className="text-xs uppercase tracking-wider text-[#808080] font-bold">Remaining Today</div>
+        <div className="text-sm sm:text-base font-bold">Remaining Today</div>
         <div className={`text-lg lg:text-xl font-bold tabular-nums mt-1 ${remainingMinutes > 0 ? "" : "text-green-400"}`}>
           {remainingMinutes > 0 ? formatMinutes(remainingMinutes) : "✓ Done"}
         </div>

@@ -57,7 +57,7 @@ function EventRow({
         <div className="flex items-center gap-2">
           <span className="text-xs sm:text-sm font-bold truncate">{event.subject}</span>
           {event.isAllDay && (
-            <span className="text-xs uppercase tracking-wider text-[#808080] border border-[#808080]/30 px-1.5 py-0.5">
+            <span className="text-sm sm:text-base font-bold border border-[#808080]/30 px-1.5 py-0.5">
               All day
             </span>
           )}

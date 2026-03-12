@@ -123,20 +123,24 @@ Return this exact JSON shape:
 The receipt is accessible at: ${publicUrl}`;
 
   // Send a multimodal request to OpenAI: include the prompt and the image URL so the model can read the receipt image.
-  const resp = await fetch("https://api.openai.com/v1/chat/completions", {
+  // Use the Responses API to send vision input (image) alongside text prompt so the model can see the receipt.
+  const resp = await fetch("https://api.openai.com/v1/responses", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
       Authorization: `Bearer ${openaiKey}`,
     },
     body: JSON.stringify({
-      model: process.env.OPENAI_MODEL ?? "gpt-4o-mini",
-      // Include system and a user message that contains the prompt and the image URL inline
-      messages: [
-        { role: "system", content: "You extract structured JSON from receipts. Return JSON only." },
-        { role: "user", content: `${prompt}\n\nImage URL: ${publicUrl}` },
+      model: process.env.OPENAI_MODEL ?? "gpt-4.1",
+      input: [
+        {
+          role: "user",
+          content: [
+            { type: "input_text", text: prompt },
+            { type: "input_image", image_url: publicUrl },
+          ],
+        },
       ],
-      max_tokens: 800,
     }),
   });
 
@@ -146,7 +150,32 @@ The receipt is accessible at: ${publicUrl}`;
   }
   const data = await resp.json();
   const rawResponse = data;
-  const text = data.choices?.[0]?.message?.content ?? data.choices?.[0]?.text ?? "";
+
+  // Responses API may return structured output in data.output[].content[]. Try to extract textual content.
+  let text = "";
+  try {
+    if (Array.isArray(data.output)) {
+      for (const out of data.output) {
+        if (!out || !Array.isArray(out.content)) continue;
+        for (const c of out.content) {
+          if (!c) continue;
+          if (typeof c.text === "string") text += (text ? "\n" : "") + c.text;
+          else if (c.type === "output_text" && typeof c.text === "string") text += (text ? "\n" : "") + c.text;
+          else if (c.type === "message" && Array.isArray(c.content)) {
+            for (const mc of c.content) {
+              if (mc && typeof mc.text === "string") text += (text ? "\n" : "") + mc.text;
+            }
+          }
+        }
+      }
+    }
+  } catch (_err) {
+    text = "";
+  }
+  if (!text) {
+    // last-resort: try older fields
+    text = data.output?.[0]?.content?.[0]?.text ?? data.output?.[0]?.content?.[0]?.message?.content ?? "";
+  }
 
   // Try to parse JSON
   let extracted: any = {};
@@ -298,20 +327,24 @@ Return this exact JSON shape:
 
 The receipt is accessible at: ${publicUrl}`;
 
-  const resp = await fetch("https://api.openai.com/v1/chat/completions", {
+  // Use the Responses API to send vision input (image) alongside text prompt so the model can see the receipt.
+  const resp = await fetch("https://api.openai.com/v1/responses", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
       Authorization: `Bearer ${openaiKey}`,
     },
     body: JSON.stringify({
-      model: process.env.OPENAI_MODEL ?? "gpt-4o-mini",
-      // Include system and a user message that contains the prompt and the image URL inline
-      messages: [
-        { role: "system", content: "You extract structured JSON from receipts. Return JSON only." },
-        { role: "user", content: `${prompt}\n\nImage URL: ${publicUrl}` },
+      model: process.env.OPENAI_MODEL ?? "gpt-4.1",
+      input: [
+        {
+          role: "user",
+          content: [
+            { type: "input_text", text: prompt },
+            { type: "input_image", image_url: publicUrl },
+          ],
+        },
       ],
-      max_tokens: 800,
     }),
   });
 
@@ -321,7 +354,31 @@ The receipt is accessible at: ${publicUrl}`;
   }
   const data = await resp.json();
   const rawResponse = data;
-  const text = data.choices?.[0]?.message?.content ?? data.choices?.[0]?.text ?? "";
+
+  // Extract textual output from Responses API structured output
+  let text = "";
+  try {
+    if (Array.isArray(data.output)) {
+      for (const out of data.output) {
+        if (!out || !Array.isArray(out.content)) continue;
+        for (const c of out.content) {
+          if (!c) continue;
+          if (typeof c.text === "string") text += (text ? "\n" : "") + c.text;
+          else if (c.type === "output_text" && typeof c.text === "string") text += (text ? "\n" : "") + c.text;
+          else if (c.type === "message" && Array.isArray(c.content)) {
+            for (const mc of c.content) {
+              if (mc && typeof mc.text === "string") text += (text ? "\n" : "") + mc.text;
+            }
+          }
+        }
+      }
+    }
+  } catch (_err) {
+    text = "";
+  }
+  if (!text) {
+    text = data.output?.[0]?.content?.[0]?.text ?? data.output?.[0]?.content?.[0]?.message?.content ?? "";
+  }
 
   let extracted: any = {};
   try {

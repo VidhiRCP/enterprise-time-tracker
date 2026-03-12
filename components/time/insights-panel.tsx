@@ -236,22 +236,22 @@ export function InsightsPanel({ data }: { data: InsightsData }) {
         {/* Summary Cards */}
         <div className="grid grid-cols-2 gap-6 sm:grid-cols-4 sm:gap-8 mb-7">
           <div className="border-l-2 border-l-[#808080]/30 pl-3 sm:pl-4 py-1">
-            <div className="text-xs uppercase tracking-wider text-[#808080]">Total</div>
+            <div className="text-sm sm:text-base font-bold">Total</div>
             <div className="mt-1.5 text-lg sm:text-xl font-bold">{fmtMin(totalMinutes)}</div>
             <div className="text-xs text-[#808080]">{fmtHours(totalMinutes)}h</div>
           </div>
           <div className="border-l-2 border-l-[#F40000]/50 pl-3 sm:pl-4 py-1">
-            <div className="text-xs uppercase tracking-wider text-[#808080]">Activity</div>
+            <div className="text-sm sm:text-base font-bold">Activity</div>
             <div className="mt-1.5 text-lg sm:text-xl font-bold text-[#F40000]">{fmtMin(totalActivityMin)}</div>
             <div className="text-xs text-[#808080]">{fmtHours(totalActivityMin)}h</div>
           </div>
           <div className="border-l-2 border-l-blue-400/50 pl-3 sm:pl-4 py-1">
-            <div className="text-xs uppercase tracking-wider text-[#808080]">Meetings</div>
+            <div className="text-sm sm:text-base font-bold">Meetings</div>
             <div className="mt-1.5 text-lg sm:text-xl font-bold text-blue-400">{fmtMin(totalMeetingMin)}</div>
             <div className="text-xs text-[#808080]">{fmtHours(totalMeetingMin)}h</div>
           </div>
           <div className="border-l-2 border-l-[#808080]/30 pl-3 sm:pl-4 py-1">
-            <div className="text-xs uppercase tracking-wider text-[#808080]">Avg / day</div>
+            <div className="text-sm sm:text-base font-bold">Avg / day</div>
             <div className="mt-1.5 text-lg sm:text-xl font-bold">{fmtMin(avgDailyMin)}</div>
             <div className="text-xs text-[#808080]">{weekDays} active day{weekDays !== 1 ? "s" : ""}</div>
           </div>

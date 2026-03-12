@@ -121,7 +121,7 @@ export function TimerPanel({
       {/* ── Row 1: Timer display + action buttons ── */}
       <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
         <div className="min-w-0">
-          <div className="text-xs uppercase tracking-wider text-[#808080]">Current timer</div>
+          <div className="text-sm sm:text-base font-bold">Current timer</div>
           <div className="text-3xl sm:text-4xl font-bold tracking-tight tabular-nums mt-1">
             {formatSeconds(elapsedSeconds)}
           </div>

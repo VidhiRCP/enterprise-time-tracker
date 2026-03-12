@@ -119,7 +119,7 @@ export function ActivityContent({
                 onClick={() => setStatsCollapsed((v) => !v)}
                 className="w-full flex items-center justify-between text-left mb-2"
               >
-                <span className="text-xs uppercase tracking-wider text-[#808080] font-bold">Dashboard</span>
+                <h2 className="text-sm sm:text-base font-bold">Dashboard</h2>
                 <span className="text-[#808080] hover:text-[#D9D9D9] transition-colors text-sm">
                   {statsCollapsed ? "▸" : "▾"}
                 </span>
