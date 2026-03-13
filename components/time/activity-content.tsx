@@ -109,7 +109,7 @@ export function ActivityContent({
         </div>
       )}
 
-      <div className="grid gap-8 lg:grid-cols-[360px_1fr]">
+      <div className="grid gap-10 lg:grid-cols-[360px_1fr]">
         {/* ── Left sidebar ── */}
         <div className="space-y-10 lg:sticky lg:top-4 lg:self-start">
           {/* Desktop stats card */}
@@ -148,7 +148,7 @@ export function ActivityContent({
         </div>
 
         {/* ── Right main content ── */}
-        <div className="space-y-8">
+        <div className="space-y-10">
           <Card accent>
             <CollapsibleSection
               title="Timer"
