@@ -588,6 +588,7 @@ export async function getUserExpenses() {
       currency: e.currency,
       merchant: e.merchant,
       details: e.details,
+      projectId: e.project?.projectId ?? null,
       projectName: e.project?.projectName ?? null,
       receiptFilePath: e.receiptFilePath,
       publicUrl,
