@@ -102,26 +102,32 @@ export function ExportData() {
               <div>
                 <div className="font-medium mb-1">Filters (optional)</div>
                 <div className="grid grid-cols-2 gap-2 items-center">
-                  <div className="flex items-center gap-2">
-                    <input ref={startInputRef} type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="hidden" />
-                    <button aria-label="Select start date" onClick={() => startInputRef.current?.click()} className={`p-2 rounded ${startDate ? 'bg-[#F40000] text-white' : 'bg-white text-black'}`}>
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <rect x="3" y="4" width="18" height="18" rx="2" stroke="currentColor" strokeWidth="1.5" />
-                        <path d="M16 2V6M8 2V6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-                      </svg>
-                    </button>
-                    <span className="text-xs">{startDate || 'Start'}</span>
+                  <div className="flex items-center relative">
+                    <input
+                      ref={startInputRef}
+                      type="date"
+                      value={startDate}
+                      onChange={(e) => setStartDate(e.target.value)}
+                      className="w-full border border-[#808080]/30 bg-black pr-10 pl-3 py-2 text-xs sm:text-sm"
+                      style={{ paddingRight: '2.5rem' }}
+                    />
+                    <span className="absolute right-2 top-1/2 transform -translate-y-1/2">
+                      <img src="/calendar-icon.svg" alt="calendar" width={24} height={24} />
+                    </span>
                   </div>
 
-                  <div className="flex items-center gap-2">
-                    <input ref={endInputRef} type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} className="hidden" />
-                    <button aria-label="Select end date" onClick={() => endInputRef.current?.click()} className={`p-2 rounded ${endDate ? 'bg-[#F40000] text-white' : 'bg-white text-black'}`}>
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <rect x="3" y="4" width="18" height="18" rx="2" stroke="currentColor" strokeWidth="1.5" />
-                        <path d="M16 2V6M8 2V6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-                      </svg>
-                    </button>
-                    <span className="text-xs">{endDate || 'End'}</span>
+                  <div className="flex items-center relative">
+                    <input
+                      ref={endInputRef}
+                      type="date"
+                      value={endDate}
+                      onChange={(e) => setEndDate(e.target.value)}
+                      className="w-full border border-[#808080]/30 bg-black pr-10 pl-3 py-2 text-xs sm:text-sm"
+                      style={{ paddingRight: '2.5rem' }}
+                    />
+                    <span className="absolute right-2 top-1/2 transform -translate-y-1/2">
+                      <img src="/calendar-icon.svg" alt="calendar" width={24} height={24} />
+                    </span>
                   </div>
 
                   <div className="col-span-2">
