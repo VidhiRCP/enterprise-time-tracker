@@ -13,6 +13,42 @@ async function requireUser() {
   return session as (typeof session & { user: { email: string; id?: string } });
 }
 
+function buildDetailsFromExtraction(existingDetails: string | null | undefined, extracted: any) {
+  const parts: string[] = [];
+  const push = (label: string, value: any) => {
+    if (value === null || value === undefined) return;
+    const s = String(value).trim();
+    if (!s) return;
+    parts.push(`${label}: ${s}`);
+  };
+
+  if (existingDetails && String(existingDetails).trim()) {
+    parts.push(String(existingDetails).trim());
+  }
+
+  if (extracted && typeof extracted === "object") {
+    push("Address", extracted.merchant_address ?? extracted.address ?? null);
+    push("Receipt #", extracted.receipt_number ?? extracted.invoice_number ?? null);
+    push("Payment", extracted.payment_method ?? null);
+    push("Subtotal", extracted.subtotal ?? null);
+    push("Tax", extracted.tax ?? null);
+    push("Tip", extracted.tip ?? null);
+    // include any short merchant details field if available
+    push("Merchant details", extracted.details ?? null);
+
+    // If there are warnings or low confidence, include a conservative note
+    try {
+      if (Array.isArray(extracted.warnings) && extracted.warnings.length > 0) {
+        parts.push(`⚠ Warnings: ${extracted.warnings.join('; ')}`);
+      } else if (typeof extracted.confidence === 'number' && extracted.confidence > 0 && extracted.confidence < 0.5) {
+        parts.push(`⚠ Low confidence (${Math.round((extracted.confidence||0)*100)}%) - verify values`);
+      }
+    } catch (_e) {}
+  }
+
+  return parts.join(' · ');
+}
+
 export async function uploadReceiptAndExtract(file: File) {
   const session = await requireUser();
   const userEmail = session.user.email.toLowerCase();
@@ -478,6 +514,13 @@ export async function saveExpenseReview(input: {
       console.warn("Failed to persist extraction JSON:", e);
     }
   }
+  // Determine final details string: merge user-provided details with any extracted fields
+  let finalDetails = input.details ?? "";
+  try {
+    // prefer rawExtraction passed in, otherwise try to read persisted extraction
+    const extractionJson = input.rawExtraction ?? (await prisma.expenseExtraction.findUnique({ where: { receiptId: receipt.id } }))?.rawJson ?? null;
+    finalDetails = buildDetailsFromExtraction(finalDetails, extractionJson);
+  } catch (_e) {}
 
   // create expense entry
   const entry = await prisma.expenseEntry.create({
@@ -488,7 +531,7 @@ export async function saveExpenseReview(input: {
       amount: input.amount,
       currency: input.currency,
       merchant: input.merchant,
-      details: input.details,
+      details: finalDetails,
       receipt: { connect: { id: receipt.id } },
       receiptFilePath: receipt.filePath,
     },
@@ -552,4 +595,86 @@ export async function getUserExpenses() {
   }));
 
   return results;
+}
+
+export async function updateExpenseEntry(input: {
+  entryId: string;
+  projectId: string;
+  expenseDate: string; // YYYY-MM-DD
+  amount: string;
+  currency: string;
+  merchant: string;
+  details: string;
+  rawExtraction?: any;
+}) {
+  const session = await requireUser();
+  const userEmail = session.user.email.toLowerCase();
+
+  await ensureProjectAccess(userEmail, input.projectId);
+
+  const Schema = z.object({
+    entryId: z.string().min(1),
+    projectId: z.string().min(1),
+    expenseDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+    amount: z.string().min(1),
+    currency: z.string().min(1),
+    merchant: z.string().min(0),
+    details: z.string().min(0),
+    rawExtraction: z.any().optional(),
+  });
+
+  Schema.parse(input as any);
+
+  // find entry and ensure ownership
+  const entry = await prisma.expenseEntry.findUniqueOrThrow({ where: { id: input.entryId }, include: { receipt: true, user: true } });
+  if (entry.userId !== (await prisma.user.findUniqueOrThrow({ where: { email: userEmail } })).id) {
+    throw new Error("Unauthorized to edit this entry");
+  }
+
+  // update entry
+  const updated = await prisma.expenseEntry.update({
+    where: { id: input.entryId },
+    data: {
+      project: { connect: { projectId: input.projectId } },
+      expenseDate: new Date(`${input.expenseDate}T00:00:00.000Z`),
+      amount: input.amount,
+      currency: input.currency,
+      merchant: input.merchant,
+    },
+  });
+
+  // Merge details from extraction (use input.rawExtraction or stored extraction)
+  try {
+    const extractionJson = input.rawExtraction ?? (updated.receiptId ? (await prisma.expenseExtraction.findUnique({ where: { receiptId: updated.receiptId } }))?.rawJson : null) ?? null;
+    const finalDetails = buildDetailsFromExtraction(input.details ?? "", extractionJson);
+    if (finalDetails !== (input.details ?? "")) {
+      // persist updated details
+      await prisma.expenseEntry.update({ where: { id: updated.id }, data: { details: finalDetails } });
+      updated.details = finalDetails as any;
+    }
+  } catch (_e) {}
+
+  // persist extraction JSON if provided
+  if (input.rawExtraction && entry.receiptId) {
+    try {
+      await prisma.expenseExtraction.upsert({
+        where: { receiptId: entry.receiptId },
+        update: { rawJson: input.rawExtraction },
+        create: { receiptId: entry.receiptId, rawJson: input.rawExtraction },
+      });
+    } catch (e) {
+      console.warn("Failed to persist extraction JSON on update:", e);
+    }
+  }
+
+  // attach project to receipt if not set
+  if (entry.receiptId) {
+    const receipt = entry.receipt;
+    if (receipt && !receipt.projectId) {
+      await prisma.expenseReceipt.update({ where: { id: receipt.id }, data: { projectId: input.projectId } });
+    }
+  }
+
+  revalidatePath("/");
+  return { entry: updated };
 }

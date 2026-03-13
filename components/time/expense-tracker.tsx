@@ -34,6 +34,7 @@ export function ExpenseTracker({ projects, userId }: { projects: { projectId: st
       details: "",
       projectId: "",
     });
+      const [editingEntryId, setEditingEntryId] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [confirmed, setConfirmed] = useState(false);
     const [expenses, setExpenses] = useState<any[]>([]); // TODO: fetch from server
@@ -201,7 +202,13 @@ export function ExpenseTracker({ projects, userId }: { projects: { projectId: st
         return;
       }
 
-      const res = await fetch("/api/expenses/save", { method: "POST", credentials: "include", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
+      let res: Response;
+      if (editingEntryId) {
+        // update existing entry
+        res = await fetch("/api/expenses/update", { method: "POST", credentials: "include", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ entryId: editingEntryId, ...payload }) });
+      } else {
+        res = await fetch("/api/expenses/save", { method: "POST", credentials: "include", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
+      }
       if (!res.ok) {
         const txt = await res.text();
         try {
@@ -214,6 +221,8 @@ export function ExpenseTracker({ projects, userId }: { projects: { projectId: st
       }
 
       await loadExpenses();
+      // exit edit mode if we updated
+      setEditingEntryId(null);
       // clear
       setFile(null);
       setPendingFile(null);
@@ -423,6 +432,33 @@ export function ExpenseTracker({ projects, userId }: { projects: { projectId: st
                 <td className="px-3 py-2">{exp.details}</td>
                 <td className="px-3 py-2">{exp.projectName}</td>
                 <td className="px-3 py-2"><a href={exp.publicUrl ?? exp.receiptFilePath} target="_blank" rel="noopener" className="text-[#F40000] underline">View</a></td>
+                <td className="px-3 py-2">
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => {
+                        // populate form for editing
+                        setEditingEntryId(exp.id);
+                        setForm({
+                          receiptId: exp.receiptFilePath ?? "",
+                          receiptFileName: "",
+                          expenseDate: exp.expenseDate ?? "",
+                          amount: String(exp.amount ?? ""),
+                          currency: exp.currency ?? "NZD",
+                          merchant: exp.merchant ?? "",
+                          details: exp.details ?? "",
+                          projectId: exp.projectId ?? "",
+                        });
+                        // clear any pendingFile state
+                        setPendingFile(null);
+                        // scroll to top so the edit form is visible
+                        try { window.scrollTo({ top: 0, behavior: 'smooth' }); } catch {}
+                      }}
+                      className="text-xs text-[#808080] hover:text-[#D9D9D9]"
+                    >
+                      Edit
+                    </button>
+                  </div>
+                </td>
               </tr>
             ))}
           </tbody>
