@@ -209,8 +209,8 @@ The receipt is accessible at: ${publicUrl}`;
     text = "";
   }
   if (!text) {
-    // last-resort: try older fields
-    text = data.output?.[0]?.content?.[0]?.text ?? data.output?.[0]?.content?.[0]?.message?.content ?? "";
+    // last-resort: try older fields (safe optional access)
+    text = data?.output?.[0]?.content?.[0]?.text ?? data?.output?.[0]?.content?.[0]?.message?.content ?? "";
   }
 
   // Try to parse JSON
@@ -413,7 +413,7 @@ The receipt is accessible at: ${publicUrl}`;
     text = "";
   }
   if (!text) {
-    text = data.output?.[0]?.content?.[0]?.text ?? data.output?.[0]?.content?.[0]?.message?.content ?? "";
+    text = data?.output?.[0]?.content?.[0]?.text ?? data?.output?.[0]?.content?.[0]?.message?.content ?? "";
   }
 
   let extracted: any = {};

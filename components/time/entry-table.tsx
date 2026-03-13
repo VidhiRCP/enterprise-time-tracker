@@ -251,33 +251,7 @@ export function EntryTable({
     return Array.from(map.entries());
   }, [entries]);
 
-  async function exportToExcel(data: Entry[]) {
-    const XLSX = await import("xlsx");
-    const rows = data.map((e) => ({
-      Date: format(new Date(e.workDate), "yyyy-MM-dd"),
-      Project: e.project.projectName,
-      "Project ID": e.project.projectId,
-      Started: e.timerSession?.startedAt ? format(new Date(e.timerSession.startedAt), "HH:mm") : "",
-      Stopped: e.timerSession?.stoppedAt ? format(new Date(e.timerSession.stoppedAt), "HH:mm") : "",
-      "Duration (min)": effectiveDuration(e),
-      Duration: formatMinutes(effectiveDuration(e)),
-      Source: e.source,
-      Notes: e.notes ?? "",
-    }));
-
-    const ws = XLSX.utils.json_to_sheet(rows);
-
-    // Auto-size columns
-    const colWidths = Object.keys(rows[0] ?? {}).map((key) => {
-      const maxLen = Math.max(key.length, ...rows.map((r) => String((r as any)[key]).length));
-      return { wch: Math.min(maxLen + 2, 40) };
-    });
-    ws["!cols"] = colWidths;
-
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Time Entries");
-    XLSX.writeFile(wb, `time-entries-${format(new Date(), "yyyy-MM-dd")}.xlsx`);
-  }
+  // Export removed from per-table UI. Use centralized Export Data dialog instead.
 
   if (!entries.length) {
     return (
@@ -324,17 +298,10 @@ export function EntryTable({
             ✕ Clear
           </button>
         )}
-        <div className="ml-auto flex items-center gap-3">
+          <div className="ml-auto flex items-center gap-3">
           <span className="text-xs text-[#808080]">
             {filtered.length} {filtered.length === 1 ? "entry" : "entries"} · {formatMinutes(filtered.reduce((s, e) => s + effectiveDuration(e), 0))}
           </span>
-          <button
-            onClick={() => exportToExcel(filtered)}
-            disabled={filtered.length === 0}
-            className="border border-[#808080]/30 px-2.5 py-1.5 text-xs font-medium text-[#D9D9D9] hover:text-[#F8F8F8] hover:border-[#D9D9D9] transition-colors disabled:opacity-40"
-          >
-            ⬇ Export
-          </button>
         </div>
       </div>
 

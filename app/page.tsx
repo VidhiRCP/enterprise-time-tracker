@@ -2,6 +2,7 @@ import { auth, signOut } from "@/auth";
 import { getDashboardData, getInsightsData } from "@/lib/queries";
 import { getCalendarEvents } from "@/lib/calendar";
 import { SignInCard } from "@/components/sign-in-card";
+import ExportData from "@/components/export-data";
 import { TimesheetPanel } from "@/components/time/timesheet-panel";
 import { InsightsPanel } from "@/components/time/insights-panel";
 import { ProjectAliases } from "@/components/time/project-aliases";
@@ -159,16 +160,19 @@ export default async function HomePage() {
             <h1 className="text-lg sm:text-xl md:text-2xl font-bold">RCP Time Tracker</h1>
             <p className="text-xs sm:text-sm text-[#D9D9D9] truncate">{session.user.email}</p>
           </div>
-          <form
-            action={async () => {
-              "use server";
-              await signOut({ redirectTo: "/" });
-            }}
-          >
-            <button className="border border-[#808080]/30 px-4 py-2 text-sm text-[#D9D9D9] hover:text-[#F8F8F8] transition-colors">
-              Sign out
-            </button>
-          </form>
+          <div className="flex items-center gap-2">
+            <ExportData />
+            <form
+              action={async () => {
+                "use server";
+                await signOut({ redirectTo: "/" });
+              }}
+            >
+              <button className="border border-[#808080]/30 px-4 py-2 text-sm text-[#D9D9D9] hover:text-[#F8F8F8] transition-colors">
+                Sign out
+              </button>
+            </form>
+          </div>
         </div>
 
         <DashboardTabs
