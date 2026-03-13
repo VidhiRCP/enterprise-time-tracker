@@ -209,7 +209,7 @@ export function DashboardStats({ data, onTodayClick }: { data: DashboardStatsDat
   const weekLabel = `${format(new Date(data.weekStartISO), "d MMM")} – ${format(new Date(data.weekEndISO), "d MMM")}`;
 
   return (
-    <div className="grid grid-cols-2 gap-0 lg:grid-cols-1 lg:divide-y lg:divide-[#808080]/10">
+    <div className="grid grid-cols-2 gap-0 lg:grid-cols-1 lg:divide-y lg:divide-[#808080]/10 lg:gap-y-6">
       {/* ── 1. Today's Activity ── */}
       <S accent className={onTodayClick ? "cursor-pointer hover:bg-[#F8F8F8]/5 transition-colors" : ""} onClick={onTodayClick}>
         <div className="text-sm sm:text-base font-bold">Today</div>
