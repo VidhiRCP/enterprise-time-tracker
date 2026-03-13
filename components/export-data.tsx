@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState, useRef } from "react";
 
 export function ExportData() {
   const [open, setOpen] = useState(false);
@@ -9,8 +9,7 @@ export function ExportData() {
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [project, setProject] = useState("");
-  const [user, setUser] = useState("");
-  const [status, setStatus] = useState("");
+  const [projects, setProjects] = useState<Array<{ projectId: string; projectName: string }>>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -23,8 +22,7 @@ export function ExportData() {
         startDate: startDate || undefined,
         endDate: endDate || undefined,
         project: project || undefined,
-        user: user || undefined,
-        status: status || undefined,
+        // project is projectId value
         format,
       };
       const res = await fetch("/api/export", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
@@ -35,7 +33,7 @@ export function ExportData() {
       const blob = await res.blob();
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
-      const ext = format === "xlsx" ? "xlsx" : "csv";
+      const ext = format === "xlsx" ? "xlsx" : format === "pdf" ? "pdf" : "csv";
       a.href = url;
       a.download = `export-${new Date().toISOString().slice(0,10)}.${ext}`;
       document.body.appendChild(a);
@@ -49,6 +47,23 @@ export function ExportData() {
       setLoading(false);
     }
   }
+
+  // fetch projects for select
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        const res = await fetch('/api/projects');
+        if (!res.ok) return;
+        const j = await res.json();
+        if (mounted && Array.isArray(j.projects)) setProjects(j.projects);
+      } catch (_) {}
+    })();
+    return () => { mounted = false };
+  }, []);
+
+  const startInputRef = useRef<HTMLInputElement | null>(null);
+  const endInputRef = useRef<HTMLInputElement | null>(null);
 
   return (
     <div className="inline-block">
@@ -86,12 +101,36 @@ export function ExportData() {
 
               <div>
                 <div className="font-medium mb-1">Filters (optional)</div>
-                <div className="grid grid-cols-2 gap-2">
-                  <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="border border-[#808080]/30 bg-black px-2 py-1 text-sm" placeholder="Start date" />
-                  <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} className="border border-[#808080]/30 bg-black px-2 py-1 text-sm" placeholder="End date" />
-                  <input type="text" value={project} onChange={(e) => setProject(e.target.value)} className="border border-[#808080]/30 bg-black px-2 py-1 text-sm" placeholder="Project ID" />
-                  <input type="text" value={user} onChange={(e) => setUser(e.target.value)} className="border border-[#808080]/30 bg-black px-2 py-1 text-sm" placeholder="User email" />
-                  <input type="text" value={status} onChange={(e) => setStatus(e.target.value)} className="border border-[#808080]/30 bg-black px-2 py-1 text-sm col-span-2" placeholder="Status" />
+                <div className="grid grid-cols-2 gap-2 items-center">
+                  <div className="flex items-center gap-2">
+                    <input ref={startInputRef} type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="hidden" />
+                    <button aria-label="Select start date" onClick={() => startInputRef.current?.click()} className={`p-2 rounded ${startDate ? 'bg-[#F40000] text-white' : 'bg-white text-black'}`}>
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <rect x="3" y="4" width="18" height="18" rx="2" stroke="currentColor" strokeWidth="1.5" />
+                        <path d="M16 2V6M8 2V6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+                      </svg>
+                    </button>
+                    <span className="text-xs">{startDate || 'Start'}</span>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <input ref={endInputRef} type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} className="hidden" />
+                    <button aria-label="Select end date" onClick={() => endInputRef.current?.click()} className={`p-2 rounded ${endDate ? 'bg-[#F40000] text-white' : 'bg-white text-black'}`}>
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <rect x="3" y="4" width="18" height="18" rx="2" stroke="currentColor" strokeWidth="1.5" />
+                        <path d="M16 2V6M8 2V6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+                      </svg>
+                    </button>
+                    <span className="text-xs">{endDate || 'End'}</span>
+                  </div>
+
+                  <div className="col-span-2">
+                    <label className="block text-xs mb-1">Project</label>
+                    <select value={project} onChange={(e) => setProject(e.target.value)} className="w-full border border-[#808080]/30 bg-black px-2 py-1 text-sm">
+                      <option value="">-- Select project --</option>
+                      {projects.map(p => <option key={p.projectId} value={p.projectId}>{p.projectName} ({p.projectId})</option>)}
+                    </select>
+                  </div>
                 </div>
               </div>
 
