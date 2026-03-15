@@ -61,10 +61,13 @@ const PROJECT_COLORS = [
 
 /* ── Main Component ── */
 export function InsightsPanel({ data }: { data: InsightsData }) {
-  const { entries, allocations, currentWeekISO } = data;
+  const { entries: initialEntries, allocations: initialAllocs, currentWeekISO } = data;
   const currentMonday = new Date(currentWeekISO);
 
   const [weekOffset, setWeekOffset] = useState(0);
+  const [entries, setEntries] = useState(initialEntries);
+  const [allocations, setAllocations] = useState(initialAllocs);
+  const [loading, setLoading] = useState(false);
 
   // Reset to current week whenever server-provided current week changes
   useEffect(() => {
@@ -98,6 +101,38 @@ export function InsightsPanel({ data }: { data: InsightsData }) {
     () => allocations.filter((a) => a.eventDate >= weekStart && a.eventDate <= weekEnd),
     [allocations, weekStart, weekEnd],
   );
+
+  // Fetch week-specific data from server when weekOffset changes
+  useEffect(() => {
+    let cancelled = false;
+    const fetchWeek = async () => {
+      setLoading(true);
+      try {
+        const target = new Date(currentMonday);
+        target.setDate(target.getDate() + weekOffset * 7);
+        const resp = await fetch("/api/insights", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ weekStart: target.toISOString() }),
+        });
+        if (!resp.ok) throw new Error("Failed to fetch week data");
+        const json = await resp.json();
+        if (cancelled) return;
+        setEntries(json.entries ?? []);
+        setAllocations(json.allocations ?? []);
+      } catch (err) {
+        // keep client-side data if network fails
+        console.error(err);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    };
+
+    fetchWeek();
+    return () => {
+      cancelled = true;
+    };
+  }, [weekOffset, currentWeekISO]);
 
   // Aggregate into daily breakdown + project totals
   const { dailyBreakdown, projectTotals, totalMinutes, totalActivityMin, totalMeetingMin } = useMemo(() => {

@@ -288,16 +288,9 @@ export function ExpenseTracker({ projects, userId }: { projects: { projectId: st
             <form className="space-y-4 md:col-span-2">
               <div>
                 <label className="text-xs font-bold mb-1 block">Date</label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">📅</div>
-                  <input
-                    name="expenseDate"
-                    type="date"
-                    value={form.expenseDate}
-                    onChange={handleFormChange}
-                    className="w-full border border-[#808080]/30 bg-black pl-10 pr-3 py-2 text-xs sm:text-sm"
-                  />
-                </div>
+                  <div className="relative">
+                    <DateInput value={form.expenseDate} onChange={(v) => setForm(prev => ({ ...prev, expenseDate: v }))} placeholder="Date" />
+                  </div>
               </div>
               {/* Debug: raw extraction JSON (toggleable) */}
               {extraction && (
