@@ -374,9 +374,19 @@ export function InsightsPanel({ data }: { data: InsightsData }) {
       <Card accent className="p-7">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-xs sm:text-sm font-bold text-[#D9D9D9]">Daily Breakdown</h3>
-          <div>
+          <div className="flex items-center gap-2">
+            <select
+              id="export-format"
+              defaultValue="csv"
+              className="border border-[#808080]/20 bg-black text-xs text-[#D9D9D9] px-2 py-1"
+              onChange={() => {}}
+            >
+              <option value="csv">CSV</option>
+              <option value="xlsx">Excel (.xlsx)</option>
+            </select>
+
             <button
-              onClick={() => {
+              onClick={async () => {
                 try {
                   // Build matrix: projects x days for the selected week
                   const days = DAY_LABELS.map((_, i) => {
@@ -414,16 +424,43 @@ export function InsightsPanel({ data }: { data: InsightsData }) {
                     return str;
                   };
 
-                  const csv = [headers.map(esc).join(","), ...rows.map(r => r.map(esc).join(","))].join("\n");
-                  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-                  const url = URL.createObjectURL(blob);
-                  const a = document.createElement('a');
-                  a.href = url;
-                  a.download = `daily-breakdown-${selectedMonday.toISOString().slice(0,10)}.csv`;
-                  document.body.appendChild(a);
-                  a.click();
-                  a.remove();
-                  URL.revokeObjectURL(url);
+                  // determine selected format from nearby select
+                  const fmtSelect = document.getElementById('export-format') as HTMLSelectElement | null;
+                  const fmt = (fmtSelect?.value ?? 'csv').toLowerCase();
+                  if (fmt === 'xlsx') {
+                    // dynamic import exceljs and generate workbook
+                    try {
+                      const ExcelJS = (await import('exceljs')) as any;
+                      const workbook = new ExcelJS.Workbook();
+                      const ws = workbook.addWorksheet('Daily Breakdown');
+                      ws.addRow(headers);
+                      for (const r of rows) ws.addRow(r);
+                      const ab: ArrayBuffer = await workbook.xlsx.writeBuffer();
+                      const buffer = Buffer.from(ab);
+                      const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+                      const url = URL.createObjectURL(blob);
+                      const a = document.createElement('a');
+                      a.href = url;
+                      a.download = `daily-breakdown-${selectedMonday.toISOString().slice(0,10)}.xlsx`;
+                      document.body.appendChild(a);
+                      a.click();
+                      a.remove();
+                      URL.revokeObjectURL(url);
+                    } catch (err) {
+                      console.error('Excel export failed', err);
+                    }
+                  } else {
+                    const csv = [headers.map(esc).join(',') , ...rows.map((r) => r.map(esc).join(','))].join('\n');
+                    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `daily-breakdown-${selectedMonday.toISOString().slice(0,10)}.csv`;
+                    document.body.appendChild(a);
+                    a.click();
+                    a.remove();
+                    URL.revokeObjectURL(url);
+                  }
                 } catch (err) {
                   console.error(err);
                 }
