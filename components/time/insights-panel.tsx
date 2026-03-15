@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { format, addDays } from "date-fns";
 import { Card } from "@/components/ui/card";
 
@@ -66,6 +66,11 @@ export function InsightsPanel({ data }: { data: InsightsData }) {
 
   const [weekOffset, setWeekOffset] = useState(0);
 
+  // Reset to current week whenever server-provided current week changes
+  useEffect(() => {
+    setWeekOffset(0);
+  }, [currentWeekISO]);
+
   // Compute selected week boundaries
   const selectedMonday = useMemo(() => {
     const d = new Date(currentMonday);
@@ -120,34 +125,40 @@ export function InsightsPanel({ data }: { data: InsightsData }) {
         date,
         projects: Array.from(dayMap.entries())
           .map(([projectId, d]) => ({
-            projectId,
-            projectName: d.projectName,
-            activityMin: d.activityMin,
-            meetingMin: d.meetingMin,
-            totalMin: d.activityMin + d.meetingMin,
-          }))
-          .sort((a, b) => b.totalMin - a.totalMin),
-      }));
-
-    const ptMap = new Map<string, { projectName: string; activityMin: number; meetingMin: number }>();
-    for (const day of dailyBreakdown) {
-      for (const p of day.projects) {
-        const ex = ptMap.get(p.projectId) ?? { projectName: p.projectName, activityMin: 0, meetingMin: 0 };
-        ex.activityMin += p.activityMin;
-        ex.meetingMin += p.meetingMin;
-        ptMap.set(p.projectId, ex);
-      }
-    }
-
-    const projectTotals = Array.from(ptMap.entries())
-      .map(([projectId, d]) => ({
-        projectId,
-        projectName: d.projectName,
-        activityMin: d.activityMin,
-        meetingMin: d.meetingMin,
-        totalMin: d.activityMin + d.meetingMin,
-      }))
-      .sort((a, b) => b.totalMin - a.totalMin);
+            return (
+              <div className="space-y-8">
+                {/* Week nav moved outside the card to improve layout */}
+                <div className="flex items-center justify-end">
+                  <div className="flex items-center gap-3">
+                    <button
+                      onClick={() => setWeekOffset((o) => o - 1)}
+                      className="border border-[#808080]/30 px-3 py-1 text-sm text-[#D9D9D9] hover:text-[#F8F8F8] transition-colors rounded"
+                      title="Previous week"
+                      aria-label="Previous week"
+                    >
+                      ‹
+                    </button>
+                    <div className="text-xs sm:text-sm font-medium text-[#D9D9D9] px-4 py-1 border border-[#808080]/10 rounded min-w-[180px] text-center">
+                      {weekLabel}
+                    </div>
+                    <button
+                      onClick={() => setWeekOffset((o) => o + 1)}
+                      disabled={weekOffset >= 0}
+                      className="border border-[#808080]/30 px-3 py-1 text-sm text-[#D9D9D9] hover:text-[#F8F8F8] transition-colors rounded disabled:opacity-30"
+                      title="Next week"
+                      aria-label="Next week"
+                    >
+                      ›
+                    </button>
+                  </div>
+                </div>
+                <Card accent className="p-7">
+                  <div className="mb-6">
+                    <div>
+                      <h2 className="text-base sm:text-lg font-bold">Weekly Insights</h2>
+                      <p className="mt-1 text-xs sm:text-sm text-[#808080]">Activity + Meetings combined</p>
+                    </div>
+                  </div>
 
     const totalMinutes = projectTotals.reduce((s, p) => s + p.totalMin, 0);
     const totalActivityMin = projectTotals.reduce((s, p) => s + p.activityMin, 0);
