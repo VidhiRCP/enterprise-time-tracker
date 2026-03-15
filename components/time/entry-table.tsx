@@ -4,7 +4,7 @@ import { format, startOfWeek, endOfWeek, isWithinInterval, parseISO } from "date
 import { useState, useTransition, useMemo, useCallback } from "react";
 import { formatMinutes, localDateInputValue } from "@/lib/time";
 import { deleteTimeEntry, updateManualEntry } from "@/lib/actions";
-import DateInput from "@/components/ui/date-input";
+import DateInput from "../ui/date-input";
 
 type Entry = {
   id: string;

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
+import DateInput from "./ui/date-input";
 
 export function ExportData() {
   const [open, setOpen] = useState(false);
@@ -102,32 +103,12 @@ export function ExportData() {
               <div>
                 <div className="font-medium mb-1">Filters (optional)</div>
                 <div className="grid grid-cols-2 gap-2 items-center">
-                  <div className="flex items-center relative">
-                    <input
-                      ref={startInputRef}
-                      type="date"
-                      value={startDate}
-                      onChange={(e) => setStartDate(e.target.value)}
-                      className="w-full border border-[#808080]/30 bg-black pr-10 pl-3 py-2 text-xs sm:text-sm"
-                      style={{ paddingRight: '2.5rem' }}
-                    />
-                    <span className="absolute right-2 top-1/2 transform -translate-y-1/2">
-                      <img src="/calendar-icon.svg" alt="calendar" width={24} height={24} />
-                    </span>
+                  <div className="flex items-center relative w-full">
+                    <DateInput value={startDate} onChange={setStartDate} placeholder="Start" />
                   </div>
 
-                  <div className="flex items-center relative">
-                    <input
-                      ref={endInputRef}
-                      type="date"
-                      value={endDate}
-                      onChange={(e) => setEndDate(e.target.value)}
-                      className="w-full border border-[#808080]/30 bg-black pr-10 pl-3 py-2 text-xs sm:text-sm"
-                      style={{ paddingRight: '2.5rem' }}
-                    />
-                    <span className="absolute right-2 top-1/2 transform -translate-y-1/2">
-                      <img src="/calendar-icon.svg" alt="calendar" width={24} height={24} />
-                    </span>
+                  <div className="flex items-center relative w-full">
+                    <DateInput value={endDate} onChange={setEndDate} placeholder="End" />
                   </div>
 
                   <div className="col-span-2">
