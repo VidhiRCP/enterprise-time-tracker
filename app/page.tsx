@@ -3,7 +3,7 @@ import { getDashboardData, getInsightsData } from "@/lib/queries";
 import { getCalendarEvents } from "@/lib/calendar";
 import { SignInCard } from "@/components/sign-in-card";
 import ExportData from "@/components/export-data";
-import { TimesheetPanel } from "@/components/time/timesheet-panel";
+import MeetingsLoader from "@/components/time/meetings-loader";
 import { InsightsPanel } from "@/components/time/insights-panel";
 import { ProjectAliases } from "@/components/time/project-aliases";
 import { DashboardTabs } from "@/components/dashboard-tabs";
@@ -131,9 +131,6 @@ export default async function HomePage() {
   const hasProjects = data.projects.length > 0;
 
   const accessToken = (session as any).accessToken as string | undefined;
-  const calendarGroups = accessToken
-    ? await getCalendarEvents(accessToken, session.user.email)
-    : [];
 
   const projectOptions = data.projects.map((project) => ({
     projectId: project.projectId,
@@ -210,7 +207,7 @@ export default async function HomePage() {
             )
           }
           meetingsContent={
-            <TimesheetPanel groups={calendarGroups} projects={projectOptions} hasToken={!!accessToken} />
+            <MeetingsLoader projects={projectOptions} />
           }
           insightsContent={
             <InsightsPanel data={insightsData} />

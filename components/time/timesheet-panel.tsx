@@ -121,15 +121,21 @@ export function TimesheetPanel({
   groups,
   projects,
   hasToken = false,
+  onRefresh,
 }: {
   groups: GroupedEvents[];
   projects: ProjectOption[];
   hasToken?: boolean;
+  onRefresh?: () => void;
 }) {
   const router = useRouter();
   const [isRefreshing, startRefresh] = useTransition();
 
   function handleRefresh() {
+    if (onRefresh) {
+      startRefresh(() => onRefresh());
+      return;
+    }
     startRefresh(() => {
       router.refresh();
     });

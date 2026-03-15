@@ -25,21 +25,43 @@ export type GroupedEvents = {
 export async function getCalendarEvents(
   accessToken: string,
   email: string,
+  startISO?: string,
+  endISO?: string,
 ): Promise<GroupedEvents[]> {
-  // Build a date range: Monday of this week → Sunday
-  const now = new Date();
-  const dayOfWeek = now.getDay(); // 0=Sun
-  const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
-  const monday = new Date(now);
-  monday.setDate(now.getDate() + mondayOffset);
-  monday.setHours(0, 0, 0, 0);
+  // Use provided range if given, otherwise build current week (Mon→Sun)
+  let startDateTime: string;
+  let endDateTime: string;
+  if (startISO && endISO) {
+    // assume startISO/endISO are full ISO datetimes or dates
+    const s = new Date(startISO);
+    s.setHours(0, 0, 0, 0);
+    const e = new Date(endISO);
+    e.setHours(23, 59, 59, 999);
+    startDateTime = s.toISOString();
+    endDateTime = e.toISOString();
+  } else if (startISO && !endISO) {
+    const s = new Date(startISO);
+    s.setHours(0, 0, 0, 0);
+    const e = new Date(s);
+    e.setDate(s.getDate() + 6);
+    e.setHours(23, 59, 59, 999);
+    startDateTime = s.toISOString();
+    endDateTime = e.toISOString();
+  } else {
+    const now = new Date();
+    const dayOfWeek = now.getDay(); // 0=Sun
+    const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
+    const monday = new Date(now);
+    monday.setDate(now.getDate() + mondayOffset);
+    monday.setHours(0, 0, 0, 0);
 
-  const sunday = new Date(monday);
-  sunday.setDate(monday.getDate() + 6);
-  sunday.setHours(23, 59, 59, 999);
+    const sunday = new Date(monday);
+    sunday.setDate(monday.getDate() + 6);
+    sunday.setHours(23, 59, 59, 999);
 
-  const startDateTime = monday.toISOString();
-  const endDateTime = sunday.toISOString();
+    startDateTime = monday.toISOString();
+    endDateTime = sunday.toISOString();
+  }
 
   const url = new URL("https://graph.microsoft.com/v1.0/me/calendarview");
   url.searchParams.set("startdatetime", startDateTime);
