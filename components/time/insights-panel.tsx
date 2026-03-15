@@ -246,30 +246,36 @@ export function InsightsPanel({ data }: { data: InsightsData }) {
 
   return (
     <div className="space-y-8">
+      {/* Week nav moved outside the card to improve layout */}
+      <div className="flex items-center justify-end">
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => setWeekOffset((o) => o - 1)}
+            className="border border-[#808080]/30 px-3 py-1 text-sm text-[#D9D9D9] hover:text-[#F8F8F8] transition-colors rounded"
+            title="Previous week"
+            aria-label="Previous week"
+          >
+            ‹
+          </button>
+          <div className="text-xs sm:text-sm font-medium text-[#D9D9D9] px-4 py-1 border border-[#808080]/10 rounded min-w-[180px] text-center">
+            {weekLabel}
+          </div>
+          <button
+            onClick={() => setWeekOffset((o) => o + 1)}
+            disabled={weekOffset >= 0}
+            className="border border-[#808080]/30 px-3 py-1 text-sm text-[#D9D9D9] hover:text-[#F8F8F8] transition-colors rounded disabled:opacity-30"
+            title="Next week"
+            aria-label="Next week"
+          >
+            ›
+          </button>
+        </div>
+      </div>
       <Card accent className="p-7">
-        <div className="flex items-center justify-between mb-6">
+        <div className="mb-6">
           <div>
             <h2 className="text-base sm:text-lg font-bold">Weekly Insights</h2>
             <p className="mt-1 text-xs sm:text-sm text-[#808080]">Activity + Meetings combined</p>
-          </div>
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => setWeekOffset((o) => o - 1)}
-              disabled={weekOffset <= -7}
-              className="border border-[#808080]/30 px-2 py-1 text-xs text-[#D9D9D9] hover:text-[#F8F8F8] transition-colors disabled:opacity-30"
-            >
-              
-            </button>
-            <span className="text-xs sm:text-sm font-medium text-[#D9D9D9] min-w-[140px] text-center">
-              {weekLabel}
-            </span>
-            <button
-              onClick={() => setWeekOffset((o) => o + 1)}
-              disabled={weekOffset >= 0}
-              className="border border-[#808080]/30 px-2 py-1 text-xs text-[#D9D9D9] hover:text-[#F8F8F8] transition-colors disabled:opacity-30"
-            >
-              
-            </button>
           </div>
         </div>
         <div className="border-t border-[#F40000]/25 mb-7" />
