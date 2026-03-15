@@ -68,6 +68,7 @@ export function InsightsPanel({ data }: { data: InsightsData }) {
   const [entries, setEntries] = useState(initialEntries);
   const [allocations, setAllocations] = useState(initialAllocs);
   const [loading, setLoading] = useState(false);
+  const [exportMenuOpen, setExportMenuOpen] = useState(false);
 
   // Reset to current week whenever server-provided current week changes
   useEffect(() => {
@@ -133,6 +134,82 @@ export function InsightsPanel({ data }: { data: InsightsData }) {
       cancelled = true;
     };
   }, [weekOffset, currentWeekISO]);
+
+  // Export helper (CSV or XLSX)
+  async function exportWeek(fmt: 'csv' | 'xlsx') {
+    try {
+      // Build matrix: projects x days for the selected week
+      const days = DAY_LABELS.map((_, i) => {
+        const d = addDays(selectedMonday, i);
+        return d.toISOString().slice(0, 10);
+      });
+
+      const projMap = new Map<string, { projectName: string; byDay: Record<string, number> }>();
+      for (const day of dailyBreakdown) {
+        for (const p of day.projects) {
+          const cur = projMap.get(p.projectId) ?? { projectName: p.projectName, byDay: {} };
+          cur.byDay[day.date] = (cur.byDay[day.date] ?? 0) + p.totalMin;
+          projMap.set(p.projectId, cur);
+        }
+      }
+
+      const headers = ['Project ID', 'Project Name', ...days.map((d) => format(new Date(d + 'T12:00:00'), 'd/M/yy'))];
+      const rows: string[][] = [];
+      for (const [projectId, v] of projMap.entries()) {
+        const row = [projectId, v.projectName, ...days.map((d) => {
+          const mins = v.byDay[d] ?? 0;
+          const hours = mins / 60;
+          return hours ? hours.toFixed(2) : '0.00';
+        })];
+        rows.push(row);
+      }
+
+      const esc = (s: any) => {
+        if (s === null || s === undefined) return '';
+        const str = String(s);
+        if (str.includes(',') || str.includes('\n') || str.includes('"')) {
+          return '"' + str.replace(/"/g, '""') + '"';
+        }
+        return str;
+      };
+
+      if (fmt === 'xlsx') {
+        try {
+          const ExcelJS = (await import('exceljs')) as any;
+          const workbook = new ExcelJS.Workbook();
+          const ws = workbook.addWorksheet('Daily Breakdown');
+          ws.addRow(headers);
+          for (const r of rows) ws.addRow(r);
+          const ab: ArrayBuffer = await workbook.xlsx.writeBuffer();
+          const buffer = Buffer.from(ab);
+          const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `daily-breakdown-${selectedMonday.toISOString().slice(0, 10)}.xlsx`;
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+          URL.revokeObjectURL(url);
+        } catch (err) {
+          console.error('Excel export failed', err);
+        }
+      } else {
+        const csv = [headers.map(esc).join(','), ...rows.map((r) => r.map(esc).join(','))].join('\n');
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `daily-breakdown-${selectedMonday.toISOString().slice(0, 10)}.csv`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  }
 
   // Aggregate into daily breakdown + project totals
   const { dailyBreakdown, projectTotals, totalMinutes, totalActivityMin, totalMeetingMin } = useMemo(() => {
@@ -374,102 +451,36 @@ export function InsightsPanel({ data }: { data: InsightsData }) {
       <Card accent className="p-7">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-xs sm:text-sm font-bold text-[#D9D9D9]">Daily Breakdown</h3>
-          <div className="flex items-center gap-2">
-            <select
-              id="export-format"
-              defaultValue="csv"
-              className="border border-[#808080]/20 bg-black text-xs text-[#D9D9D9] px-2 py-1"
-              onChange={() => {}}
-            >
-              <option value="csv">CSV</option>
-              <option value="xlsx">Excel (.xlsx)</option>
-            </select>
-
+          <div className="relative">
             <button
-              onClick={async () => {
-                try {
-                  // Build matrix: projects x days for the selected week
-                  const days = DAY_LABELS.map((_, i) => {
-                    const d = addDays(selectedMonday, i);
-                    return d.toISOString().slice(0, 10);
-                  });
-
-                  const projMap = new Map<string, { projectName: string; byDay: Record<string, number> }>();
-                  for (const day of dailyBreakdown) {
-                    for (const p of day.projects) {
-                      const cur = projMap.get(p.projectId) ?? { projectName: p.projectName, byDay: {} };
-                      cur.byDay[day.date] = (cur.byDay[day.date] ?? 0) + p.totalMin;
-                      projMap.set(p.projectId, cur);
-                    }
-                  }
-
-                  const headers = ["Project ID", "Project Name", ...days.map(d => format(new Date(d + "T12:00:00"), "d/M/yy"))];
-                  const rows: string[][] = [];
-                  for (const [projectId, v] of projMap.entries()) {
-                    const row = [projectId, v.projectName, ...days.map(d => {
-                      const mins = v.byDay[d] ?? 0;
-                      const hours = (mins / 60);
-                      return hours ? hours.toFixed(2) : "0.00";
-                    })];
-                    rows.push(row);
-                  }
-
-                  // CSV escaping
-                  const esc = (s: any) => {
-                    if (s === null || s === undefined) return "";
-                    const str = String(s);
-                    if (str.includes(",") || str.includes("\n") || str.includes('"')) {
-                      return '"' + str.replace(/"/g, '""') + '"';
-                    }
-                    return str;
-                  };
-
-                  // determine selected format from nearby select
-                  const fmtSelect = document.getElementById('export-format') as HTMLSelectElement | null;
-                  const fmt = (fmtSelect?.value ?? 'csv').toLowerCase();
-                  if (fmt === 'xlsx') {
-                    // dynamic import exceljs and generate workbook
-                    try {
-                      const ExcelJS = (await import('exceljs')) as any;
-                      const workbook = new ExcelJS.Workbook();
-                      const ws = workbook.addWorksheet('Daily Breakdown');
-                      ws.addRow(headers);
-                      for (const r of rows) ws.addRow(r);
-                      const ab: ArrayBuffer = await workbook.xlsx.writeBuffer();
-                      const buffer = Buffer.from(ab);
-                      const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-                      const url = URL.createObjectURL(blob);
-                      const a = document.createElement('a');
-                      a.href = url;
-                      a.download = `daily-breakdown-${selectedMonday.toISOString().slice(0,10)}.xlsx`;
-                      document.body.appendChild(a);
-                      a.click();
-                      a.remove();
-                      URL.revokeObjectURL(url);
-                    } catch (err) {
-                      console.error('Excel export failed', err);
-                    }
-                  } else {
-                    const csv = [headers.map(esc).join(',') , ...rows.map((r) => r.map(esc).join(','))].join('\n');
-                    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-                    const url = URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.download = `daily-breakdown-${selectedMonday.toISOString().slice(0,10)}.csv`;
-                    document.body.appendChild(a);
-                    a.click();
-                    a.remove();
-                    URL.revokeObjectURL(url);
-                  }
-                } catch (err) {
-                  console.error(err);
-                }
-              }}
+              onClick={() => setExportMenuOpen((s) => !s)}
               className="border border-[#808080]/30 px-3 py-2 text-sm text-[#D9D9D9] hover:text-[#F8F8F8] transition-colors"
               title="Export daily breakdown for this week"
             >
               Export ▾
             </button>
+            {exportMenuOpen && (
+              <div className="absolute right-0 mt-2 w-44 bg-black border border-[#808080]/20 p-2 z-20">
+                <button
+                  className="w-full text-left px-2 py-2 text-sm hover:bg-[#111]"
+                  onClick={async () => {
+                    setExportMenuOpen(false);
+                    await exportWeek('csv');
+                  }}
+                >
+                  Export CSV
+                </button>
+                <button
+                  className="w-full text-left px-2 py-2 text-sm hover:bg-[#111]"
+                  onClick={async () => {
+                    setExportMenuOpen(false);
+                    await exportWeek('xlsx');
+                  }}
+                >
+                  Export Excel (.xlsx)
+                </button>
+              </div>
+            )}
           </div>
         </div>
         {dailyBreakdown.length === 0 && (
