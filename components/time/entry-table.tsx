@@ -4,6 +4,7 @@ import { format, startOfWeek, endOfWeek, isWithinInterval, parseISO } from "date
 import { useState, useTransition, useMemo, useCallback } from "react";
 import { formatMinutes, localDateInputValue } from "@/lib/time";
 import { deleteTimeEntry, updateManualEntry } from "@/lib/actions";
+import DateInput from "@/components/ui/date-input";
 
 type Entry = {
   id: string;
@@ -140,11 +141,10 @@ function EditManualRow({
             <option key={p.projectId} value={p.projectId}>{p.projectName} ({p.projectId})</option>
           ))}
         </select>
-        <input
-          type="date"
+        <DateInput
           value={workDate}
-          onChange={(e) => setWorkDate(e.target.value)}
-          className="border border-[#808080]/30 bg-black px-2 py-1.5 text-xs focus:border-[#F40000] focus:outline-none"
+          onChange={(v) => setWorkDate(v)}
+          className=""
         />
         <input
           type="number"
@@ -323,20 +323,18 @@ export function EntryTable({
           </div>
           <div className="space-y-1">
             <label className="text-xs font-medium text-[#D9D9D9]">From</label>
-            <input
-              type="date"
+            <DateInput
               value={filterFrom}
-              onChange={(e) => setFilterFrom(e.target.value)}
-              className="w-full border border-[#808080]/30 bg-black px-2.5 py-1.5 text-xs focus:border-[#F40000] focus:outline-none"
+              onChange={(v) => setFilterFrom(v)}
+              className="w-full"
             />
           </div>
           <div className="space-y-1">
             <label className="text-xs font-medium text-[#D9D9D9]">To</label>
-            <input
-              type="date"
+            <DateInput
               value={filterTo}
-              onChange={(e) => setFilterTo(e.target.value)}
-              className="w-full border border-[#808080]/30 bg-black px-2.5 py-1.5 text-xs focus:border-[#F40000] focus:outline-none"
+              onChange={(v) => setFilterTo(v)}
+              className="w-full"
             />
           </div>
         </div>
