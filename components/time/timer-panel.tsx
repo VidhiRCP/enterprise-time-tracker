@@ -259,7 +259,7 @@ export function TimerPanel({
           <select
             value={projectId}
             onChange={(e) => handleProjectChange(e.target.value)}
-            className="w-full border border-[#808080]/30 bg-black px-2.5 py-1.5 text-sm focus:border-[#F40000] focus:outline-none"
+            className="w-full border border-[#808080]/30 bg-black px-2.5 py-1.5 text-sm focus:border-[#F40000] focus:outline-none app-input"
           >
             {projects.map((project) => (
               <option key={project.projectId} value={project.projectId}>
@@ -275,7 +275,7 @@ export function TimerPanel({
             value={notesDraft}
             onChange={(e) => { setNotesDraft(e.target.value); setNotesError(""); }}
             rows={2}
-            className={`w-full border bg-black px-2.5 py-1.5 text-sm focus:border-[#F40000] focus:outline-none ${
+            className={`w-full border bg-black px-2.5 py-1.5 text-sm focus:border-[#F40000] focus:outline-none app-input ${
               notesError ? "border-[#F40000]" : "border-[#808080]/30"
             }`}
             placeholder="What are you working on?"

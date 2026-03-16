@@ -305,11 +305,11 @@ export function ExpenseTracker({ projects, userId }: { projects: { projectId: st
               
               <div>
                 <label className="text-xs font-bold mb-1 block">Amount</label>
-                <input name="amount" type="number" value={form.amount} onChange={handleFormChange} className="w-full border border-[#808080]/30 bg-black px-3 py-2 text-xs sm:text-sm" />
+                <input name="amount" type="number" value={form.amount} onChange={handleFormChange} className="w-full border border-[#808080]/30 bg-black px-3 py-2 text-xs sm:text-sm app-input" />
               </div>
               <div>
                 <label className="text-xs font-bold mb-1 block">Currency</label>
-                <select name="currency" value={form.currency} onChange={handleFormChange} className="w-full border border-[#808080]/30 bg-black px-3 py-2 text-xs sm:text-sm">
+                <select name="currency" value={form.currency} onChange={handleFormChange} className="w-full border border-[#808080]/30 bg-black px-3 py-2 text-xs sm:text-sm app-input">
                   <option value="USD">USD</option>
                   <option value="NZD">NZD</option>
                   <option value="CAD">CAD</option>
@@ -317,15 +317,15 @@ export function ExpenseTracker({ projects, userId }: { projects: { projectId: st
               </div>
               <div>
                 <label className="text-xs font-bold mb-1 block">Merchant/Vendor</label>
-                <input name="merchant" type="text" value={form.merchant} onChange={handleFormChange} className="w-full border border-[#808080]/30 bg-black px-3 py-2 text-xs sm:text-sm" />
+                <input name="merchant" type="text" value={form.merchant} onChange={handleFormChange} className="w-full border border-[#808080]/30 bg-black px-3 py-2 text-xs sm:text-sm app-input" />
               </div>
               <div>
                 <label className="text-xs font-bold mb-1 block">Details</label>
-                <textarea name="details" value={form.details} onChange={handleFormChange} className="w-full border border-[#808080]/30 bg-black px-3 py-2 text-xs sm:text-sm" />
+                <textarea name="details" value={form.details} onChange={handleFormChange} className="w-full border border-[#808080]/30 bg-black px-3 py-2 text-xs sm:text-sm app-input" />
               </div>
               <div>
                 <label className="text-xs font-bold mb-1 block">Project</label>
-                <select name="projectId" value={form.projectId} onChange={handleFormChange} className="w-full border border-[#808080]/30 bg-black px-3 py-2 text-xs sm:text-sm">
+                <select name="projectId" value={form.projectId} onChange={handleFormChange} className="w-full border border-[#808080]/30 bg-black px-3 py-2 text-xs sm:text-sm app-input">
                   <option value="">Select project</option>
                   {projects.map(p => (
                     <option key={p.projectId} value={p.projectId}>{p.projectName}</option>

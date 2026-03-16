@@ -69,10 +69,10 @@ export function ManualEntryForm({ projects }: { projects: ProjectOption[] }) {
       <div className="grid gap-3 sm:grid-cols-[2fr_1fr]">
         <div className="space-y-1">
           <label className="text-sm font-medium text-[#D9D9D9]">Project</label>
-          <select
+            <select
             value={projectId}
             onChange={(e) => setProjectId(e.target.value)}
-            className="w-full border border-[#808080]/30 bg-black px-3 py-2 text-sm focus:border-[#F40000] focus:outline-none"
+              className="w-full border border-[#808080]/30 bg-black px-3 py-2 text-sm focus:border-[#F40000] focus:outline-none app-input"
           >
             {projects.map((project) => (
               <option key={project.projectId} value={project.projectId}>
@@ -83,7 +83,7 @@ export function ManualEntryForm({ projects }: { projects: ProjectOption[] }) {
         </div>
         <div className="space-y-1">
           <label className="text-sm font-medium text-[#D9D9D9]">Date</label>
-          <div className="w-full border border-[#808080]/30 bg-black px-3 py-2 text-sm text-[#D9D9D9]">
+            <div className="w-full border border-[#808080]/30 bg-black px-3 py-2 text-sm text-[#D9D9D9] app-input">
             📅 Today
           </div>
         </div>
@@ -131,18 +131,18 @@ export function ManualEntryForm({ projects }: { projects: ProjectOption[] }) {
               min={1}
               step={1}
               placeholder="60"
-              className="w-full border border-[#808080]/30 bg-black px-3 py-2 text-sm focus:border-[#F40000] focus:outline-none"
+               className="w-full border border-[#808080]/30 bg-black px-3 py-2 text-sm focus:border-[#F40000] focus:outline-none app-input"
             />
           </div>
         ) : (
           <div className="flex-1 grid gap-3 grid-cols-2 items-end">
             <div className="space-y-1">
               <label className="text-sm font-medium text-[#D9D9D9]">Start Time</label>
-              <input
+                <input
                 type="time"
                 value={startTime}
                 onChange={(e) => setStartTime(e.target.value)}
-                className="w-full border border-[#808080]/30 bg-black px-3 py-2 text-sm focus:border-[#F40000] focus:outline-none"
+                 className="w-full border border-[#808080]/30 bg-black px-3 py-2 text-sm focus:border-[#F40000] focus:outline-none app-input"
               />
             </div>
             <div className="space-y-1">
@@ -154,11 +154,11 @@ export function ManualEntryForm({ projects }: { projects: ProjectOption[] }) {
                   </span>
                 )}
               </div>
-              <input
+                <input
                 type="time"
                 value={endTime}
                 onChange={(e) => setEndTime(e.target.value)}
-                className="w-full border border-[#808080]/30 bg-black px-3 py-2 text-sm focus:border-[#F40000] focus:outline-none"
+                 className="w-full border border-[#808080]/30 bg-black px-3 py-2 text-sm focus:border-[#F40000] focus:outline-none app-input"
               />
             </div>
           </div>
@@ -173,9 +173,9 @@ export function ManualEntryForm({ projects }: { projects: ProjectOption[] }) {
             type="text"
             value={notes}
             onChange={(e) => { setNotes(e.target.value); setError(""); }}
-            className={`w-full border bg-black px-3 py-2 text-sm focus:border-[#F40000] focus:outline-none ${
-              "border-[#808080]/30"
-            }`}
+             className={`w-full border bg-black px-3 py-2 text-sm focus:border-[#F40000] focus:outline-none app-input ${
+               "border-[#808080]/30"
+             }`}
             placeholder="Describe the work done"
           />
         </div>

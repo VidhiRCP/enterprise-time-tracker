@@ -93,7 +93,7 @@ export function ExportData() {
 
               <div>
                 <div className="font-medium mb-1">Format</div>
-                <select value={format} onChange={(e) => setFormat(e.target.value)} className="border border-[#808080]/30 bg-black px-2 py-1 text-sm">
+                <select value={format} onChange={(e) => setFormat(e.target.value)} className="border border-[#808080]/30 bg-black px-2 py-1 text-sm app-input">
                   <option value="csv">CSV</option>
                   <option value="xlsx">Excel (.xlsx)</option>
                   <option value="pdf">PDF (not implemented)</option>
@@ -113,7 +113,7 @@ export function ExportData() {
 
                   <div className="col-span-2">
                     <label className="block text-xs mb-1">Project</label>
-                    <select value={project} onChange={(e) => setProject(e.target.value)} className="w-full border border-[#808080]/30 bg-black px-2 py-1 text-sm">
+                    <select value={project} onChange={(e) => setProject(e.target.value)} className="w-full border border-[#808080]/30 bg-black px-2 py-1 text-sm app-input">
                       <option value="">-- Select project --</option>
                       {projects.map(p => <option key={p.projectId} value={p.projectId}>{p.projectName} ({p.projectId})</option>)}
                     </select>

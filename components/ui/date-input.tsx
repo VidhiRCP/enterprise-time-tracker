@@ -36,6 +36,7 @@ export function DateInput({ value, onChange, name, placeholder, className, weekS
   const [open, setOpen] = useState(false);
   const [viewDate, setViewDate] = useState<Date>(selected ?? new Date());
   const rootRef = useRef<HTMLDivElement | null>(null);
+  const [popupPos, setPopupPos] = useState<{ top: number; left: number } | null>(null);
 
   useEffect(() => {
     if (selected) setViewDate(selected);
@@ -56,6 +57,20 @@ export function DateInput({ value, onChange, name, placeholder, className, weekS
       document.removeEventListener("keydown", onKey);
     };
   }, []);
+
+  useEffect(() => {
+    if (!open) {
+      setPopupPos(null);
+      return;
+    }
+    // compute popup position to keep it inside viewport
+    const rect = rootRef.current?.getBoundingClientRect();
+    const popupWidth = 320; // matches w-[320px]
+    if (!rect) return;
+    const left = Math.min(Math.max(rect.left, 8), Math.max(window.innerWidth - popupWidth - 8, 8));
+    const top = rect.bottom + 8;
+    setPopupPos({ left, top });
+  }, [open]);
 
   const displayLabel = selected ? format(selected, "yyyy/MM/dd") : placeholder ?? "yyyy/MM/dd";
 
@@ -161,8 +176,8 @@ export function DateInput({ value, onChange, name, placeholder, className, weekS
 
       <input name={name} type="hidden" value={value} />
 
-      {open && (
-        <div className="absolute z-50 mt-2 right-0">
+      {open && popupPos && (
+        <div style={{ position: "fixed", left: popupPos.left, top: popupPos.top, zIndex: 9999 }}>
           {renderCalendar()}
         </div>
       )}

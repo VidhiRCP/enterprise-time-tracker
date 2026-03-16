@@ -76,7 +76,7 @@ export function ProjectAliases({ assignments }: { assignments: AliasEntry[] }) {
                 value={entry.aliases}
                 onChange={(e) => handleChange(entry.projectId, e.target.value)}
                 placeholder="e.g. standup, sprint review, retro, project-x"
-                className="flex-1 border border-[#808080]/30 bg-black px-3 py-2 text-xs sm:text-sm placeholder:text-[#808080]/60 focus:border-[#F40000] focus:outline-none"
+                className="flex-1 app-input text-xs sm:text-sm placeholder:text-[#808080]/60 focus:border-[#F40000] focus:outline-none"
               />
               <button
                 onClick={() => handleSave(entry.projectId)}

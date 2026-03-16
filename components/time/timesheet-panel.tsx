@@ -103,7 +103,7 @@ function EventRow({
             hasSuggestion
               ? "border-yellow-400/40"
               : "border-[#808080]/30"
-          }`}
+          } app-input`}
         >
           <option value="">— Select project —</option>
           {projects.map((p) => (

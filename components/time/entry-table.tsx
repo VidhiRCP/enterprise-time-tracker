@@ -135,7 +135,7 @@ function EditManualRow({
         <select
           value={projectId}
           onChange={(e) => setProjectId(e.target.value)}
-          className="border border-[#808080]/30 bg-black px-2 py-1.5 text-xs focus:border-[#F40000] focus:outline-none"
+          className="border border-[#808080]/30 bg-black px-2 py-1.5 text-xs focus:border-[#F40000] focus:outline-none app-input"
         >
           {projects.map((p) => (
             <option key={p.projectId} value={p.projectId}>{p.projectName} ({p.projectId})</option>
@@ -152,7 +152,7 @@ function EditManualRow({
           onChange={(e) => setDurationMinutes(e.target.value)}
           min={1}
           placeholder="Minutes"
-          className="border border-[#808080]/30 bg-black px-2 py-1.5 text-xs focus:border-[#F40000] focus:outline-none"
+          className="border border-[#808080]/30 bg-black px-2 py-1.5 text-xs focus:border-[#F40000] focus:outline-none app-input"
         />
         <button
           onClick={handleSave}
@@ -167,7 +167,7 @@ function EditManualRow({
         onChange={(e) => setNotes(e.target.value)}
         rows={2}
         placeholder="Notes"
-        className="w-full border border-[#808080]/30 bg-black px-2 py-1.5 text-xs focus:border-[#F40000] focus:outline-none"
+        className="w-full border border-[#808080]/30 bg-black px-2 py-1.5 text-xs focus:border-[#F40000] focus:outline-none app-input"
       />
       {error && (
         <div className="text-xs text-[#F40000]">{error}</div>
@@ -313,7 +313,7 @@ export function EntryTable({
             <select
               value={filterProject}
               onChange={(e) => setFilterProject(e.target.value)}
-              className="w-full border border-[#808080]/30 bg-black px-2.5 py-1.5 text-xs focus:border-[#F40000] focus:outline-none"
+              className="w-full border border-[#808080]/30 bg-black px-2.5 py-1.5 text-xs focus:border-[#F40000] focus:outline-none app-input"
             >
               <option value="ALL">All projects</option>
               {uniqueProjects.map(([id, name]) => (
