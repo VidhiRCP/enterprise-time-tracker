@@ -6,6 +6,7 @@ import {
   parseISO,
   startOfMonth,
   endOfMonth,
+  endOfWeek,
   startOfWeek,
   addDays,
   addMonths,
@@ -30,12 +31,11 @@ function toDate(value?: string) {
   }
 }
 
-export function DateInput({ value, onChange, name, placeholder, className }: Props) {
+export function DateInput({ value, onChange, name, placeholder, className, weekStartsOn = 1 }: Props) {
   const selected = toDate(value) || null;
   const [open, setOpen] = useState(false);
   const [viewDate, setViewDate] = useState<Date>(selected ?? new Date());
   const rootRef = useRef<HTMLDivElement | null>(null);
-  const weekStartsOn = (typeof (arguments[0] as any)?.weekStartsOn === 'number') ? (arguments[0] as any).weekStartsOn : 1;
 
   useEffect(() => {
     if (selected) setViewDate(selected);
