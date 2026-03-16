@@ -60,9 +60,9 @@ const PROJECT_COLORS = [
 ];
 
 /* ── Main Component ── */
-export function InsightsPanel({ data }: { data: InsightsData }) {
-  const { entries: initialEntries, allocations: initialAllocs, currentWeekISO } = data;
-  const currentMonday = new Date(currentWeekISO);
+export function InsightsPanel({ data }: { data?: InsightsData }) {
+  const { entries: initialEntries = [], allocations: initialAllocs = [], currentWeekISO } = data ?? {} as InsightsData;
+  const currentMonday = currentWeekISO ? new Date(currentWeekISO) : new Date();
 
   const [weekOffset, setWeekOffset] = useState(0);
   const [viewMode, setViewMode] = useState<'day' | 'project'>('day');
@@ -313,11 +313,43 @@ export function InsightsPanel({ data }: { data: InsightsData }) {
   const hasAnyData = entries.length > 0 || allocations.length > 0;
   if (!hasAnyData) {
     return (
-      <div className="border border-dashed border-[#808080]/30 p-4 sm:p-6 text-center">
-        <p className="text-xs sm:text-sm font-bold text-[#D9D9D9]">No data yet</p>
-        <p className="mt-1 text-xs sm:text-sm text-[#808080]">
-          Track time with the Activity Tracker or allocate meetings in the Meeting Tracker.
-        </p>
+      <div className="space-y-4">
+        <div className="flex items-center justify-end gap-4">
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setWeekOffset((o) => o - 1)}
+              className="border border-[#808080]/30 px-3 py-1 text-sm text-[#D9D9D9] hover:text-[#F8F8F8] transition-colors rounded"
+              title="Previous week"
+              aria-label="Previous week"
+            >
+              ‹
+            </button>
+            <div className="text-xs sm:text-sm font-medium text-[#D9D9D9] px-4 py-1 border border-[#808080]/10 rounded min-w-[180px] text-center">
+              {weekLabel}
+            </div>
+            <button
+              onClick={() => setWeekOffset((o) => o + 1)}
+              disabled={weekOffset >= 0}
+              className="border border-[#808080]/30 px-3 py-1 text-sm text-[#D9D9D9] hover:text-[#F8F8F8] transition-colors rounded disabled:opacity-30"
+              title="Next week"
+              aria-label="Next week"
+            >
+              ›
+            </button>
+          </div>
+
+          <div className="flex items-center gap-2 border border-[#808080]/10 rounded overflow-hidden">
+            <button onClick={() => setViewMode('day')} className={`btn btn-sm ${viewMode === 'day' ? 'btn-primary' : 'btn-ghost'}`}>By Day</button>
+            <button onClick={() => setViewMode('project')} className={`btn btn-sm ${viewMode === 'project' ? 'btn-primary' : 'btn-ghost'}`}>By Project</button>
+          </div>
+        </div>
+
+        <div className="border border-dashed border-[#808080]/30 p-4 sm:p-6 text-center">
+          <p className="text-xs sm:text-sm font-bold text-[#D9D9D9]">No data yet</p>
+          <p className="mt-1 text-xs sm:text-sm text-[#808080]">
+            Track time with the Activity Tracker or allocate meetings in the Meeting Tracker.
+          </p>
+        </div>
       </div>
     );
   }
