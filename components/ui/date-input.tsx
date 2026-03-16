@@ -98,6 +98,7 @@ export function DateInput({ value, onChange, name, placeholder, className, weekS
           >
             ›
           </button>
+
         </div>
 
         <div className="grid grid-cols-7 gap-2 text-xs text-[#9B9B9B] mb-2">
@@ -120,7 +121,7 @@ export function DateInput({ value, onChange, name, placeholder, className, weekS
                   <button
                     key={day.toISOString()}
                     onClick={() => handleSelect(day)}
-                    className={`h-10 w-10 flex items-center justify-center rounded-full transition-colors ${
+                    className={`h-9 w-9 flex items-center justify-center rounded-md transition-colors ${
                       isSelected
                         ? 'bg-white text-black'
                         : isCurrentMonth
@@ -147,7 +148,7 @@ export function DateInput({ value, onChange, name, placeholder, className, weekS
         tabIndex={0}
         onClick={() => setOpen((v) => !v)}
         onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setOpen(v => !v); } }}
-        className="w-full rounded-full bg-[#F3F3F3]/5 border border-[#E8E8E8]/10 px-4 py-3 flex items-center gap-3 shadow-sm cursor-pointer"
+        className="w-full app-input bg-black flex items-center gap-3 cursor-pointer"
       >
         <div className="flex-1 text-sm text-[#D9D9D9]">{displayLabel}</div>
         <div className="p-2 bg-transparent">
