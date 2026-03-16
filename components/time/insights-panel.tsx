@@ -65,6 +65,7 @@ export function InsightsPanel({ data }: { data: InsightsData }) {
   const currentMonday = new Date(currentWeekISO);
 
   const [weekOffset, setWeekOffset] = useState(0);
+  const [viewMode, setViewMode] = useState<'day' | 'project'>('day');
   const [entries, setEntries] = useState(initialEntries);
   const [allocations, setAllocations] = useState(initialAllocs);
   const [loading, setLoading] = useState(false);
@@ -321,10 +322,24 @@ export function InsightsPanel({ data }: { data: InsightsData }) {
     );
   }
 
+  // Build project grouped view
+  const projectsGrouped = useMemo(() => {
+    const map = new Map<string, { projectName: string; days: { date: string; minutes: number }[]; totalMin: number }>();
+    for (const day of dailyBreakdown) {
+      for (const p of day.projects) {
+        const cur = map.get(p.projectId) ?? { projectName: p.projectName, days: [], totalMin: 0 };
+        cur.days.push({ date: day.date, minutes: p.totalMin });
+        cur.totalMin += p.totalMin;
+        map.set(p.projectId, cur);
+      }
+    }
+    return Array.from(map.entries()).map(([projectId, v]) => ({ projectId, projectName: v.projectName, days: v.days, totalMin: v.totalMin })).sort((a, b) => b.totalMin - a.totalMin);
+  }, [dailyBreakdown]);
+
   return (
     <div className="space-y-8">
       {/* Week nav moved outside the card to improve layout */}
-      <div className="flex items-center justify-end">
+      <div className="flex items-center justify-end gap-4">
         <div className="flex items-center gap-3">
           <button
             onClick={() => setWeekOffset((o) => o - 1)}
@@ -345,6 +360,21 @@ export function InsightsPanel({ data }: { data: InsightsData }) {
             aria-label="Next week"
           >
             ›
+          </button>
+        </div>
+
+        <div className="flex items-center gap-2 border border-[#808080]/10 rounded overflow-hidden">
+          <button
+            onClick={() => setViewMode('day')}
+            className={`px-3 py-1 text-sm ${viewMode === 'day' ? 'bg-[#F40000] text-white' : 'text-[#D9D9D9]'}`}
+          >
+            By Day
+          </button>
+          <button
+            onClick={() => setViewMode('project')}
+            className={`px-3 py-1 text-sm ${viewMode === 'project' ? 'bg-[#F40000] text-white' : 'text-[#D9D9D9]'}`}
+          >
+            By Project
           </button>
         </div>
       </div>
@@ -402,7 +432,8 @@ export function InsightsPanel({ data }: { data: InsightsData }) {
         <h3 className="text-xs sm:text-sm font-bold text-[#D9D9D9] mb-4">By Project</h3>
         <div className="pt-3">
           {/* Chart */}
-          <div className="flex items-end gap-1.5 sm:gap-3" style={{ height: 180 }}>
+          {viewMode === 'day' ? (
+            <div className="flex items-end gap-1.5 sm:gap-3" style={{ height: 180 }}>
             {chartData.map((day) => (
               <div key={day.label} className="flex-1 flex flex-col items-center gap-1">
                 {/* Stacked bar */}
@@ -432,7 +463,30 @@ export function InsightsPanel({ data }: { data: InsightsData }) {
                 <span className="text-[10px] sm:text-xs text-[#808080]">{day.label}</span>
               </div>
             ))}
-          </div>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {projectsGrouped.map((p) => (
+                <div key={p.projectId} className="border border-[#808080]/20 p-3">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className="text-sm font-bold">{p.projectName}</div>
+                      <div className="text-xs text-[#808080]">{fmtMin(p.totalMin)}</div>
+                    </div>
+                    <div className="text-xs text-[#808080]">{p.days.length} day{p.days.length !== 1 ? 's' : ''}</div>
+                  </div>
+                  <div className="mt-3 grid grid-cols-2 gap-2">
+                    {p.days.map((d) => (
+                      <div key={d.date} className="flex items-center justify-between text-xs">
+                        <div className="text-[#D9D9D9]">{format(new Date(d.date + 'T12:00:00'), 'dd MMM')}</div>
+                        <div className="text-[#808080]">{fmtMin(d.minutes)}</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
           {/* Legend */}
           <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1.5 border-t border-[#808080]/15 pt-3">
             {projectTotals.map((p) => (

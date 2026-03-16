@@ -147,13 +147,16 @@ export function MeetingsLoader({
     );
   }
 
+  // compute current week start ISO to disable next when at current week
+  const currentWeekStart = startOfWeekISO(new Date());
+
   return (
     <div>
       <div className="flex items-center justify-end mb-3">
-        <div className="flex items-center gap-2">
-          <button onClick={goPrevWeek} className="px-3 py-1.5 border border-[#808080]/30">‹</button>
-          <div className="px-4 py-1.5 border border-[#808080]/30">{weekLabel}</div>
-          <button onClick={goNextWeek} className="px-3 py-1.5 border border-[#808080]/30">›</button>
+        <div className="flex items-center gap-3">
+          <button onClick={goPrevWeek} className="border border-[#808080]/30 px-3 py-1.5 rounded" title="Previous week" aria-label="Previous week">‹</button>
+          <div className="text-xs sm:text-sm font-medium text-[#D9D9D9] px-4 py-1 border border-[#808080]/10 rounded min-w-[180px] text-center">{weekLabel}</div>
+          <button onClick={goNextWeek} disabled={weekStart >= currentWeekStart} className="border border-[#808080]/30 px-3 py-1.5 rounded disabled:opacity-30" title="Next week" aria-label="Next week">›</button>
         </div>
       </div>
       <TimesheetPanel
