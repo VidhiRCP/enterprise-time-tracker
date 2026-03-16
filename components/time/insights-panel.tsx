@@ -488,6 +488,18 @@ export function InsightsPanel({ data }: { data: InsightsData }) {
             No tracked time this week.
           </div>
         )}
+        {/* Column labels header (sticky) */}
+        {dailyBreakdown.length > 0 && (
+          <div className="sticky top-0 z-10 bg-black border-b border-[#808080]/10">
+            <div className="hidden md:grid grid-cols-[1fr_auto_auto_auto] items-center gap-x-4 py-2 px-0">
+              <span />
+              <span className="text-[10px] uppercase tracking-wider text-[#808080] text-right w-14 sm:w-16">Activity</span>
+              <span className="text-[10px] uppercase tracking-wider text-[#808080] text-right w-14 sm:w-16">Meetings</span>
+              <span className="text-[10px] uppercase tracking-wider text-[#808080] text-right w-14 sm:w-16">Total</span>
+            </div>
+            <div className="md:hidden px-2 py-1 text-xs text-[#808080]">Activity · Meetings · Total</div>
+          </div>
+        )}
         {dailyBreakdown.map((day) => {
           const dayTotal = day.projects.reduce((s, p) => s + p.totalMin, 0);
           return (
@@ -516,13 +528,7 @@ export function InsightsPanel({ data }: { data: InsightsData }) {
                   </div>
                 ))}
               </div>
-              {/* Column labels footer */}
-              <div className="grid grid-cols-[1fr_auto_auto_auto] items-center gap-x-4 py-1.5 border-t border-[#808080]/10">
-                <span />
-                <span className="text-[10px] uppercase tracking-wider text-[#808080] text-right w-14 sm:w-16">Activity</span>
-                <span className="text-[10px] uppercase tracking-wider text-[#808080] text-right w-14 sm:w-16">Meetings</span>
-                <span className="text-[10px] uppercase tracking-wider text-[#808080] text-right w-14 sm:w-16">Total</span>
-              </div>
+              {/* removed per-day footer labels (now shown once at top) */}
             </div>
           );
         })}

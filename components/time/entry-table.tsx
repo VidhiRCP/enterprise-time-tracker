@@ -166,7 +166,7 @@ function EditManualRow({
         value={notes}
         onChange={(e) => setNotes(e.target.value)}
         rows={2}
-        placeholder="Notes (required)"
+        placeholder="Notes"
         className="w-full border border-[#808080]/30 bg-black px-2 py-1.5 text-xs focus:border-[#F40000] focus:outline-none"
       />
       {error && (

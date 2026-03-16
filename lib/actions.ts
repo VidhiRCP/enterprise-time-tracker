@@ -26,7 +26,7 @@ export async function createManualEntry(input: {
   // Only allow today's date
   const today = new Date().toISOString().slice(0, 10);
   if (input.workDate !== today) return { error: "Manual entries can only be created for today." };
-  if (!input.notes.trim()) return { error: "Notes are required." };
+  // Notes are optional
 
   let durationMinutes = input.durationMinutes ?? 0;
 
@@ -52,7 +52,7 @@ export async function createManualEntry(input: {
       project: { connect: { projectId: input.projectId } },
       workDate: new Date(`${input.workDate}T00:00:00.000Z`),
       durationMinutes,
-      notes: input.notes.trim(),
+      notes: input.notes?.trim() || null,
       source: "MANUAL",
       status: "SAVED",
     },
@@ -162,7 +162,7 @@ export async function finalizeSession(input: {
 
   if (!session) throw new Error("Session not found.");
 
-  if (!input.notesDraft?.trim()) throw new Error("Notes are required before saving.");
+  // Notes are optional when finalizing a session
 
   const now = new Date();
   const wallClockMs = now.getTime() - session.startedAt.getTime();
@@ -176,7 +176,7 @@ export async function finalizeSession(input: {
         timerSession: { connect: { id: session.id } },
         workDate: new Date(`${input.workDate}T00:00:00.000Z`),
         durationMinutes,
-        notes: input.notesDraft.trim(),
+        notes: input.notesDraft?.trim() || null,
         source: "TIMER",
         status: "SAVED",
       },
@@ -250,7 +250,7 @@ export async function updateManualEntry(input: {
   if (!entry) return { error: "Entry not found or not editable." };
   if (!input.projectId) return { error: "Please select a project." };
   if (!input.workDate) return { error: "Please select a date." };
-  if (!input.notes.trim()) return { error: "Notes are required." };
+  // Notes optional for manual entry updates
 
   let durationMinutes = input.durationMinutes ?? 0;
 
@@ -275,7 +275,7 @@ export async function updateManualEntry(input: {
       projectId: input.projectId,
       workDate: new Date(`${input.workDate}T00:00:00.000Z`),
       durationMinutes,
-      notes: input.notes.trim(),
+      notes: input.notes?.trim() || null,
     },
   });
 

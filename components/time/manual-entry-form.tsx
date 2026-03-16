@@ -168,17 +168,15 @@ export function ManualEntryForm({ projects }: { projects: ProjectOption[] }) {
       {/* ── Row 3: Notes + Submit side by side ── */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
         <div className="flex-1 space-y-1">
-          <label className="text-sm font-medium text-[#D9D9D9]">
-            Notes <span className="text-[#F40000]">*</span>
-          </label>
+          <label className="text-sm font-medium text-[#D9D9D9]">Notes</label>
           <input
             type="text"
             value={notes}
             onChange={(e) => { setNotes(e.target.value); setError(""); }}
             className={`w-full border bg-black px-3 py-2 text-sm focus:border-[#F40000] focus:outline-none ${
-              error && !notes.trim() ? "border-[#F40000]" : "border-[#808080]/30"
+              "border-[#808080]/30"
             }`}
-            placeholder="Describe the work done (required)"
+            placeholder="Describe the work done"
           />
         </div>
         <button

@@ -102,10 +102,7 @@ export function TimerPanel({
   }
 
   function validateNotes(): boolean {
-    if (!notesDraft.trim()) {
-      setNotesError("Notes are required before saving.");
-      return false;
-    }
+    // Notes are optional across the app
     setNotesError("");
     return true;
   }
@@ -273,9 +270,7 @@ export function TimerPanel({
         </div>
 
         <div className="space-y-1">
-          <label className="text-sm font-medium text-[#D9D9D9]">
-            Notes <span className="text-[#F40000]">*</span>
-          </label>
+          <label className="text-sm font-medium text-[#D9D9D9]">Notes</label>
           <textarea
             value={notesDraft}
             onChange={(e) => { setNotesDraft(e.target.value); setNotesError(""); }}
@@ -283,7 +278,7 @@ export function TimerPanel({
             className={`w-full border bg-black px-2.5 py-1.5 text-sm focus:border-[#F40000] focus:outline-none ${
               notesError ? "border-[#F40000]" : "border-[#808080]/30"
             }`}
-            placeholder="What are you working on? (required)"
+            placeholder="What are you working on?"
           />
           {notesError && (
             <p className="text-xs text-[#F40000]">{notesError}</p>
