@@ -85,16 +85,16 @@ export function SidebarCalendar({
                   ? "text-[#808080]/20 cursor-default"
                   : future
                     ? "text-[#808080]/25 cursor-not-allowed"
-                    : today
-                      ? "bg-[#F40000] text-white font-bold hover:bg-[#F40000]/80 cursor-pointer"
+                        : today
+                        ? "brand text-white font-bold hover:opacity-90 cursor-pointer"
                       : hasEntry
-                        ? "text-[#F8F8F8] font-bold hover:bg-[#F8F8F8]/10 cursor-pointer"
+                          ? "text-[#F8F8F8] font-bold hover:bg-[#F8F8F8]/10 cursor-pointer"
                         : "text-[#808080]/60 hover:bg-[#F8F8F8]/5 cursor-pointer"
-              } ${isSelected && !today ? "ring-1 ring-[#F40000] bg-[#F40000]/10" : ""} ${isSelected && today ? "ring-1 ring-white" : ""}`}
+              } ${isSelected && !today ? "brand-ring brand-soft" : ""} ${isSelected && today ? "ring-1 ring-white" : ""}`}
             >
               {format(day, "d")}
               {hasEntry && !today && (
-                <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-[#F40000]" />
+                  <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full brand" />
               )}
             </button>
           );

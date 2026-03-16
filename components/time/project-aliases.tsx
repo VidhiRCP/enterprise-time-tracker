@@ -50,7 +50,7 @@ export function ProjectAliases({ assignments }: { assignments: AliasEntry[] }) {
   return (
     <div className="space-y-4 sm:space-y-5">
       <div>
-        <h2 className="text-base sm:text-lg font-bold">Project Aliases</h2>
+        <h2 className="app-heading-2">Project Aliases</h2>
         <p className="mt-1 text-xs sm:text-sm text-[#D9D9D9]">
           Add comma-separated keywords for each project. These are used to auto-suggest projects
           for your calendar meetings based on the meeting subject.
@@ -81,7 +81,7 @@ export function ProjectAliases({ assignments }: { assignments: AliasEntry[] }) {
               <button
                 onClick={() => handleSave(entry.projectId)}
                 disabled={isPending}
-                className="bg-[#F40000] px-4 py-2 text-xs sm:text-sm font-medium text-white hover:bg-[#F40000]/80 disabled:opacity-40 transition-all shrink-0"
+                className="btn btn-sm btn-primary shrink-0"
               >
                 {isPending ? "Saving…" : "Save"}
               </button>

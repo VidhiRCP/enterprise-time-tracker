@@ -79,7 +79,7 @@ export function ExportData() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
           <div className="bg-black border border-[#808080]/30 p-4 w-full max-w-lg">
             <div className="flex items-center justify-between mb-3">
-              <h3 className="font-bold">Export Data</h3>
+              <h3 className="app-heading-3">Export Data</h3>
               <button onClick={() => setOpen(false)} className="text-sm text-[#808080]">✕</button>
             </div>
 
@@ -124,8 +124,8 @@ export function ExportData() {
               {error && <div className="text-xs text-[#F40000]">{error}</div>}
 
               <div className="flex items-center justify-end gap-2">
-                <button onClick={() => setOpen(false)} className="text-sm text-[#808080] border px-3 py-1">Cancel</button>
-                <button onClick={submit} disabled={loading} className="bg-[#F40000] px-3 py-1 text-sm text-white">{loading ? "Exporting…" : "Export"}</button>
+                <button onClick={() => setOpen(false)} className="btn btn-sm btn-ghost">Cancel</button>
+                <button onClick={submit} disabled={loading} className="btn btn-sm btn-primary">{loading ? "Exporting…" : "Export"}</button>
               </div>
             </div>
           </div>

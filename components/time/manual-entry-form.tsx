@@ -98,22 +98,14 @@ export function ManualEntryForm({ projects }: { projects: ProjectOption[] }) {
             <button
               type="button"
               onClick={() => setMode("duration")}
-              className={`px-3 py-2 text-sm font-medium transition-colors ${
-                mode === "duration"
-                  ? "bg-[#F40000] text-white"
-                  : "text-[#808080] hover:text-[#D9D9D9] hover:bg-[#F8F8F8]/5"
-              }`}
+              className={`btn btn-sm ${mode === "duration" ? 'btn-primary' : 'btn-ghost'}`}
             >
               Duration
             </button>
             <button
               type="button"
               onClick={() => setMode("range")}
-              className={`px-3 py-2 text-sm font-medium transition-colors border-l border-[#808080]/30 ${
-                mode === "range"
-                  ? "bg-[#F40000] text-white"
-                  : "text-[#808080] hover:text-[#D9D9D9] hover:bg-[#F8F8F8]/5"
-              }`}
+              className={`btn btn-sm border-l border-[#808080]/30 ${mode === "range" ? 'btn-primary' : 'btn-ghost'}`}
             >
               Start / End
             </button>
@@ -191,7 +183,7 @@ export function ManualEntryForm({ projects }: { projects: ProjectOption[] }) {
 
       {/* Error / Success messages */}
       {error && (
-        <div className="border border-[#F40000]/30 bg-[#F40000]/10 px-3 py-2 text-xs sm:text-sm text-[#F40000]">
+        <div className="brand-border brand-soft px-3 py-2 text-xs sm:text-sm brand-text" style={{ borderStyle: 'solid', borderWidth: 1 }}>
           {error}
         </div>
       )}

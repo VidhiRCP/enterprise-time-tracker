@@ -259,7 +259,7 @@ export function ExpenseTracker({ projects, userId }: { projects: { projectId: st
   return (
     <div className="space-y-8">
       <Card accent>
-        <h2 className="text-base sm:text-lg font-bold mb-4">Expense Tracker</h2>
+        <h2 className="app-heading-2 mb-4">Expense Tracker</h2>
         {/* Drag-and-drop/upload area */}
         <div className="mb-6">
           <label className="block text-xs font-bold mb-2">Upload Receipt (Image or PDF)</label>
@@ -352,7 +352,7 @@ export function ExpenseTracker({ projects, userId }: { projects: { projectId: st
                     }
                   }}
                   disabled={uploading || (!pendingFile && !form.receiptId) || !form.projectId || !confirmed || isSaving}
-                  className="bg-[#F40000] px-4 py-2 text-xs sm:text-sm font-medium text-white hover:bg-[#F40000]/80 disabled:opacity-40 transition-all"
+                  className="btn btn-md btn-primary"
                 >
                   {isSaving ? "Saving…" : "Save Expense"}
                 </button>
@@ -372,7 +372,7 @@ export function ExpenseTracker({ projects, userId }: { projects: { projectId: st
                     setConfirmed(false);
                     setError(null);
                   }}
-                  className="ml-3 px-3 py-2 text-xs sm:text-sm text-[#D9D9D9] bg-[#1f1f1f] hover:bg-[#2a2a2a] transition-colors"
+                  className="ml-3 btn btn-sm btn-ghost"
                 >
                   Discard
                 </button>
@@ -400,7 +400,7 @@ export function ExpenseTracker({ projects, userId }: { projects: { projectId: st
       </Card>
       {/* Table listing saved expenses */}
       <Card accent>
-        <h3 className="text-xs sm:text-sm font-bold text-[#D9D9D9] mb-4">Saved Expenses</h3>
+        <h3 className="app-heading-3 text-[#D9D9D9] mb-4">Saved Expenses</h3>
         <table className="min-w-full border-collapse text-xs sm:text-sm">
           <thead>
             <tr>

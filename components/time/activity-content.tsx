@@ -54,7 +54,7 @@ function CollapsibleSection({
         className="w-full flex items-center justify-between text-left"
       >
         <div className="min-w-0">
-          <h2 className="text-sm sm:text-base font-bold">{title}</h2>
+          <h2 className="app-heading-3">{title}</h2>
           {subtitle && !collapsed && (
             <p className="text-xs sm:text-sm text-[#808080] mt-0.5">{subtitle}</p>
           )}
@@ -119,7 +119,7 @@ export function ActivityContent({
                 onClick={() => setStatsCollapsed((v) => !v)}
                 className="w-full flex items-center justify-between text-left mb-2"
               >
-                <h2 className="text-sm sm:text-base font-bold">Dashboard</h2>
+                <h2 className="app-heading-3">Dashboard</h2>
                 <span className="text-[#808080] hover:text-[#D9D9D9] transition-colors text-sm">
                   {statsCollapsed ? "▸" : "▾"}
                 </span>
@@ -179,7 +179,7 @@ export function ActivityContent({
           <Card accent>
             <div className="space-y-4">
               <div>
-                <h2 className="text-base sm:text-lg font-bold mb-2">Recent Entries</h2>
+                <h2 className="app-heading-2 mb-2">Recent Entries</h2>
                 <p className="text-xs sm:text-sm text-[#808080] mb-3">Your entries, scoped to your project assignments.</p>
               </div>
               <EntryTable

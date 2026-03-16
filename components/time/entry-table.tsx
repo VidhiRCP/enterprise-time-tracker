@@ -48,9 +48,9 @@ function effectiveDuration(entry: Entry): number {
 
 /* ── Source badge ── */
 function SourceBadge({ source }: { source: string }) {
-  if (source === "TIMER") {
+    if (source === "TIMER") {
     return (
-      <span className="inline-flex items-center gap-1 rounded-full bg-[#F40000]/15 px-2 py-0.5 text-xs font-bold text-[#F40000] border border-[#F40000]/30">
+      <span className="inline-flex items-center gap-1 rounded-full brand-soft px-2 py-0.5 text-xs font-bold brand-text border brand-border" style={{ borderStyle: 'solid', borderWidth: 1 }}>
         ⏱ Timer
       </span>
     );
@@ -126,9 +126,9 @@ function EditManualRow({
   }
 
   return (
-    <div className="border border-[#F40000]/30 bg-[#F40000]/5 p-3 space-y-2">
+    <div className="brand-border brand-soft p-3 space-y-2" style={{ borderStyle: 'solid', borderWidth: 1 }}>
       <div className="flex items-center justify-between">
-        <span className="text-xs sm:text-sm font-bold text-[#F40000] uppercase tracking-wider">Edit Manual Entry</span>
+        <span className="text-xs sm:text-sm font-bold brand-text uppercase tracking-wider">Edit Manual Entry</span>
         <button onClick={onClose} className="text-xs text-[#808080] hover:text-[#D9D9D9]">Cancel</button>
       </div>
       <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
@@ -157,7 +157,7 @@ function EditManualRow({
         <button
           onClick={handleSave}
           disabled={isPending}
-          className="bg-[#F40000] px-3 py-1.5 text-xs font-bold text-white hover:bg-[#F40000]/80 transition-colors disabled:opacity-40"
+          className="btn btn-sm btn-primary"
         >
           {isPending ? "Saving…" : "Save"}
         </button>
@@ -265,7 +265,7 @@ export function EntryTable({
     <div className="space-y-4 sm:space-y-5">
       {/* ── Calendar date badge ── */}
       {calendarDate && (
-        <div className="flex items-center gap-2 border border-[#F40000]/30 bg-[#F40000]/5 px-3 py-2">
+        <div className="flex items-center gap-2 brand-border brand-soft px-3 py-2" style={{ borderStyle: 'solid', borderWidth: 1 }}>
           <span className="text-sm text-[#D9D9D9]">
             📅 Showing entries for <span className="font-bold text-[#F8F8F8]">{format(new Date(calendarDate + "T12:00:00"), "EEEE, dd MMM yyyy")}</span>
           </span>
@@ -282,10 +282,10 @@ export function EntryTable({
       <div className="flex flex-wrap items-center gap-3">
         <button
           onClick={() => setFiltersOpen((v) => !v)}
-          className={`border px-2.5 py-1.5 text-xs font-medium transition-colors ${
+          className={`btn btn-sm transition-colors ${
             hasActiveFilters
-              ? "border-[#F40000]/40 text-[#F40000] bg-[#F40000]/5"
-              : "border-[#808080]/30 text-[#808080] hover:text-[#D9D9D9]"
+              ? "brand-border brand-text brand-soft"
+              : "btn-ghost"
           }`}
         >
           {filtersOpen ? "▾ Filter" : "▸ Filter"}{hasActiveFilters ? " · Active" : ""}

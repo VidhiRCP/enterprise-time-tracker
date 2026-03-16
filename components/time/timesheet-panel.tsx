@@ -177,7 +177,7 @@ export function TimesheetPanel({
     <div className="space-y-4 sm:space-y-5">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
         <div>
-          <h2 className="text-base sm:text-lg font-bold">Meeting Tracker</h2>
+          <h2 className="app-heading-2">Meeting Tracker</h2>
           <p className="mt-0.5 text-xs sm:text-sm text-[#D9D9D9]">
             This week&apos;s non-private calendar events. Allocate each to a project.
           </p>
@@ -201,7 +201,7 @@ export function TimesheetPanel({
       {groups.map((group) => (
         <Card accent className="p-7 mb-8" key={group.date}>
           <div className="flex items-center gap-4 mb-4">
-            <h3 className="text-xs sm:text-sm font-bold text-[#D9D9D9]">
+            <h3 className="app-heading-3 text-[#D9D9D9]">
               {format(new Date(group.date + "T12:00:00"), "EEEE, dd-MM-yyyy")}
             </h3>
             <div className="flex-1 border-t border-[#808080]/20" />

@@ -174,7 +174,7 @@ export function TimerPanel({
                 }
               });
             }}
-            className="bg-[#F40000] px-4 py-2 text-sm font-bold text-[#F8F8F8] hover:opacity-90 transition-opacity disabled:opacity-40"
+            className="btn btn-md btn-primary"
           >
             {getStartLabel()}
           </button>
@@ -193,7 +193,7 @@ export function TimerPanel({
                 }
               });
             }}
-            className="border border-[#808080]/30 px-4 py-2 text-sm font-medium text-[#D9D9D9] hover:text-[#F8F8F8] transition-colors disabled:opacity-40"
+            className="btn btn-md btn-ghost"
           >
             ⏸ Pause
           </button>
@@ -219,7 +219,7 @@ export function TimerPanel({
                 }
               });
             }}
-            className="border border-[#808080]/30 px-4 py-2 text-sm font-bold text-[#F8F8F8] hover:border-[#D9D9D9] transition-colors disabled:opacity-40"
+            className="btn btn-md btn-ghost"
           >
             💾 Save Session
           </button>
@@ -245,7 +245,7 @@ export function TimerPanel({
                 }
               });
             }}
-            className="border border-[#808080]/30 px-4 py-2 text-sm font-medium text-[#F40000] hover:opacity-80 transition-opacity disabled:opacity-40"
+            className="btn btn-md"
           >
             🗑 Discard
           </button>

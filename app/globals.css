@@ -20,6 +20,36 @@
     background-color: transparent;
   }
 
+  /* Design tokens */
+  :root {
+    --brand: #F40000;
+    --muted: #808080;
+    --muted-2: #D9D9D9;
+    --text: #F8F8F8;
+  }
+
+  /* Headings */
+  .app-heading-1 { @apply text-2xl sm:text-3xl md:text-4xl font-bold; color: var(--text); }
+  .app-heading-2 { @apply text-base sm:text-lg font-bold; color: var(--text); }
+  .app-heading-3 { @apply text-sm sm:text-base font-bold; color: var(--text); }
+
+  /* Labels */
+  .app-label { @apply text-sm font-medium; color: var(--muted-2); }
+
+  /* Buttons */
+  .btn { @apply inline-flex items-center justify-center rounded-md text-sm font-medium transition-all; }
+  .btn-sm { @apply px-3 py-1 text-xs; }
+  .btn-md { @apply px-4 py-2 text-sm; }
+  .btn-primary { background-color: var(--brand); color: var(--text); }
+  .btn-primary:hover { opacity: 0.92; }
+  .btn-ghost { background-color: transparent; color: var(--muted-2); border: 1px solid rgba(128,128,128,0.15); }
+  /* Brand utilities */
+  .brand { background-color: var(--brand); color: var(--text); }
+  .brand-soft { background-color: rgba(244,4,0,0.05); }
+  .brand-border { border-color: rgba(244,4,0,0.3); }
+  .brand-text { color: var(--brand); }
+  .brand-ring { box-shadow: 0 0 0 3px rgba(244,4,0,0.06); }
+
   html {
     font-size: 16px;
     -webkit-text-size-adjust: 100%;

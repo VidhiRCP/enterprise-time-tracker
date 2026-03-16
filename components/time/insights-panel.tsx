@@ -364,24 +364,14 @@ export function InsightsPanel({ data }: { data: InsightsData }) {
         </div>
 
         <div className="flex items-center gap-2 border border-[#808080]/10 rounded overflow-hidden">
-          <button
-            onClick={() => setViewMode('day')}
-            className={`px-3 py-1 text-sm ${viewMode === 'day' ? 'bg-[#F40000] text-white' : 'text-[#D9D9D9]'}`}
-          >
-            By Day
-          </button>
-          <button
-            onClick={() => setViewMode('project')}
-            className={`px-3 py-1 text-sm ${viewMode === 'project' ? 'bg-[#F40000] text-white' : 'text-[#D9D9D9]'}`}
-          >
-            By Project
-          </button>
+          <button onClick={() => setViewMode('day')} className={`btn btn-sm ${viewMode === 'day' ? 'btn-primary' : 'btn-ghost'}`}>By Day</button>
+          <button onClick={() => setViewMode('project')} className={`btn btn-sm ${viewMode === 'project' ? 'btn-primary' : 'btn-ghost'}`}>By Project</button>
         </div>
       </div>
       <Card accent className="p-7">
         <div className="mb-6">
           <div>
-            <h2 className="text-base sm:text-lg font-bold">Weekly Insights</h2>
+            <h2 className="app-heading-2">Weekly Insights</h2>
             <p className="mt-1 text-xs sm:text-sm text-[#808080]">Activity + Meetings combined</p>
           </div>
         </div>
@@ -411,7 +401,7 @@ export function InsightsPanel({ data }: { data: InsightsData }) {
         </div>
         {/* AI Insight Box */}
         {totalMinutes > 0 && (
-          <div className="border border-[#F40000]/30 bg-[#F40000]/5 px-5 py-4 sm:px-6 sm:py-5 mt-4">
+          <div className="brand-border brand-soft px-5 py-4 sm:px-6 sm:py-5 mt-4" style={{ borderStyle: 'solid', borderWidth: 1 }}>
             <div className="flex items-start gap-2">
               <span className="text-sm">✨</span>
               <div className="text-xs sm:text-sm text-[#D9D9D9] space-y-0.5">
@@ -429,7 +419,7 @@ export function InsightsPanel({ data }: { data: InsightsData }) {
         )}
       </Card>
       <Card accent className="p-7">
-        <h3 className="text-xs sm:text-sm font-bold text-[#D9D9D9] mb-4">By Project</h3>
+        <h3 className="app-heading-3 text-[#D9D9D9] mb-4">By Project</h3>
         <div className="pt-3">
           {/* Chart */}
           {viewMode === 'day' ? (
@@ -504,7 +494,7 @@ export function InsightsPanel({ data }: { data: InsightsData }) {
       </Card>
       <Card accent className="p-7">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-xs sm:text-sm font-bold text-[#D9D9D9]">Daily Breakdown</h3>
+          <h3 className="app-heading-3 text-[#D9D9D9]">Daily Breakdown</h3>
           <div className="relative">
             <button
               onClick={() => setExportMenuOpen((s) => !s)}
