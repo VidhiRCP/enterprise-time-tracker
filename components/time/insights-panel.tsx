@@ -59,6 +59,34 @@ const PROJECT_COLORS = [
   "#EC4899", "#14B8A6", "#F97316", "#6366F1", "#84CC16",
 ];
 
+/* ── Error Boundary (defined outside component to avoid re-creation each render) ── */
+class PanelErrorBoundary extends React.Component<
+  { children: React.ReactNode; fallback: React.ReactNode },
+  { hasError: boolean }
+> {
+  constructor(props: any) {
+    super(props);
+    this.state = { hasError: false };
+  }
+  static getDerivedStateFromError() {
+    return { hasError: true };
+  }
+  componentDidCatch(err: any) {
+    console.error('InsightsPanel caught error:', err);
+    try {
+      fetch('/api/dev/logs', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: String(err), stack: err?.stack ?? null, time: new Date().toISOString() }),
+      }).catch(() => {});
+    } catch (_) {}
+  }
+  render() {
+    if (this.state.hasError) return this.props.fallback;
+    return this.props.children;
+  }
+}
+
 /* ── Main Component ── */
 export function InsightsPanel({ data }: { data?: InsightsData }) {
   const { entries: initialEntries = [], allocations: initialAllocs = [], currentWeekISO } = data ?? {} as InsightsData;
@@ -309,73 +337,19 @@ export function InsightsPanel({ data }: { data?: InsightsData }) {
 
   const chartMax = Math.max(1, ...chartData.map((d) => d.total));
 
-  // Local Error Boundary to prevent a client-side exception from crashing the whole app
-  class PanelErrorBoundary extends React.Component<{ children: React.ReactNode }, { hasError: boolean }> {
-    constructor(props: any) {
-      super(props);
-      this.state = { hasError: false };
-    }
-    static getDerivedStateFromError() {
-      return { hasError: true };
-    }
-    componentDidCatch(err: any) {
-      console.error('InsightsPanel caught error:', err);
-      try {
-        fetch('/api/dev/logs', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ message: String(err), stack: err?.stack ?? null, time: new Date().toISOString() }),
-        }).catch(() => {});
-      } catch (_) {
-        // ignore
+  // Build project grouped view (must be before early return to respect Rules of Hooks)
+  const projectsGrouped = useMemo(() => {
+    const map = new Map<string, { projectName: string; days: { date: string; minutes: number }[]; totalMin: number }>();
+    for (const day of dailyBreakdown) {
+      for (const p of day.projects) {
+        const cur = map.get(p.projectId) ?? { projectName: p.projectName, days: [], totalMin: 0 };
+        cur.days.push({ date: day.date, minutes: p.totalMin });
+        cur.totalMin += p.totalMin;
+        map.set(p.projectId, cur);
       }
     }
-    render() {
-      if (this.state.hasError) {
-        return (
-          <div className="space-y-4">
-            <div className="flex items-center justify-end gap-4">
-              <div className="flex items-center gap-3">
-                <button
-                  onClick={() => setWeekOffset((o) => o - 1)}
-                  className="border border-[#808080]/30 px-3 py-1 text-sm text-[#D9D9D9] hover:text-[#F8F8F8] transition-colors rounded"
-                  title="Previous week"
-                  aria-label="Previous week"
-                >
-                  ‹
-                </button>
-                <div className="text-xs sm:text-sm font-medium text-[#D9D9D9] px-4 py-1 border border-[#808080]/10 rounded min-w-[180px] text-center">
-                  {weekLabel}
-                </div>
-                <button
-                  onClick={() => setWeekOffset((o) => o + 1)}
-                  disabled={weekOffset >= 0}
-                  className="border border-[#808080]/30 px-3 py-1 text-sm text-[#D9D9D9] hover:text-[#F8F8F8] transition-colors rounded disabled:opacity-30"
-                  title="Next week"
-                  aria-label="Next week"
-                >
-                  ›
-                </button>
-              </div>
-
-              <div className="flex items-center gap-2 border border-[#808080]/10 rounded overflow-hidden">
-                <button onClick={() => setViewMode('day')} className={`btn btn-sm ${viewMode === 'day' ? 'btn-primary' : 'btn-ghost'}`}>By Day</button>
-                <button onClick={() => setViewMode('project')} className={`btn btn-sm ${viewMode === 'project' ? 'btn-primary' : 'btn-ghost'}`}>By Project</button>
-              </div>
-            </div>
-
-            <div className="border border-dashed border-[#808080]/30 p-4 sm:p-6 text-center">
-              <p className="text-xs sm:text-sm font-bold text-[#D9D9D9]">No data yet</p>
-              <p className="mt-1 text-xs sm:text-sm text-[#808080]">
-                Track time with the Activity Tracker or allocate meetings in the Meeting Tracker.
-              </p>
-            </div>
-          </div>
-        );
-      }
-      return this.props.children as any;
-    }
-  }
+    return Array.from(map.entries()).map(([projectId, v]) => ({ projectId, projectName: v.projectName, days: v.days, totalMin: v.totalMin })).sort((a, b) => b.totalMin - a.totalMin);
+  }, [dailyBreakdown]);
 
   // No data at all
   const hasAnyData = entries.length > 0 || allocations.length > 0;
@@ -423,22 +397,16 @@ export function InsightsPanel({ data }: { data?: InsightsData }) {
     );
   }
 
-  // Build project grouped view
-  const projectsGrouped = useMemo(() => {
-    const map = new Map<string, { projectName: string; days: { date: string; minutes: number }[]; totalMin: number }>();
-    for (const day of dailyBreakdown) {
-      for (const p of day.projects) {
-        const cur = map.get(p.projectId) ?? { projectName: p.projectName, days: [], totalMin: 0 };
-        cur.days.push({ date: day.date, minutes: p.totalMin });
-        cur.totalMin += p.totalMin;
-        map.set(p.projectId, cur);
-      }
-    }
-    return Array.from(map.entries()).map(([projectId, v]) => ({ projectId, projectName: v.projectName, days: v.days, totalMin: v.totalMin })).sort((a, b) => b.totalMin - a.totalMin);
-  }, [dailyBreakdown]);
+  // Error boundary fallback UI
+  const errorFallback = (
+    <div className="border border-dashed border-[#808080]/30 p-6 text-center rounded-lg">
+      <p className="text-sm font-bold text-[#D9D9D9]">Something went wrong</p>
+      <p className="mt-1 text-xs sm:text-sm text-[#808080]">Please try changing the week or refreshing the page.</p>
+    </div>
+  );
 
   return (
-    <PanelErrorBoundary>
+    <PanelErrorBoundary fallback={errorFallback}>
       <div className="space-y-8">
       {/* Week nav moved outside the card to improve layout */}
       <div className="flex items-center justify-end gap-4">

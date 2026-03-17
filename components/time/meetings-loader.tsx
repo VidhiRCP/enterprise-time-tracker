@@ -104,9 +104,9 @@ export function MeetingsLoader({
       <div>
         <div className="flex items-center justify-end mb-3">
           <div className="flex items-center gap-2">
-            <button onClick={goPrevWeek} className="px-3 py-1.5 border border-[#808080]/30">‹</button>
-            <div className="px-4 py-1.5 border border-[#808080]/30">{weekLabel}</div>
-            <button onClick={goNextWeek} className="px-3 py-1.5 border border-[#808080]/30">›</button>
+            <button onClick={goPrevWeek} className="btn btn-sm btn-ghost">‹</button>
+            <div className="text-xs sm:text-sm font-medium text-[#D9D9D9] px-4 py-1 border border-[#808080]/10 rounded min-w-[180px] text-center">{weekLabel}</div>
+            <button onClick={goNextWeek} className="btn btn-sm btn-ghost">›</button>
           </div>
         </div>
         <div className="border border-dashed border-[#808080]/30 p-6 text-center">
@@ -121,9 +121,9 @@ export function MeetingsLoader({
       <div>
         <div className="flex items-center justify-end mb-3">
           <div className="flex items-center gap-2">
-            <button onClick={goPrevWeek} className="px-3 py-1.5 border border-[#808080]/30">‹</button>
-            <div className="px-4 py-1.5 border border-[#808080]/30">{weekLabel}</div>
-            <button onClick={goNextWeek} className="px-3 py-1.5 border border-[#808080]/30">›</button>
+            <button onClick={goPrevWeek} className="btn btn-sm btn-ghost">‹</button>
+            <div className="text-xs sm:text-sm font-medium text-[#D9D9D9] px-4 py-1 border border-[#808080]/10 rounded min-w-[180px] text-center">{weekLabel}</div>
+            <button onClick={goNextWeek} className="btn btn-sm btn-ghost">›</button>
           </div>
         </div>
         <div className="border border-dashed border-[#808080]/30 p-6 text-center">
@@ -131,13 +131,13 @@ export function MeetingsLoader({
           <div className="mt-3 flex items-center justify-center gap-3">
             <button
               onClick={() => fetchCalendar(weekStart)}
-              className="border border-[#808080]/30 px-3 py-1.5 text-xs sm:text-sm text-[#D9D9D9]"
+              className="btn btn-sm btn-ghost"
             >
               Retry
             </button>
             <button
               onClick={() => signIn(undefined, { callbackUrl: window.location.href })}
-              className="border border-[#808080]/30 px-3 py-1.5 text-xs sm:text-sm text-[#D9D9D9]"
+              className="btn btn-sm btn-primary"
             >
               Reconnect calendar
             </button>
@@ -154,9 +154,9 @@ export function MeetingsLoader({
     <div>
       <div className="flex items-center justify-end mb-3">
         <div className="flex items-center gap-3">
-          <button onClick={goPrevWeek} className="border border-[#808080]/30 px-3 py-1.5 rounded" title="Previous week" aria-label="Previous week">‹</button>
+          <button onClick={goPrevWeek} className="btn btn-sm btn-ghost" title="Previous week" aria-label="Previous week">‹</button>
           <div className="text-xs sm:text-sm font-medium text-[#D9D9D9] px-4 py-1 border border-[#808080]/10 rounded min-w-[180px] text-center">{weekLabel}</div>
-          <button onClick={goNextWeek} disabled={weekStart >= currentWeekStart} className="border border-[#808080]/30 px-3 py-1.5 rounded disabled:opacity-30" title="Next week" aria-label="Next week">›</button>
+          <button onClick={goNextWeek} disabled={weekStart >= currentWeekStart} className="btn btn-sm btn-ghost disabled:opacity-30" title="Next week" aria-label="Next week">›</button>
         </div>
       </div>
       <TimesheetPanel
