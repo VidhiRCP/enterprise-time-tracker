@@ -102,14 +102,14 @@ export function ManualEntryForm({ projects }: { projects: ProjectOption[] }) {
             <button
               type="button"
               onClick={() => setMode("duration")}
-              className={`btn btn-sm ${mode === "duration" ? 'btn-primary' : 'btn-ghost'}`}
+              className={`btn btn-sm rounded-none ${mode === "duration" ? 'btn-primary' : 'btn-ghost'}`}
             >
               Duration
             </button>
             <button
               type="button"
               onClick={() => setMode("range")}
-              className={`btn btn-sm border-l border-[#808080]/30 ${mode === "range" ? 'btn-primary' : 'btn-ghost'}`}
+              className={`btn btn-sm rounded-none border-l border-[#808080]/30 ${mode === "range" ? 'btn-primary' : 'btn-ghost'}`}
             >
               Start / End
             </button>
