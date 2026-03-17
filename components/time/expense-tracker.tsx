@@ -298,15 +298,6 @@ export function ExpenseTracker({ projects, userId }: { projects: { projectId: st
                     <DateInput value={form.expenseDate} onChange={(v) => setForm(prev => ({ ...prev, expenseDate: v }))} placeholder="Date" />
                   </div>
               </div>
-              {/* Debug: raw extraction JSON (toggleable) */}
-              {extraction && (
-                <div className="mt-3 text-xs text-[#808080]">
-                  <details>
-                    <summary className="cursor-pointer">Show raw extraction JSON</summary>
-                    <pre className="whitespace-pre-wrap break-all mt-2 p-2 bg-[#0b0b0b] border border-[#333] text-[11px]">{JSON.stringify(rawResponse ?? extraction, null, 2)}</pre>
-                  </details>
-                </div>
-              )}
               
               <div>
                 <label className="text-xs font-bold mb-1 block">Amount</label>
@@ -377,7 +368,7 @@ export function ExpenseTracker({ projects, userId }: { projects: { projectId: st
                     setConfirmed(false);
                     setError(null);
                   }}
-                  className="ml-3 btn btn-sm btn-ghost"
+                  className="ml-3 btn btn-md btn-ghost"
                 >
                   Discard
                 </button>

@@ -1,9 +1,10 @@
 "use client";
 
-import { format, startOfWeek, endOfWeek, isWithinInterval, parseISO } from "date-fns";
-import { useState, useTransition, useMemo, useCallback } from "react";
-import { formatMinutes, localDateInputValue } from "@/lib/time";
+import { format, startOfWeek, endOfWeek } from "date-fns";
+import { useState, useTransition, useMemo } from "react";
+import { formatMinutes } from "@/lib/time";
 import { deleteTimeEntry, updateManualEntry } from "@/lib/actions";
+import { useDashboardFilter } from "@/lib/dashboard-filter-context";
 import DateInput from "../ui/date-input";
 
 type Entry = {
@@ -188,36 +189,22 @@ export function EntryTable({
   calendarDate?: string | null;
   onClearCalendarDate?: () => void;
 }) {
-  const [filterProject, setFilterProject] = useState("ALL");
-  const [filterFrom, setFilterFrom] = useState("");
-  const [filterTo, setFilterTo] = useState("");
+  const { projectFilter } = useDashboardFilter();
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [filtersOpen, setFiltersOpen] = useState(false);
 
-  const hasActiveFilters = filterProject !== "ALL" || filterFrom !== "" || filterTo !== "";
-
-  // Filter entries
+  // Filter entries by shared project filter + calendar date
   const filtered = useMemo(() => {
     return entries.filter((e) => {
-      if (filterProject !== "ALL" && e.project.projectId !== filterProject) return false;
-      const d = new Date(e.workDate);
+      if (projectFilter !== "ALL" && e.project.projectId !== projectFilter) return false;
       // Calendar date filter (from sidebar)
       if (calendarDate) {
-        const entryDate = d.toISOString().slice(0, 10);
+        const d = new Date(e.workDate);
+        const entryDate = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
         if (entryDate !== calendarDate) return false;
-      }
-      if (filterFrom) {
-        const from = parseISO(filterFrom);
-        if (d < from) return false;
-      }
-      if (filterTo) {
-        const to = parseISO(filterTo);
-        to.setHours(23, 59, 59, 999);
-        if (d > to) return false;
       }
       return true;
     });
-  }, [entries, filterProject, filterFrom, filterTo, calendarDate]);
+  }, [entries, projectFilter, calendarDate]);
 
   // Group by week (Monday start)
   const weekGroups = useMemo(() => {
@@ -241,15 +228,6 @@ export function EntryTable({
       (a, b) => b.weekStart.getTime() - a.weekStart.getTime()
     );
   }, [filtered]);
-
-  // Get unique projects from entries for filter dropdown
-  const uniqueProjects = useMemo(() => {
-    const map = new Map<string, string>();
-    for (const e of entries) {
-      map.set(e.project.projectId, e.project.projectName);
-    }
-    return Array.from(map.entries());
-  }, [entries]);
 
   // Export removed from per-table UI. Use centralized Export Data dialog instead.
 
@@ -278,67 +256,12 @@ export function EntryTable({
         </div>
       )}
 
-      {/* ── Filter toolbar ── */}
-      <div className="flex flex-wrap items-center gap-3">
-        <button
-          onClick={() => setFiltersOpen((v) => !v)}
-          className={`btn btn-sm transition-colors ${
-            hasActiveFilters
-              ? "brand-border brand-text brand-soft"
-              : "btn-ghost"
-          }`}
-        >
-          {filtersOpen ? "▾ Filter" : "▸ Filter"}{hasActiveFilters ? " · Active" : ""}
-        </button>
-        {hasActiveFilters && (
-          <button
-            onClick={() => { setFilterProject("ALL"); setFilterFrom(""); setFilterTo(""); }}
-            className="text-xs text-[#808080] hover:text-[#F40000] transition-colors"
-          >
-            ✕ Clear
-          </button>
-        )}
-          <div className="ml-auto flex items-center gap-3">
-          <span className="text-xs text-[#808080]">
-            {filtered.length} {filtered.length === 1 ? "entry" : "entries"} · {formatMinutes(filtered.reduce((s, e) => s + effectiveDuration(e), 0))}
-          </span>
-        </div>
+      {/* ── Entry count summary ── */}
+      <div className="flex items-center gap-3">
+        <span className="text-xs text-[#808080]">
+          {filtered.length} {filtered.length === 1 ? "entry" : "entries"} · {formatMinutes(filtered.reduce((s, e) => s + effectiveDuration(e), 0))}
+        </span>
       </div>
-
-      {/* Collapsible filter fields */}
-      {filtersOpen && (
-        <div className="flex flex-wrap items-end gap-3 border-l-2 border-l-[#F40000]/30 pl-3">
-          <div className="space-y-1">
-            <label className="text-xs font-medium text-[#D9D9D9]">Project</label>
-            <select
-              value={filterProject}
-              onChange={(e) => setFilterProject(e.target.value)}
-              className="w-full border border-[#808080]/30 bg-black px-2.5 py-1.5 text-xs focus:border-[#F40000] focus:outline-none app-input"
-            >
-              <option value="ALL">All projects</option>
-              {uniqueProjects.map(([id, name]) => (
-                <option key={id} value={id}>{name} ({id})</option>
-              ))}
-            </select>
-          </div>
-          <div className="space-y-1">
-            <label className="text-xs font-medium text-[#D9D9D9]">From</label>
-            <DateInput
-              value={filterFrom}
-              onChange={(v) => setFilterFrom(v)}
-              className="w-full"
-            />
-          </div>
-          <div className="space-y-1">
-            <label className="text-xs font-medium text-[#D9D9D9]">To</label>
-            <DateInput
-              value={filterTo}
-              onChange={(v) => setFilterTo(v)}
-              className="w-full"
-            />
-          </div>
-        </div>
-      )}
 
       {/* ── Weekly grouped entries ── */}
       {weekGroups.length === 0 && (

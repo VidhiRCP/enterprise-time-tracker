@@ -3,14 +3,23 @@
 import React, { createContext, useContext, useState, useMemo } from "react";
 import { format, addDays } from "date-fns";
 
-/* ── Week helpers ── */
+/* ── helpers ── */
+/** Format a local Date as "YYYY-MM-DD" without UTC conversion */
+function toLocalISO(d: Date) {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const dd = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${dd}`;
+}
+
+/** Return ISO Monday string for the week containing `d` (local time) */
 function startOfWeekISO(d: Date) {
-  const dayOfWeek = d.getDay();
+  const dayOfWeek = d.getDay(); // 0=Sun … 6=Sat
   const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
   const monday = new Date(d);
   monday.setDate(d.getDate() + mondayOffset);
   monday.setHours(0, 0, 0, 0);
-  return monday.toISOString().slice(0, 10);
+  return toLocalISO(monday);
 }
 
 /* ── Context shape ── */
@@ -46,7 +55,7 @@ export function DashboardFilterProvider({ children }: { children: React.ReactNod
     setWeekStart((w) => {
       const d = new Date(w + "T00:00:00");
       d.setDate(d.getDate() - 7);
-      return d.toISOString().slice(0, 10);
+      return toLocalISO(d);
     });
   }
 
@@ -54,13 +63,13 @@ export function DashboardFilterProvider({ children }: { children: React.ReactNod
     setWeekStart((w) => {
       const d = new Date(w + "T00:00:00");
       d.setDate(d.getDate() + 7);
-      return d.toISOString().slice(0, 10);
+      return toLocalISO(d);
     });
   }
 
   const weekEnd = useMemo(() => {
     const d = new Date(weekStart + "T00:00:00");
-    return addDays(d, 6).toISOString().slice(0, 10);
+    return toLocalISO(addDays(d, 6));
   }, [weekStart]);
 
   const weekLabel = useMemo(() => {
