@@ -111,3 +111,14 @@ export function openTimerPopup() {
 
   return _popupWindow;
 }
+
+export function closeTimerPopup() {
+  if (_popupWindow && !_popupWindow.closed) {
+    _popupWindow.close();
+  }
+  _popupWindow = null;
+}
+
+export function isTimerPopupOpen(): boolean {
+  return !!_popupWindow && !_popupWindow.closed;
+}

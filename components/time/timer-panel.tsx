@@ -13,6 +13,8 @@ import {
   broadcastTimerState,
   onTimerCommand,
   openTimerPopup,
+  closeTimerPopup,
+  isTimerPopupOpen,
   type TimerState,
 } from "@/lib/timer-broadcast";
 
@@ -45,10 +47,19 @@ export function TimerPanel({
   const [tick, setTick] = useState(0);
   const [lastAutosaved, setLastAutosaved] = useState<Date | null>(null);
   const [notesError, setNotesError] = useState("");
+  const [popupOpen, setPopupOpen] = useState(false);
 
   // Tick every second for live timer
   useEffect(() => {
     const id = window.setInterval(() => setTick((v) => v + 1), 1000);
+    return () => window.clearInterval(id);
+  }, []);
+
+  // Poll popup window open state so the toggle stays in sync
+  useEffect(() => {
+    const id = window.setInterval(() => {
+      setPopupOpen(isTimerPopupOpen());
+    }, 500);
     return () => window.clearInterval(id);
   }, []);
 
@@ -236,16 +247,7 @@ export function TimerPanel({
       {/* ── Row 1: Timer display + action buttons ── */}
       <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
         <div className="min-w-0">
-          <div className="flex items-center gap-2">
-            <div className="text-sm sm:text-base font-bold">Current timer</div>
-            <button
-              onClick={() => openTimerPopup()}
-              className="text-xs text-[#808080] hover:text-[#D9D9D9] transition-colors"
-              title="Pop out timer"
-            >
-              ⧉
-            </button>
-          </div>
+          <div className="text-sm sm:text-base font-bold">Current timer</div>
           <div className="text-3xl sm:text-4xl font-bold tracking-tight tabular-nums mt-1">
             {formatSeconds(elapsedSeconds)}
           </div>
@@ -411,6 +413,39 @@ export function TimerPanel({
             <p className="text-xs text-[#F40000]">{notesError}</p>
           )}
         </div>
+      </div>
+
+      {/* ── Pop-out timer toggle ── */}
+      <div className="flex items-center justify-between border border-[#808080]/15 px-3 py-2.5">
+        <div className="flex items-center gap-2.5">
+          <span className="text-sm">⧉</span>
+          <div>
+            <div className="text-xs sm:text-sm font-medium text-[#D9D9D9]">Floating Timer</div>
+            <div className="text-[10px] sm:text-xs text-[#808080]">
+              {popupOpen ? "Mini timer window is open" : "Open a small pop-out timer window"}
+            </div>
+          </div>
+        </div>
+        <button
+          onClick={() => {
+            if (popupOpen) {
+              closeTimerPopup();
+              setPopupOpen(false);
+            } else {
+              openTimerPopup();
+              setPopupOpen(true);
+            }
+          }}
+          className={`relative inline-flex h-5 w-9 shrink-0 items-center transition-colors ${
+            popupOpen ? "bg-[#F40000]" : "bg-[#808080]/30"
+          }`}
+        >
+          <span
+            className={`inline-block h-3.5 w-3.5 bg-white transition-transform ${
+              popupOpen ? "translate-x-[18px]" : "translate-x-[3px]"
+            }`}
+          />
+        </button>
       </div>
     </div>
   );

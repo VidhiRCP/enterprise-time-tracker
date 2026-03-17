@@ -96,12 +96,10 @@ export default function TimerPopupPage() {
     if (confirm("Discard this session?")) sendTimerCommand({ type: "discard" });
   }, []);
 
-  // Status colour
-  const statusColor = isRunning
-    ? "#F40000"
-    : isPaused
-      ? "#808080"
-      : "#333";
+  // Status colour + label
+  const statusColor = isRunning ? "#F40000" : isPaused ? "#D4A017" : "#333";
+  const statusBg    = isRunning ? "rgba(244,0,0,0.12)" : isPaused ? "rgba(212,160,23,0.10)" : "rgba(128,128,128,0.06)";
+  const statusLabel = isRunning ? "Session Running" : isPaused ? "Session Paused" : "No Active Session";
 
   return (
     <div
@@ -115,54 +113,63 @@ export default function TimerPopupPage() {
         flexDirection: "column",
       }}
     >
-      {/* ── Title bar (draggable) ── */}
+      {/* ── Status banner — full-width colour bar ── */}
       <div
         style={{
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
-          padding: "8px 12px",
-          borderBottom: "1px solid rgba(128,128,128,0.2)",
-          cursor: "default",
+          padding: "7px 12px",
+          background: statusBg,
+          borderBottom: `2px solid ${statusColor}`,
           userSelect: "none",
         } as React.CSSProperties}
       >
-        <span style={{ fontSize: 11, fontWeight: 700, color: "#808080", letterSpacing: "0.05em", textTransform: "uppercase" }}>
-          RCP Timer
-        </span>
-        <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
+          {/* Pulsing dot for running, static for paused, dim for idle */}
           <span
             style={{
-              width: 7,
-              height: 7,
-              borderRadius: 0,
+              width: 8,
+              height: 8,
               background: statusColor,
               display: "inline-block",
+              animation: isRunning ? "pulse 1.4s ease-in-out infinite" : "none",
             }}
           />
-          <span style={{ fontSize: 10, color: "#808080" }}>
-            {isRunning ? "Running" : isPaused ? "Paused" : "Idle"}
+          <span style={{ fontSize: 11, fontWeight: 700, color: isIdle ? "#808080" : "#F8F8F8", letterSpacing: "0.03em" }}>
+            {statusLabel}
           </span>
         </div>
+        <span style={{ fontSize: 9, fontWeight: 600, color: "#808080", letterSpacing: "0.06em", textTransform: "uppercase" }}>
+          RCP Timer
+        </span>
       </div>
 
       {/* ── Main content ── */}
-      <div style={{ flex: 1, padding: "16px 16px 12px" }}>
-        {/* Project name */}
-        <div style={{ fontSize: 12, color: "#D9D9D9", marginBottom: 4, fontWeight: 600 }}>
-          {hasSession ? projectName : "No active timer"}
-        </div>
+      <div style={{ flex: 1, padding: "14px 14px 10px" }}>
+        {/* Project name / idle label */}
+        {hasSession ? (
+          <div style={{ fontSize: 12, color: "#D9D9D9", marginBottom: 2, fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+            {projectName}
+            <span style={{ fontSize: 10, color: "#808080", fontWeight: 400, marginLeft: 6 }}>({state.projectId})</span>
+          </div>
+        ) : (
+          <div style={{ fontSize: 12, color: "#808080", marginBottom: 2, fontWeight: 500 }}>
+            Select a project to start tracking
+          </div>
+        )}
 
         {/* Timer display */}
         <div
           style={{
-            fontSize: 38,
+            fontSize: 40,
             fontWeight: 700,
             letterSpacing: "-0.02em",
             fontVariantNumeric: "tabular-nums",
             color: isRunning ? "#F8F8F8" : isPaused ? "#D9D9D9" : "#333",
             lineHeight: 1.1,
-            marginBottom: 16,
+            marginTop: 4,
+            marginBottom: 14,
           }}
         >
           {formatSeconds(elapsed)}
@@ -172,7 +179,6 @@ export default function TimerPopupPage() {
         <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
           {isIdle && (
             <>
-              {/* Project selector */}
               <select
                 value={effectiveProject}
                 onChange={(e) => setSelectedProject(e.target.value)}
@@ -222,38 +228,20 @@ export default function TimerPopupPage() {
                 💾 Save
               </button>
               <button onClick={handleDiscard} style={btnStyle("transparent", "#808080", true)}>
-                ✕
+                ✕ Discard
               </button>
             </>
           )}
         </div>
-
-        {/* Project switcher when session active */}
-        {hasSession && (
-          <div style={{ marginTop: 12, display: "flex", alignItems: "center", gap: 6 }}>
-            <select
-              value={state.projectId}
-              disabled
-              style={{
-                flex: 1,
-                minWidth: 0,
-                background: "#0a0a0a",
-                border: "1px solid rgba(128,128,128,0.15)",
-                color: "#808080",
-                fontSize: 10,
-                padding: "4px 6px",
-                outline: "none",
-              }}
-            >
-              {state.projects.map((p) => (
-                <option key={p.projectId} value={p.projectId}>
-                  {p.projectName}
-                </option>
-              ))}
-            </select>
-          </div>
-        )}
       </div>
+
+      {/* Pulse animation keyframes */}
+      <style>{`
+        @keyframes pulse {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.35; }
+        }
+      `}</style>
     </div>
   );
 }
