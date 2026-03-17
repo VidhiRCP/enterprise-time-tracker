@@ -6,9 +6,9 @@ import { DashboardFilterProvider, useDashboardFilter } from "@/lib/dashboard-fil
 const TABS = [
   { key: "activity", label: "Activity Tracker" },
   { key: "meetings", label: "Meeting Tracker" },
-  { key: "insights", label: "Insights" },
-  { key: "aliases", label: "Project Aliases" },
   { key: "expenses", label: "Expense Tracker" },
+  { key: "aliases", label: "Project Aliases" },
+  { key: "insights", label: "Insights" },
 ] as const;
 
 type TabKey = (typeof TABS)[number]["key"];
