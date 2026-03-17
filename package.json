@@ -6,8 +6,7 @@
     "dev": "next dev",
     "build": "prisma generate && next build",
     "postinstall": "prisma generate",
-    "start": "next start",
-    "import:assignments": "tsx scripts/import-assignments.ts"
+    "start": "next start"
   },
   "dependencies": {
     "@prisma/client": "^6.0.0",
@@ -38,6 +37,7 @@
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
     "prisma": "^6.0.0",
+    "puppeteer": "^24.39.1",
     "tsx": "^4.19.2",
     "typescript": "^5.6.3"
   }

@@ -320,6 +320,15 @@ export function InsightsPanel({ data }: { data?: InsightsData }) {
     }
     componentDidCatch(err: any) {
       console.error('InsightsPanel caught error:', err);
+      try {
+        fetch('/api/dev/logs', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ message: String(err), stack: err?.stack ?? null, time: new Date().toISOString() }),
+        }).catch(() => {});
+      } catch (_) {
+        // ignore
+      }
     }
     render() {
       if (this.state.hasError) {
