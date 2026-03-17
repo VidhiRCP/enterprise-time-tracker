@@ -52,8 +52,7 @@ export function ProjectAliases({ assignments }: { assignments: AliasEntry[] }) {
       <div>
         <h2 className="app-heading-2">Project Aliases</h2>
         <p className="mt-1 text-xs sm:text-sm text-[#D9D9D9]">
-          Add comma-separated keywords for each project. These are used to auto-suggest projects
-          for your calendar meetings based on the meeting subject.
+          Add comma-separated keywords for each project.
         </p>
       </div>
 

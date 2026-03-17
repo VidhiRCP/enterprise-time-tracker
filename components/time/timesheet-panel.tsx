@@ -161,7 +161,7 @@ export function TimesheetPanel({
           No calendar events found for this week.
         </p>
         <p className="mt-1 text-xs sm:text-sm text-[#808080]/60">
-          Make sure your Outlook calendar has events this week (Mon–Sun).
+          Make sure your Outlook calendar shows events for this week, or please sign in again.
         </p>
       </div>
     );

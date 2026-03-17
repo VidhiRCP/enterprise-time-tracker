@@ -189,22 +189,28 @@ export function EntryTable({
   calendarDate?: string | null;
   onClearCalendarDate?: () => void;
 }) {
-  const { projectFilter } = useDashboardFilter();
+  const { projectFilter, weekStart, weekEnd } = useDashboardFilter();
   const [editingId, setEditingId] = useState<string | null>(null);
 
-  // Filter entries by shared project filter + calendar date
+  // Filter entries by shared project filter, week range, and calendar date
   const filtered = useMemo(() => {
     return entries.filter((e) => {
       if (projectFilter !== "ALL" && e.project.projectId !== projectFilter) return false;
-      // Calendar date filter (from sidebar)
+
+      // Calendar date filter (from sidebar) takes priority over week filter
       if (calendarDate) {
         const d = new Date(e.workDate);
         const entryDate = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
         if (entryDate !== calendarDate) return false;
+      } else {
+        // Week filter from shared context
+        const d = new Date(e.workDate);
+        const entryDate = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+        if (entryDate < weekStart || entryDate > weekEnd) return false;
       }
       return true;
     });
-  }, [entries, projectFilter, calendarDate]);
+  }, [entries, projectFilter, calendarDate, weekStart, weekEnd]);
 
   // Sort entries by date descending (most recent first)
   const sorted = useMemo(() => {
@@ -278,7 +284,7 @@ export function EntryTable({
                         {entry.source === "MANUAL" && (
                           <button
                             onClick={() => setEditingId(entry.id)}
-                            className="text-xs text-[#808080] hover:text-[#D9D9D9] transition-colors"
+                            className="btn-edit"
                             title="Edit entry"
                           >
                             ✎
@@ -363,7 +369,7 @@ export function EntryTable({
                           {entry.source === "MANUAL" && (
                             <button
                               onClick={() => setEditingId(entry.id)}
-                              className="text-xs text-[#808080] hover:text-[#D9D9D9] transition-colors"
+                              className="btn-edit"
                               title="Edit entry"
                             >
                               ✎

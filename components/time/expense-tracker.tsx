@@ -351,13 +351,13 @@ export function ExpenseTracker({ projects, userId }: { projects: { projectId: st
                   className="btn btn-md btn-primary"
                 >
                   {isSaving ? "Saving…" : "Save Expense"}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    // discard pending upload and reset form
-                    try { if (previewUrl) { URL.revokeObjectURL(previewUrl); } } catch {}
-                    setFile(null);
+                    <button
+                      onClick={() => setEditingExpenseId(row.id)}
+                      className="btn-edit"
+                      title="Edit expense"
+                    >
+                      ✎
+                    </button>
                     setPendingFile(null);
                     setExtraction(null);
                     setPreviewUrl(null);
@@ -371,13 +371,13 @@ export function ExpenseTracker({ projects, userId }: { projects: { projectId: st
                   className="ml-3 btn btn-md btn-ghost"
                 >
                   Discard
-                </button>
-
-                <div className="text-xs text-[#808080]">{form.receiptFileName ? `File: ${form.receiptFileName}` : ''}</div>
-              </div>
-            </form>
-
-            <aside className="md:col-span-1 bg-[#121212] border border-[#808080]/10 p-3">
+                  <button
+                    onClick={() => setEditingExpenseId(row.id)}
+                    className="btn-edit"
+                    title="Edit expense"
+                  >
+                    ✎
+                  </button>
               <div className="text-xs font-bold text-[#D9D9D9] mb-2">Preview</div>
               <div className="mb-3">
                 {previewUrl ? (
