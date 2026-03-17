@@ -351,13 +351,10 @@ export function ExpenseTracker({ projects, userId }: { projects: { projectId: st
                   className="btn btn-md btn-primary"
                 >
                   {isSaving ? "Saving…" : "Save Expense"}
-                    <button
-                      onClick={() => setEditingExpenseId(row.id)}
-                      className="btn-edit"
-                      title="Edit expense"
-                    >
-                      ✎
-                    </button>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
                     setPendingFile(null);
                     setExtraction(null);
                     setPreviewUrl(null);
@@ -371,13 +368,10 @@ export function ExpenseTracker({ projects, userId }: { projects: { projectId: st
                   className="ml-3 btn btn-md btn-ghost"
                 >
                   Discard
-                  <button
-                    onClick={() => setEditingExpenseId(row.id)}
-                    className="btn-edit"
-                    title="Edit expense"
-                  >
-                    ✎
-                  </button>
+                </button>
+              </div>
+            </form>
+            <aside>
               <div className="text-xs font-bold text-[#D9D9D9] mb-2">Preview</div>
               <div className="mb-3">
                 {previewUrl ? (
@@ -441,7 +435,7 @@ export function ExpenseTracker({ projects, userId }: { projects: { projectId: st
                           setPendingFile(null);
                           setEditModalOpen(true);
                         }}
-                        className="text-xs text-[#808080] hover:text-[#D9D9D9] transition-colors"
+                        className="btn-edit"
                         title="Edit expense"
                       >
                         ✎
@@ -503,7 +497,7 @@ export function ExpenseTracker({ projects, userId }: { projects: { projectId: st
                                 setPendingFile(null);
                                 setEditModalOpen(true);
                               }}
-                              className="text-xs text-[#808080] hover:text-[#D9D9D9] transition-colors"
+                              className="btn-edit"
                               title="Edit expense"
                             >
                               ✎

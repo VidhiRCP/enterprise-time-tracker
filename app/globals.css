@@ -36,16 +36,20 @@
   /* Labels */
   .app-label { @apply text-sm font-medium; color: var(--muted-2); }
 
-  /* Buttons */
-  .btn { @apply inline-flex items-center justify-center rounded-md text-sm font-medium transition-all; }
+  /* Buttons — shared states */
+  .btn { @apply inline-flex items-center justify-center rounded-none text-sm font-medium transition-all cursor-pointer; }
+  .btn:hover { opacity: 0.85; }
+  .btn:active { opacity: 0.7; transform: scale(0.98); }
+  .btn:disabled { opacity: 0.35; cursor: not-allowed; pointer-events: none; }
   .btn-sm { @apply px-3 py-1.5 text-xs; min-height: 2rem; }
   .btn-md { @apply px-4 py-2 text-sm; min-height: 2.5rem; }
   .btn-primary { border-color: var(--brand); color: var(--text); border-width: thin; background-color: transparent; }
-  .btn-primary:hover { opacity: 0.92; }
   .btn-ghost { background-color: transparent; color: var(--muted-2); border: 0.5px solid; }
   /* Edit icon button — white and slightly larger */
-  .btn-edit { background: transparent; color: var(--text); font-size: 0.95rem; padding: 0.35rem 0.55rem; min-height: 2.25rem; display: inline-flex; align-items: center; justify-content: center; border-radius: 0.25rem; }
-  .btn-edit:hover { opacity: 0.9; }
+  .btn-edit { background: transparent; color: var(--text); font-size: 0.95rem; padding: 0.35rem 0.55rem; min-height: 2.25rem; display: inline-flex; align-items: center; justify-content: center; border-radius: 0; cursor: pointer; transition: all 0.15s ease; }
+  .btn-edit:hover { opacity: 0.85; }
+  .btn-edit:active { opacity: 0.7; transform: scale(0.95); }
+  .btn-edit:disabled { opacity: 0.35; cursor: not-allowed; pointer-events: none; }
   /* Brand utilities */
   .brand { background-color: var(--brand); color: var(--text); }
   .brand-soft { background-color: rgba(244,4,0,0.05); }
