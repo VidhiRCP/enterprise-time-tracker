@@ -175,6 +175,7 @@ export default async function HomePage() {
         <DashboardTabs
           hasProjects={hasProjects}
           recoveredSession={!!data.session}
+          projectOptions={projectOptions}
           activityContent={
             !hasProjects ? (
               <div className="py-6 sm:py-8 text-center">

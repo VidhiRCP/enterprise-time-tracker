@@ -2,35 +2,20 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { signIn } from "next-auth/react";
-import { format } from "date-fns";
 import { TimesheetPanel } from "./timesheet-panel";
+import { useDashboardFilter } from "@/lib/dashboard-filter-context";
 import type { GroupedEvents } from "@/lib/calendar";
-
-function startOfWeekISO(d: Date) {
-  const dayOfWeek = d.getDay();
-  const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
-  const monday = new Date(d);
-  monday.setDate(d.getDate() + mondayOffset);
-  monday.setHours(0, 0, 0, 0);
-  return monday.toISOString().slice(0, 10);
-}
-
-function addDaysISO(isoDate: string, days: number) {
-  const d = new Date(isoDate + "T00:00:00");
-  d.setDate(d.getDate() + days);
-  return d.toISOString().slice(0, 10);
-}
 
 export function MeetingsLoader({
   projects,
 }: {
   projects: { projectId: string; projectName: string }[];
 }) {
+  const { weekStart } = useDashboardFilter();
   const [groups, setGroups] = useState<GroupedEvents[]>([]);
   const [loading, setLoading] = useState(true);
   const [hasToken, setHasToken] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
-  const [weekStart, setWeekStart] = useState<string>(() => startOfWeekISO(new Date()));
   const [attemptedSessionRefresh, setAttemptedSessionRefresh] = useState(false);
 
   const fetchCalendar = useCallback(async (week?: string, { retryOnNoToken } = { retryOnNoToken: true }) => {
@@ -50,7 +35,6 @@ export function MeetingsLoader({
       setGroups(json.groups ?? []);
       setHasToken(!!json.hasToken);
 
-      // If server reports there's no token available, try a short session refresh and retry once
       if (!json.hasToken && retryOnNoToken && !attemptedSessionRefresh) {
         setAttemptedSessionRefresh(true);
         try {
@@ -69,103 +53,49 @@ export function MeetingsLoader({
     }
   }, []);
 
-  function formatWeekLabel(startIso: string) {
-    const s = new Date(startIso + "T00:00:00");
-    const e = new Date(s);
-    e.setDate(s.getDate() + 6);
-    const startFmt = format(s, "d MMM");
-    const endFmt = format(e, "d MMM yyyy");
-    return `${startFmt} – ${endFmt}`;
-  }
-
+  // Re-fetch whenever shared weekStart changes
   useEffect(() => {
     fetchCalendar(weekStart);
   }, [fetchCalendar, weekStart]);
 
-  function goPrevWeek() {
-    setWeekStart((w) => addDaysISO(w, -7));
-  }
-
-  function goNextWeek() {
-    setWeekStart((w) => addDaysISO(w, 7));
-  }
-
-  function onDateChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const val = e.target.value; // yyyy-mm-dd
-    // convert selected date to week start (monday)
-    const d = new Date(val + "T00:00:00");
-    setWeekStart(startOfWeekISO(d));
-  }
-
-  const weekLabel = formatWeekLabel(weekStart);
-
   if (loading) {
     return (
-      <div>
-        <div className="flex items-center justify-end mb-3">
-          <div className="flex items-center gap-2">
-            <button onClick={goPrevWeek} className="btn btn-sm btn-ghost">‹</button>
-            <div className="text-xs sm:text-sm font-medium text-[#D9D9D9] px-4 py-1 border border-[#808080]/10 rounded min-w-[180px] text-center">{weekLabel}</div>
-            <button onClick={goNextWeek} className="btn btn-sm btn-ghost">›</button>
-          </div>
-        </div>
-        <div className="border border-dashed border-[#808080]/30 p-6 text-center">
-          <div className="text-xs sm:text-sm text-[#808080]">Loading calendar events…</div>
-        </div>
+      <div className="border border-dashed border-[#808080]/30 p-6 text-center">
+        <div className="inline-block h-5 w-5 animate-spin rounded-full border-2 border-[#808080]/30 border-t-[#F40000]" />
+        <p className="mt-2 text-xs sm:text-sm text-[#808080]">Loading calendar events…</p>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div>
-        <div className="flex items-center justify-end mb-3">
-          <div className="flex items-center gap-2">
-            <button onClick={goPrevWeek} className="btn btn-sm btn-ghost">‹</button>
-            <div className="text-xs sm:text-sm font-medium text-[#D9D9D9] px-4 py-1 border border-[#808080]/10 rounded min-w-[180px] text-center">{weekLabel}</div>
-            <button onClick={goNextWeek} className="btn btn-sm btn-ghost">›</button>
-          </div>
-        </div>
-        <div className="border border-dashed border-[#808080]/30 p-6 text-center">
-          <div className="text-xs sm:text-sm text-[#808080]">Failed to load calendar events: {error}</div>
-          <div className="mt-3 flex items-center justify-center gap-3">
-            <button
-              onClick={() => fetchCalendar(weekStart)}
-              className="btn btn-sm btn-ghost"
-            >
-              Retry
-            </button>
-            <button
-              onClick={() => signIn(undefined, { callbackUrl: window.location.href })}
-              className="btn btn-sm btn-primary"
-            >
-              Reconnect calendar
-            </button>
-          </div>
+      <div className="border border-dashed border-[#808080]/30 p-6 text-center">
+        <div className="text-xs sm:text-sm text-[#808080]">Failed to load calendar events: {error}</div>
+        <div className="mt-3 flex items-center justify-center gap-3">
+          <button
+            onClick={() => fetchCalendar(weekStart)}
+            className="btn btn-sm btn-ghost"
+          >
+            Retry
+          </button>
+          <button
+            onClick={() => signIn(undefined, { callbackUrl: window.location.href })}
+            className="btn btn-sm btn-primary"
+          >
+            Reconnect calendar
+          </button>
         </div>
       </div>
     );
   }
 
-  // compute current week start ISO to disable next when at current week
-  const currentWeekStart = startOfWeekISO(new Date());
-
   return (
-    <div>
-      <div className="flex items-center justify-end mb-3">
-        <div className="flex items-center gap-3">
-          <button onClick={goPrevWeek} className="btn btn-sm btn-ghost" title="Previous week" aria-label="Previous week">‹</button>
-          <div className="text-xs sm:text-sm font-medium text-[#D9D9D9] px-4 py-1 border border-[#808080]/10 rounded min-w-[180px] text-center">{weekLabel}</div>
-          <button onClick={goNextWeek} disabled={weekStart >= currentWeekStart} className="btn btn-sm btn-ghost disabled:opacity-30" title="Next week" aria-label="Next week">›</button>
-        </div>
-      </div>
-      <TimesheetPanel
-        groups={groups}
-        projects={projects}
-        hasToken={hasToken}
-        onRefresh={() => fetchCalendar(weekStart)}
-      />
-    </div>
+    <TimesheetPanel
+      groups={groups}
+      projects={projects}
+      hasToken={hasToken}
+      onRefresh={() => fetchCalendar(weekStart)}
+    />
   );
 }
 

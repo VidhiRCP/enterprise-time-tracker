@@ -3,6 +3,7 @@
 import React, { useState, useMemo, useEffect } from "react";
 import { format, addDays } from "date-fns";
 import { Card } from "@/components/ui/card";
+import { useDashboardFilter } from "@/lib/dashboard-filter-context";
 
 /* ── Types ── */
 type EntryRow = {
@@ -89,60 +90,47 @@ class PanelErrorBoundary extends React.Component<
 
 /* ── Main Component ── */
 export function InsightsPanel({ data }: { data?: InsightsData }) {
-  const { entries: initialEntries = [], allocations: initialAllocs = [], currentWeekISO } = data ?? {} as InsightsData;
-  const currentMonday = currentWeekISO ? new Date(currentWeekISO) : new Date();
+  const { entries: initialEntries = [], allocations: initialAllocs = [] } = data ?? {} as InsightsData;
+  const { weekStart, weekEnd, projectFilter } = useDashboardFilter();
 
-  const [weekOffset, setWeekOffset] = useState(0);
   const [entries, setEntries] = useState(initialEntries);
   const [allocations, setAllocations] = useState(initialAllocs);
   const [loading, setLoading] = useState(false);
   const [exportMenuOpen, setExportMenuOpen] = useState(false);
 
-  // Reset to current week whenever server-provided current week changes
-  useEffect(() => {
-    setWeekOffset(0);
-  }, [currentWeekISO]);
-
-  // Compute selected week boundaries
-  const selectedMonday = useMemo(() => {
-    const d = new Date(currentMonday);
-    d.setDate(d.getDate() + weekOffset * 7);
-    return d;
-  }, [currentMonday, weekOffset]);
-
+  // Compute selected week boundaries from context
+  const selectedMonday = useMemo(() => new Date(weekStart + "T00:00:00"), [weekStart]);
   const selectedSunday = useMemo(() => addDays(selectedMonday, 6), [selectedMonday]);
 
-  const weekLabel = useMemo(
-    () => `${format(selectedMonday, "d MMM")} – ${format(selectedSunday, "d MMM yyyy")}`,
-    [selectedMonday, selectedSunday],
-  );
-
-  // Filter data for selected week
-  const weekStart = useMemo(() => selectedMonday.toISOString().slice(0, 10), [selectedMonday]);
-  const weekEnd = useMemo(() => selectedSunday.toISOString().slice(0, 10), [selectedSunday]);
-
+  // Filter data for selected week + project
   const weekEntries = useMemo(
-    () => entries.filter((e) => e.workDate >= weekStart && e.workDate <= weekEnd),
-    [entries, weekStart, weekEnd],
+    () => entries.filter((e) => {
+      if (e.workDate < weekStart || e.workDate > weekEnd) return false;
+      if (projectFilter !== "ALL" && e.projectId !== projectFilter) return false;
+      return true;
+    }),
+    [entries, weekStart, weekEnd, projectFilter],
   );
 
   const weekAllocs = useMemo(
-    () => allocations.filter((a) => a.eventDate >= weekStart && a.eventDate <= weekEnd),
-    [allocations, weekStart, weekEnd],
+    () => allocations.filter((a) => {
+      if (a.eventDate < weekStart || a.eventDate > weekEnd) return false;
+      if (projectFilter !== "ALL" && a.projectId !== projectFilter) return false;
+      return true;
+    }),
+    [allocations, weekStart, weekEnd, projectFilter],
   );
 
-  // Fetch week-specific data from server when weekOffset changes
+  // Fetch week-specific data from server when shared weekStart changes
   useEffect(() => {
     let cancelled = false;
     const fetchWeek = async () => {
       setLoading(true);
       try {
-        const target = new Date(currentMonday);
-        target.setDate(target.getDate() + weekOffset * 7);
         const resp = await fetch("/api/insights", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ weekStart: target.toISOString() }),
+          body: JSON.stringify({ weekStart: new Date(weekStart + "T00:00:00").toISOString() }),
         });
         if (!resp.ok) throw new Error("Failed to fetch week data");
         const json = await resp.json();
@@ -150,7 +138,6 @@ export function InsightsPanel({ data }: { data?: InsightsData }) {
         setEntries(json.entries ?? []);
         setAllocations(json.allocations ?? []);
       } catch (err) {
-        // keep client-side data if network fails
         console.error(err);
       } finally {
         if (!cancelled) setLoading(false);
@@ -161,7 +148,7 @@ export function InsightsPanel({ data }: { data?: InsightsData }) {
     return () => {
       cancelled = true;
     };
-  }, [weekOffset, currentWeekISO]);
+  }, [weekStart]);
 
   // Export helper (CSV or XLSX)
   async function exportWeek(fmt: 'csv' | 'xlsx') {
@@ -354,40 +341,14 @@ export function InsightsPanel({ data }: { data?: InsightsData }) {
   const hasAnyData = entries.length > 0 || allocations.length > 0;
   if (!hasAnyData) {
     return (
-      <div className="space-y-8">
-        <div className="flex items-center justify-end gap-4">
-          <div className="flex items-center gap-3">
-            <button
-              onClick={() => setWeekOffset((o) => o - 1)}
-              className="btn btn-sm btn-ghost"
-              title="Previous week"
-              aria-label="Previous week"
-            >
-              ‹
-            </button>
-            <div className="text-xs sm:text-sm font-medium text-[#D9D9D9] px-4 py-1 border border-[#808080]/10 rounded min-w-[180px] text-center">
-              {weekLabel || ""}
-            </div>
-            <button
-              onClick={() => setWeekOffset((o) => o + 1)}
-              disabled={weekOffset >= 0}
-              className="btn btn-sm btn-ghost disabled:opacity-30"
-              title="Next week"
-              aria-label="Next week"
-            >
-              ›
-            </button>
-          </div>
+      <div className="border border-dashed border-[#808080]/30 p-6 text-center rounded-lg">
+        <div className="mb-2">
+          <svg width="48" height="48" fill="none" viewBox="0 0 48 48" className="mx-auto mb-2"><rect x="8" y="8" width="32" height="32" rx="6" fill="#232323" /><path d="M16 32V24M24 32V16M32 32V28" stroke="#808080" strokeWidth="2" strokeLinecap="round" /></svg>
         </div>
-        <div className="border border-dashed border-[#808080]/30 p-6 text-center rounded-lg">
-          <div className="mb-2">
-            <svg width="48" height="48" fill="none" viewBox="0 0 48 48" className="mx-auto mb-2"><rect x="8" y="8" width="32" height="32" rx="6" fill="#232323" /><path d="M16 32V24M24 32V16M32 32V28" stroke="#808080" strokeWidth="2" strokeLinecap="round" /></svg>
-          </div>
-          <p className="text-sm font-bold text-[#D9D9D9]">No data for this week</p>
-          <p className="mt-1 text-xs sm:text-sm text-[#808080]">
-            Track time with the Activity Tracker or allocate meetings in the Meeting Tracker.
-          </p>
-        </div>
+        <p className="text-sm font-bold text-[#D9D9D9]">No data for this week</p>
+        <p className="mt-1 text-xs sm:text-sm text-[#808080]">
+          Track time with the Activity Tracker or allocate meetings in the Meeting Tracker.
+        </p>
       </div>
     );
   }
@@ -403,31 +364,6 @@ export function InsightsPanel({ data }: { data?: InsightsData }) {
   return (
     <PanelErrorBoundary fallback={errorFallback}>
       <div className="space-y-8">
-      {/* Week nav moved outside the card to improve layout */}
-      <div className="flex items-center justify-end gap-4">
-        <div className="flex items-center gap-3">
-          <button
-            onClick={() => setWeekOffset((o) => o - 1)}
-            className="btn btn-sm btn-ghost"
-            title="Previous week"
-            aria-label="Previous week"
-          >
-            ‹
-          </button>
-          <div className="text-xs sm:text-sm font-medium text-[#D9D9D9] px-4 py-1 border border-[#808080]/10 rounded min-w-[180px] text-center">
-            {weekLabel}
-          </div>
-          <button
-            onClick={() => setWeekOffset((o) => o + 1)}
-            disabled={weekOffset >= 0}
-            className="btn btn-sm btn-ghost disabled:opacity-30"
-            title="Next week"
-            aria-label="Next week"
-          >
-            ›
-          </button>
-        </div>
-      </div>
       {loading && (
         <div className="border border-dashed border-[#808080]/30 p-6 text-center">
           <div className="inline-block h-5 w-5 animate-spin rounded-full border-2 border-[#808080]/30 border-t-[#F40000]" />
