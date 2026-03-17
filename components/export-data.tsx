@@ -35,8 +35,15 @@ export function ExportData() {
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       const ext = format === "xlsx" ? "xlsx" : format === "pdf" ? "pdf" : "csv";
+      const now = new Date();
+      const dd = String(now.getDate()).padStart(2, "0");
+      const mm = String(now.getMonth() + 1).padStart(2, "0");
+      const yyyy = now.getFullYear();
+      const dateStr = `${dd}-${mm}-${yyyy}`;
+      const selectedTypes = Object.keys(types).filter((k) => types[k]);
+      const typeLabel = selectedTypes.length === 1 ? (selectedTypes[0] === "activities" ? "activity" : selectedTypes[0] === "timesheets" ? "timesheet" : selectedTypes[0]) : "combo";
       a.href = url;
-      a.download = `export-${new Date().toISOString().slice(0,10)}.${ext}`;
+      a.download = `${dateStr}_${typeLabel}.${ext}`;
       document.body.appendChild(a);
       a.click();
       a.remove();
@@ -72,6 +79,7 @@ export function ExportData() {
         onClick={() => setOpen(true)}
         className="btn btn-md btn-primary"
       >
+        <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 mr-1.5 inline-block" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="square" strokeLinejoin="miter" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5 5-5M12 15V3" /></svg>
         Export Data
       </button>
 
@@ -96,7 +104,7 @@ export function ExportData() {
                 <select value={format} onChange={(e) => setFormat(e.target.value)} className="border border-[#808080]/30 bg-black px-2 py-1 text-sm app-input">
                   <option value="csv">CSV</option>
                   <option value="xlsx">Excel (.xlsx)</option>
-                  <option value="pdf">PDF (not implemented)</option>
+                  <option value="pdf">PDF</option>
                 </select>
               </div>
 
@@ -125,7 +133,7 @@ export function ExportData() {
 
               <div className="flex items-center justify-end gap-2">
                 <button onClick={() => setOpen(false)} className="btn btn-sm btn-ghost">Cancel</button>
-                <button onClick={submit} disabled={loading} className="btn btn-sm btn-primary">{loading ? "Exporting…" : "Export"}</button>
+                <button onClick={submit} disabled={loading} className="btn btn-sm btn-primary">{loading ? "Exporting…" : <><svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5 mr-1 inline-block" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="square" strokeLinejoin="miter" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5 5-5M12 15V3" /></svg>Export</>}</button>
               </div>
             </div>
           </div>

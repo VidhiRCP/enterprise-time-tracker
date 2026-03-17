@@ -417,7 +417,7 @@ export function ExpenseTracker({ projects, userId }: { projects: { projectId: st
                           {exp.merchant || "Unknown merchant"}
                           {exp.projectName && <span className="ml-1 text-xs font-normal text-[#808080]">({exp.projectName})</span>}
                         </div>
-                        <div className="text-xs text-[#808080] mt-0.5">{exp.expenseDate}</div>
+                        <div className="text-xs text-[#808080] mt-0.5">{exp.expenseDate ? exp.expenseDate.slice(8,10) + "-" + exp.expenseDate.slice(5,7) + "-" + exp.expenseDate.slice(0,4) : ""}</div>
                       </div>
                       <button
                         onClick={() => {
@@ -469,7 +469,7 @@ export function ExpenseTracker({ projects, userId }: { projects: { projectId: st
                   <tbody>
                     {expenses.map(exp => (
                       <tr key={exp.id} className="hover:bg-[#F8F8F8]/5 even:bg-[#F8F8F8]/[0.02] transition-colors">
-                        <td className="border-b border-[#808080]/10 px-3 lg:px-4 py-2 lg:py-3 text-[#D9D9D9] whitespace-nowrap">{exp.expenseDate}</td>
+                        <td className="border-b border-[#808080]/10 px-3 lg:px-4 py-2 lg:py-3 text-[#D9D9D9] whitespace-nowrap">{exp.expenseDate ? exp.expenseDate.slice(8,10) + "-" + exp.expenseDate.slice(5,7) + "-" + exp.expenseDate.slice(0,4) : ""}</td>
                         <td className="border-b border-[#808080]/10 px-3 lg:px-4 py-2 lg:py-3 font-bold tabular-nums">{exp.amount} {exp.currency}</td>
                         <td className="border-b border-[#808080]/10 px-3 lg:px-4 py-2 lg:py-3">
                           <span className="font-bold">{exp.merchant || "—"}</span>

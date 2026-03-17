@@ -105,7 +105,7 @@ export function SidebarCalendar({
       {selectedDate && (
         <div className="mt-2 flex items-center justify-between border-t border-[#808080]/20 pt-2">
           <span className="text-xs text-[#D9D9D9]">
-            📅 <span className="font-bold">{format(new Date(selectedDate + "T12:00:00"), "dd MMM yyyy")}</span>
+            📅 <span className="font-bold">{format(new Date(selectedDate + "T12:00:00"), "dd-MM-yyyy")}</span>
           </span>
           <button
             onClick={() => onDateSelect?.(selectedDate)}

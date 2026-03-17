@@ -72,7 +72,7 @@ export function DateInput({ value, onChange, name, placeholder, className, weekS
     setPopupPos({ left, top });
   }, [open]);
 
-  const displayLabel = selected ? format(selected, "yyyy/MM/dd") : placeholder ?? "yyyy/MM/dd";
+  const displayLabel = selected ? format(selected, "dd-MM-yyyy") : placeholder ?? "dd-MM-yyyy";
 
   function handleSelect(day: Date) {
     const iso = format(day, "yyyy-MM-dd");

@@ -3,6 +3,7 @@ import { getDashboardData, getInsightsData } from "@/lib/queries";
 import { getCalendarEvents } from "@/lib/calendar";
 import { SignInCard } from "@/components/sign-in-card";
 import ExportData from "@/components/export-data";
+import { FloatingTimerToggle } from "@/components/floating-timer-toggle";
 import MeetingsLoader from "@/components/time/meetings-loader";
 import { InsightsPanel } from "@/components/time/insights-panel";
 import { ProjectAliases } from "@/components/time/project-aliases";
@@ -159,6 +160,7 @@ export default async function HomePage() {
           </div>
           <div className="flex items-center gap-2">
             <ExportData />
+            <FloatingTimerToggle />
             <form
               action={async () => {
                 "use server";
