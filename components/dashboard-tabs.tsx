@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
 
 const TABS = [
   { key: "activity", label: "Activity Tracker" },
@@ -11,6 +11,17 @@ const TABS = [
 ] as const;
 
 type TabKey = (typeof TABS)[number]["key"];
+
+/* Skeleton pulse shown during tab transitions */
+function TabSkeleton() {
+  return (
+    <div className="space-y-4 animate-pulse">
+      <div className="h-6 w-48 bg-[#808080]/10 rounded" />
+      <div className="h-4 w-72 bg-[#808080]/10 rounded" />
+      <div className="h-32 bg-[#808080]/5 rounded border border-[#808080]/10" />
+    </div>
+  );
+}
 
 export function DashboardTabs({
   hasProjects,
@@ -30,6 +41,13 @@ export function DashboardTabs({
   expensesContent: React.ReactNode;
 }) {
   const [active, setActive] = useState<TabKey>("activity");
+  const [isPending, startTransition] = useTransition();
+
+  function handleTabChange(key: TabKey) {
+    startTransition(() => {
+      setActive(key);
+    });
+  }
 
   return (
     <div>
@@ -37,7 +55,7 @@ export function DashboardTabs({
           {TABS.map((tab) => (
             <button
               key={tab.key}
-              onClick={() => setActive(tab.key as TabKey)}
+              onClick={() => handleTabChange(tab.key as TabKey)}
               className={`btn btn-md whitespace-nowrap font-semibold px-4 py-2.5 sm:px-5 sm:py-3 transition-colors ${
                 active === tab.key
                   ? "text-[#F8F8F8] border-b-2 border-[#F40000] bg-[#181818]"
@@ -49,11 +67,17 @@ export function DashboardTabs({
           ))}
       </nav>
 
-      {active === "activity" && activityContent}
-      {active === "meetings" && meetingsContent}
-      {active === "insights" && insightsContent}
-      {active === "aliases" && aliasesContent}
-      {active === "expenses" && expensesContent}
+      {isPending ? (
+        <TabSkeleton />
+      ) : (
+        <>
+          {active === "activity" && activityContent}
+          {active === "meetings" && meetingsContent}
+          {active === "insights" && insightsContent}
+          {active === "aliases" && aliasesContent}
+          {active === "expenses" && expensesContent}
+        </>
+      )}
     </div>
   );
 }

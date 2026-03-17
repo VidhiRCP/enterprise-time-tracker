@@ -39,7 +39,8 @@ export function ExpenseTracker({ projects, userId }: { projects: { projectId: st
       const [editModalOpen, setEditModalOpen] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [confirmed, setConfirmed] = useState(false);
-    const [expenses, setExpenses] = useState<any[]>([]); // TODO: fetch from server
+    const [expenses, setExpenses] = useState<any[]>([]);
+    const [loadingExpenses, setLoadingExpenses] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
 
   // Drag-and-drop/upload handler
@@ -236,6 +237,7 @@ export function ExpenseTracker({ projects, userId }: { projects: { projectId: st
   }
 
   async function loadExpenses() {
+    setLoadingExpenses(true);
     try {
       const res = await fetch("/api/expenses/list", { credentials: "include" });
       if (!res.ok) throw new Error(await res.text());
@@ -243,6 +245,8 @@ export function ExpenseTracker({ projects, userId }: { projects: { projectId: st
       setExpenses(data ?? []);
     } catch (e) {
       // ignore silently
+    } finally {
+      setLoadingExpenses(false);
     }
   }
 
@@ -404,10 +408,15 @@ export function ExpenseTracker({ projects, userId }: { projects: { projectId: st
         <div className="space-y-4">
           <div>
             <h3 className="app-heading-2 mb-2">Saved Expenses</h3>
-            <p className="text-xs sm:text-sm text-[#808080]">{expenses.length} {expenses.length === 1 ? "expense" : "expenses"}</p>
+            <p className="text-xs sm:text-sm text-[#808080]">{loadingExpenses ? "Loading…" : `${expenses.length} ${expenses.length === 1 ? "expense" : "expenses"}`}</p>
           </div>
 
-          {expenses.length === 0 ? (
+          {loadingExpenses ? (
+            <div className="border border-dashed border-[#808080]/30 p-6 text-center">
+              <div className="inline-block h-5 w-5 animate-spin rounded-full border-2 border-[#808080]/30 border-t-[#F40000]" />
+              <p className="mt-2 text-xs sm:text-sm text-[#808080]">Loading expenses…</p>
+            </div>
+          ) : expenses.length === 0 ? (
             <div className="border border-dashed border-[#808080]/30 p-4 sm:p-6 text-xs sm:text-sm text-[#808080]">
               No expenses yet.
             </div>

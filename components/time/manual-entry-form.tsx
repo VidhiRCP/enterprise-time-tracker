@@ -83,8 +83,12 @@ export function ManualEntryForm({ projects }: { projects: ProjectOption[] }) {
         </div>
         <div className="space-y-1">
           <label className="text-sm font-medium text-[#D9D9D9]">Date</label>
-            <div className="w-full border border-[#808080]/30 bg-black px-3 py-2 text-sm text-[#D9D9D9] app-input">
-            📅 Today
+            <div className="w-full app-input bg-black flex items-center gap-3 text-sm text-[#D9D9D9]">
+            <span className="flex-1">{workDate.replace(/-/g, "/")}</span>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-[#D9D9D9] shrink-0">
+              <rect x="3" y="4" width="18" height="18" rx="3" stroke="currentColor" strokeWidth="1.2" />
+              <path d="M8 2v4M16 2v4" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
+            </svg>
           </div>
         </div>
       </div>

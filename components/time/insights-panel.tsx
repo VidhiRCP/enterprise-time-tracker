@@ -93,7 +93,6 @@ export function InsightsPanel({ data }: { data?: InsightsData }) {
   const currentMonday = currentWeekISO ? new Date(currentWeekISO) : new Date();
 
   const [weekOffset, setWeekOffset] = useState(0);
-  const [viewMode, setViewMode] = useState<'day' | 'project'>('day');
   const [entries, setEntries] = useState(initialEntries);
   const [allocations, setAllocations] = useState(initialAllocs);
   const [loading, setLoading] = useState(false);
@@ -379,10 +378,6 @@ export function InsightsPanel({ data }: { data?: InsightsData }) {
               ›
             </button>
           </div>
-          <div className="flex items-center gap-2 border border-[#808080]/10 rounded overflow-hidden">
-            <button onClick={() => setViewMode('day')} className={`btn btn-sm ${viewMode === 'day' ? 'btn-primary' : 'btn-ghost'}`}>By Day</button>
-            <button onClick={() => setViewMode('project')} className={`btn btn-sm ${viewMode === 'project' ? 'btn-primary' : 'btn-ghost'}`}>By Project</button>
-          </div>
         </div>
         <div className="border border-dashed border-[#808080]/30 p-6 text-center rounded-lg">
           <div className="mb-2">
@@ -413,7 +408,7 @@ export function InsightsPanel({ data }: { data?: InsightsData }) {
         <div className="flex items-center gap-3">
           <button
             onClick={() => setWeekOffset((o) => o - 1)}
-            className="border border-[#808080]/30 px-3 py-1 text-sm text-[#D9D9D9] hover:text-[#F8F8F8] transition-colors rounded"
+            className="btn btn-sm btn-ghost"
             title="Previous week"
             aria-label="Previous week"
           >
@@ -425,19 +420,22 @@ export function InsightsPanel({ data }: { data?: InsightsData }) {
           <button
             onClick={() => setWeekOffset((o) => o + 1)}
             disabled={weekOffset >= 0}
-            className="border border-[#808080]/30 px-3 py-1 text-sm text-[#D9D9D9] hover:text-[#F8F8F8] transition-colors rounded disabled:opacity-30"
+            className="btn btn-sm btn-ghost disabled:opacity-30"
             title="Next week"
             aria-label="Next week"
           >
             ›
           </button>
         </div>
-
-        <div className="flex items-center gap-2 border border-[#808080]/10 rounded overflow-hidden">
-          <button onClick={() => setViewMode('day')} className={`btn btn-sm ${viewMode === 'day' ? 'btn-primary' : 'btn-ghost'}`}>By Day</button>
-          <button onClick={() => setViewMode('project')} className={`btn btn-sm ${viewMode === 'project' ? 'btn-primary' : 'btn-ghost'}`}>By Project</button>
-        </div>
       </div>
+      {loading && (
+        <div className="border border-dashed border-[#808080]/30 p-6 text-center">
+          <div className="inline-block h-5 w-5 animate-spin rounded-full border-2 border-[#808080]/30 border-t-[#F40000]" />
+          <p className="mt-2 text-xs sm:text-sm text-[#808080]">Loading week data…</p>
+        </div>
+      )}
+      {!loading && (
+      <>
       <Card accent className="p-7">
         <div className="mb-6">
           <div>
@@ -492,8 +490,7 @@ export function InsightsPanel({ data }: { data?: InsightsData }) {
         <h3 className="app-heading-3 text-[#D9D9D9] mb-4">By Project</h3>
         <div className="pt-3">
           {/* Chart */}
-          {viewMode === 'day' ? (
-            <div className="flex items-end gap-1.5 sm:gap-3" style={{ height: 180 }}>
+          <div className="flex items-end gap-1.5 sm:gap-3" style={{ height: 180 }}>
             {chartData.map((day) => (
               <div key={day.label} className="flex-1 flex flex-col items-center gap-1">
                 {/* Stacked bar */}
@@ -523,30 +520,7 @@ export function InsightsPanel({ data }: { data?: InsightsData }) {
                 <span className="text-[10px] sm:text-xs text-[#808080]">{day.label}</span>
               </div>
             ))}
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {projectsGrouped.map((p) => (
-                <div key={p.projectId} className="border border-[#808080]/20 p-3">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <div className="text-sm font-bold">{p.projectName}</div>
-                      <div className="text-xs text-[#808080]">{fmtMin(p.totalMin)}</div>
-                    </div>
-                    <div className="text-xs text-[#808080]">{p.days.length} day{p.days.length !== 1 ? 's' : ''}</div>
-                  </div>
-                  <div className="mt-3 grid grid-cols-2 gap-2">
-                    {p.days.map((d) => (
-                      <div key={d.date} className="flex items-center justify-between text-xs">
-                        <div className="text-[#D9D9D9]">{format(new Date(d.date + 'T12:00:00'), 'dd MMM')}</div>
-                        <div className="text-[#808080]">{fmtMin(d.minutes)}</div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
+          </div>
           {/* Legend */}
           <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1.5 border-t border-[#808080]/15 pt-3">
             {projectTotals.map((p) => (
@@ -597,56 +571,100 @@ export function InsightsPanel({ data }: { data?: InsightsData }) {
             )}
           </div>
         </div>
-        {dailyBreakdown.length === 0 && (
-          <div className="border border-dashed border-[#808080]/20 p-4 text-center text-xs text-[#808080]">
+        {dailyBreakdown.length === 0 ? (
+          <div className="border border-dashed border-[#808080]/30 p-4 sm:p-6 text-xs sm:text-sm text-[#808080]">
             No tracked time this week.
           </div>
-        )}
-        {/* Column labels header (sticky) */}
-        {dailyBreakdown.length > 0 && (
-          <div className="sticky top-0 z-10 bg-black border-b border-[#808080]/10">
-            <div className="hidden md:grid grid-cols-[1fr_auto_auto_auto] items-center gap-x-4 py-2 px-0">
-              <span />
-              <span className="text-[10px] uppercase tracking-wider text-[#808080] text-right w-14 sm:w-16">Activity</span>
-              <span className="text-[10px] uppercase tracking-wider text-[#808080] text-right w-14 sm:w-16">Meetings</span>
-              <span className="text-[10px] uppercase tracking-wider text-[#808080] text-right w-14 sm:w-16">Total</span>
-            </div>
-            <div className="md:hidden px-2 py-1 text-xs text-[#808080]">Activity · Meetings · Total</div>
-          </div>
-        )}
-        {dailyBreakdown.map((day) => {
-          const dayTotal = day.projects.reduce((s, p) => s + p.totalMin, 0);
-          return (
-            <div key={day.date} className="border-b border-[#808080]/10 last:border-b-0">
-              {/* Day header */}
-              <div className="flex items-center justify-between py-2.5 sm:py-3">
-                <span className="text-xs sm:text-sm font-bold text-[#D9D9D9]">
-                  {format(new Date(day.date + "T12:00:00"), "EEEE, dd MMM")}
-                </span>
-                <span className="text-xs sm:text-sm font-bold text-[#F8F8F8]">{fmtMin(dayTotal)}</span>
-              </div>
-              {/* Project rows */}
-              <div className="divide-y divide-[#808080]/10">
-                {day.projects.map((p) => (
-                  <div key={p.projectId} className="grid grid-cols-[1fr_auto_auto_auto] items-center gap-x-4 py-1.5">
-                    <span className="text-xs sm:text-sm text-[#D9D9D9] truncate">{p.projectName}</span>
-                    <span className="text-xs sm:text-sm text-[#F40000] tabular-nums text-right w-14 sm:w-16">
-                      {p.activityMin > 0 ? fmtMin(p.activityMin) : "—"}
-                    </span>
-                    <span className="text-xs sm:text-sm text-blue-400 tabular-nums text-right w-14 sm:w-16">
-                      {p.meetingMin > 0 ? fmtMin(p.meetingMin) : "—"}
-                    </span>
-                    <span className="text-xs sm:text-sm font-bold text-[#F8F8F8] tabular-nums text-right w-14 sm:w-16">
-                      {fmtMin(p.totalMin)}
-                    </span>
+        ) : (
+          <>
+            {/* ── Mobile: stacked cards ── */}
+            <div className="space-y-3 md:hidden">
+              {dailyBreakdown.map((day) => {
+                const dayTotal = day.projects.reduce((s, p) => s + p.totalMin, 0);
+                return (
+                  <div key={day.date} className="border border-[#808080]/30 p-3 sm:p-4 space-y-2.5">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="text-sm font-bold">
+                        {format(new Date(day.date + "T12:00:00"), "EEEE, dd MMM")}
+                      </div>
+                      <span className="text-sm font-bold text-[#F8F8F8]">{fmtMin(dayTotal)}</span>
+                    </div>
+                    {day.projects.map((p) => (
+                      <div key={p.projectId} className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-[#D9D9D9] items-center">
+                        <span className="font-bold text-[#F8F8F8]">{p.projectName}</span>
+                        <span className="text-[#F40000]">{p.activityMin > 0 ? fmtMin(p.activityMin) : "—"}</span>
+                        <span className="text-blue-400">{p.meetingMin > 0 ? fmtMin(p.meetingMin) : "—"}</span>
+                        <span className="font-bold">{fmtMin(p.totalMin)}</span>
+                      </div>
+                    ))}
                   </div>
-                ))}
-              </div>
-              {/* removed per-day footer labels (now shown once at top) */}
+                );
+              })}
             </div>
-          );
-        })}
+
+            {/* ── Desktop: full table ── */}
+            <div className="hidden md:block overflow-x-auto border border-[#808080]/10">
+              <table className="min-w-full border-collapse text-sm">
+                <thead className="sticky top-0 z-10 bg-black">
+                  <tr>
+                    <th className="border-b border-[#808080]/30 px-3 lg:px-4 py-2 lg:py-3 text-left text-xs lg:text-sm font-bold uppercase tracking-wider text-[#808080]">Day</th>
+                    <th className="border-b border-[#808080]/30 px-3 lg:px-4 py-2 lg:py-3 text-left text-xs lg:text-sm font-bold uppercase tracking-wider text-[#808080]">Project</th>
+                    <th className="border-b border-[#808080]/30 px-3 lg:px-4 py-2 lg:py-3 text-right text-xs lg:text-sm font-bold uppercase tracking-wider text-[#F40000]">Activity</th>
+                    <th className="border-b border-[#808080]/30 px-3 lg:px-4 py-2 lg:py-3 text-right text-xs lg:text-sm font-bold uppercase tracking-wider text-blue-400">Meetings</th>
+                    <th className="border-b border-[#808080]/30 px-3 lg:px-4 py-2 lg:py-3 text-right text-xs lg:text-sm font-bold uppercase tracking-wider text-[#808080]">Total</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {dailyBreakdown.map((day) => {
+                    const dayTotal = day.projects.reduce((s, p) => s + p.totalMin, 0);
+                    return (
+                      <React.Fragment key={day.date}>
+                        {day.projects.map((p, pi) => (
+                          <tr key={p.projectId} className="hover:bg-[#F8F8F8]/5 even:bg-[#F8F8F8]/[0.02] transition-colors">
+                            {pi === 0 ? (
+                              <td rowSpan={day.projects.length} className="border-b border-[#808080]/10 px-3 lg:px-4 py-2 lg:py-3 text-[#D9D9D9] whitespace-nowrap align-top font-bold">
+                                {format(new Date(day.date + "T12:00:00"), "EEE, dd MMM")}
+                              </td>
+                            ) : null}
+                            <td className="border-b border-[#808080]/10 px-3 lg:px-4 py-2 lg:py-3">
+                              <span className="font-bold">{p.projectName}</span>
+                            </td>
+                            <td className="border-b border-[#808080]/10 px-3 lg:px-4 py-2 lg:py-3 text-right text-[#F40000] tabular-nums">
+                              {p.activityMin > 0 ? fmtMin(p.activityMin) : <span className="text-[#808080]">—</span>}
+                            </td>
+                            <td className="border-b border-[#808080]/10 px-3 lg:px-4 py-2 lg:py-3 text-right text-blue-400 tabular-nums">
+                              {p.meetingMin > 0 ? fmtMin(p.meetingMin) : <span className="text-[#808080]">—</span>}
+                            </td>
+                            <td className="border-b border-[#808080]/10 px-3 lg:px-4 py-2 lg:py-3 text-right font-bold tabular-nums">
+                              {fmtMin(p.totalMin)}
+                            </td>
+                          </tr>
+                        ))}
+                        {/* Day total row */}
+                        <tr className="bg-[#F8F8F8]/[0.03]">
+                          <td className="border-b border-[#808080]/20 px-3 lg:px-4 py-1.5 lg:py-2" />
+                          <td className="border-b border-[#808080]/20 px-3 lg:px-4 py-1.5 lg:py-2 text-right text-xs font-bold text-[#808080] uppercase tracking-wider">Day total</td>
+                          <td className="border-b border-[#808080]/20 px-3 lg:px-4 py-1.5 lg:py-2 text-right text-[#F40000] font-bold tabular-nums">
+                            {fmtMin(day.projects.reduce((s, p) => s + p.activityMin, 0))}
+                          </td>
+                          <td className="border-b border-[#808080]/20 px-3 lg:px-4 py-1.5 lg:py-2 text-right text-blue-400 font-bold tabular-nums">
+                            {fmtMin(day.projects.reduce((s, p) => s + p.meetingMin, 0))}
+                          </td>
+                          <td className="border-b border-[#808080]/20 px-3 lg:px-4 py-1.5 lg:py-2 text-right font-bold tabular-nums text-[#F8F8F8]">
+                            {fmtMin(dayTotal)}
+                          </td>
+                        </tr>
+                      </React.Fragment>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </>
+        )}
       </Card>
+      </>
+      )}
     </div>
     </PanelErrorBoundary>
   );
