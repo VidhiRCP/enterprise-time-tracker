@@ -401,61 +401,123 @@ export function ExpenseTracker({ projects, userId }: { projects: { projectId: st
       </Card>
       {/* Table listing saved expenses */}
       <Card accent>
-        <h3 className="app-heading-3 text-[#D9D9D9] mb-4">Saved Expenses</h3>
-        <table className="min-w-full border-separate border-spacing-0 text-sm font-normal">
-          <thead>
-            <tr className="bg-[#181818]">
-              <th className="px-4 py-2 text-left font-semibold border-b border-[#232323]/40">Date</th>
-              <th className="px-4 py-2 text-left font-semibold border-b border-[#232323]/40">Amount</th>
-              <th className="px-4 py-2 text-left font-semibold border-b border-[#232323]/40">Currency</th>
-              <th className="px-4 py-2 text-left font-semibold border-b border-[#232323]/40">Merchant</th>
-              <th className="px-4 py-2 text-left font-semibold border-b border-[#232323]/40">Details</th>
-              <th className="px-4 py-2 text-left font-semibold border-b border-[#232323]/40">Project</th>
-              <th className="px-4 py-2 text-left font-semibold border-b border-[#232323]/40">Receipt</th>
-              <th className="px-4 py-2 text-left font-semibold border-b border-[#232323]/40">Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            {expenses.length === 0 && (
-              <tr><td colSpan={8} className="text-[#808080] py-4 text-center">No expenses yet.</td></tr>
-            )}
-            {expenses.map(exp => (
-              <tr key={exp.id} className="border-b border-[#232323]/20">
-                <td className="px-4 py-2 align-middle">{exp.expenseDate}</td>
-                <td className="px-4 py-2 align-middle">{exp.amount}</td>
-                <td className="px-4 py-2 align-middle">{exp.currency}</td>
-                <td className="px-4 py-2 align-middle">{exp.merchant}</td>
-                <td className="px-4 py-2 align-middle">{exp.details}</td>
-                <td className="px-4 py-2 align-middle">{exp.projectName}</td>
-                <td className="px-4 py-2 align-middle"><a href={exp.publicUrl ?? exp.receiptFilePath} target="_blank" rel="noopener" className="text-[#F40000] underline">View</a></td>
-                <td className="px-4 py-2 align-middle">
-                  <div className="flex items-center gap-2">
-                    <button
-                      onClick={() => {
-                        setEditingEntryId(exp.id);
-                        setForm({
-                          receiptId: exp.receiptFilePath ?? "",
-                          receiptFileName: "",
-                          expenseDate: exp.expenseDate ?? "",
-                          amount: String(exp.amount ?? ""),
-                          currency: exp.currency ?? "NZD",
-                          merchant: exp.merchant ?? "",
-                          details: exp.details ?? "",
-                          projectId: exp.projectId ?? "",
-                        });
-                        setPendingFile(null);
-                        setEditModalOpen(true);
-                      }}
-                      className="btn btn-sm btn-primary"
-                    >
-                      Edit
-                    </button>
+        <div className="space-y-4">
+          <div>
+            <h3 className="app-heading-2 mb-2">Saved Expenses</h3>
+            <p className="text-xs sm:text-sm text-[#808080]">{expenses.length} {expenses.length === 1 ? "expense" : "expenses"}</p>
+          </div>
+
+          {expenses.length === 0 ? (
+            <div className="border border-dashed border-[#808080]/30 p-4 sm:p-6 text-xs sm:text-sm text-[#808080]">
+              No expenses yet.
+            </div>
+          ) : (
+            <>
+              {/* ── Mobile: stacked cards ── */}
+              <div className="space-y-3 md:hidden">
+                {expenses.map(exp => (
+                  <div key={exp.id} className="border border-[#808080]/30 p-3 sm:p-4 space-y-2.5">
+                    <div className="flex items-start justify-between gap-2">
+                      <div>
+                        <div className="text-sm font-bold">
+                          {exp.merchant || "Unknown merchant"}
+                          {exp.projectName && <span className="ml-1 text-xs font-normal text-[#808080]">({exp.projectName})</span>}
+                        </div>
+                        <div className="text-xs text-[#808080] mt-0.5">{exp.expenseDate}</div>
+                      </div>
+                      <button
+                        onClick={() => {
+                          setEditingEntryId(exp.id);
+                          setForm({
+                            receiptId: exp.receiptFilePath ?? "",
+                            receiptFileName: "",
+                            expenseDate: exp.expenseDate ?? "",
+                            amount: String(exp.amount ?? ""),
+                            currency: exp.currency ?? "NZD",
+                            merchant: exp.merchant ?? "",
+                            details: exp.details ?? "",
+                            projectId: exp.projectId ?? "",
+                          });
+                          setPendingFile(null);
+                          setEditModalOpen(true);
+                        }}
+                        className="text-xs text-[#808080] hover:text-[#D9D9D9] transition-colors"
+                        title="Edit expense"
+                      >
+                        ✎
+                      </button>
+                    </div>
+                    <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-[#D9D9D9] items-center">
+                      <span className="font-bold text-[#F8F8F8]">{exp.amount} {exp.currency}</span>
+                      {exp.details && <span className="text-[#808080] truncate max-w-[200px]">{exp.details}</span>}
+                    </div>
+                    <div className="flex items-center gap-3 text-xs">
+                      <a href={exp.publicUrl ?? exp.receiptFilePath} target="_blank" rel="noopener" className="text-[#F40000] hover:text-[#F40000]/80 transition-colors">View receipt</a>
+                    </div>
                   </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+                ))}
+              </div>
+
+              {/* ── Desktop: full table ── */}
+              <div className="hidden md:block overflow-x-auto border border-[#808080]/10">
+                <table className="min-w-full border-collapse text-sm">
+                  <thead className="sticky top-0 z-10 bg-black">
+                    <tr>
+                      <th className="border-b border-[#808080]/30 px-3 lg:px-4 py-2 lg:py-3 text-left text-xs lg:text-sm font-bold uppercase tracking-wider text-[#808080]">Date</th>
+                      <th className="border-b border-[#808080]/30 px-3 lg:px-4 py-2 lg:py-3 text-left text-xs lg:text-sm font-bold uppercase tracking-wider text-[#808080]">Amount</th>
+                      <th className="border-b border-[#808080]/30 px-3 lg:px-4 py-2 lg:py-3 text-left text-xs lg:text-sm font-bold uppercase tracking-wider text-[#808080]">Merchant</th>
+                      <th className="border-b border-[#808080]/30 px-3 lg:px-4 py-2 lg:py-3 text-left text-xs lg:text-sm font-bold uppercase tracking-wider text-[#808080]">Details</th>
+                      <th className="border-b border-[#808080]/30 px-3 lg:px-4 py-2 lg:py-3 text-left text-xs lg:text-sm font-bold uppercase tracking-wider text-[#808080]">Project</th>
+                      <th className="border-b border-[#808080]/30 px-3 lg:px-4 py-2 lg:py-3 text-left text-xs lg:text-sm font-bold uppercase tracking-wider text-[#808080]">Receipt</th>
+                      <th className="border-b border-[#808080]/30 px-2 lg:px-3 py-2 lg:py-3 w-14"></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {expenses.map(exp => (
+                      <tr key={exp.id} className="hover:bg-[#F8F8F8]/5 even:bg-[#F8F8F8]/[0.02] transition-colors">
+                        <td className="border-b border-[#808080]/10 px-3 lg:px-4 py-2 lg:py-3 text-[#D9D9D9] whitespace-nowrap">{exp.expenseDate}</td>
+                        <td className="border-b border-[#808080]/10 px-3 lg:px-4 py-2 lg:py-3 font-bold tabular-nums">{exp.amount} {exp.currency}</td>
+                        <td className="border-b border-[#808080]/10 px-3 lg:px-4 py-2 lg:py-3">
+                          <span className="font-bold">{exp.merchant || "—"}</span>
+                        </td>
+                        <td className="border-b border-[#808080]/10 px-3 lg:px-4 py-2 lg:py-3 text-[#D9D9D9] max-w-[200px] truncate">{exp.details || "—"}</td>
+                        <td className="border-b border-[#808080]/10 px-3 lg:px-4 py-2 lg:py-3 text-[#D9D9D9]">{exp.projectName || "—"}</td>
+                        <td className="border-b border-[#808080]/10 px-3 lg:px-4 py-2 lg:py-3">
+                          <a href={exp.publicUrl ?? exp.receiptFilePath} target="_blank" rel="noopener" className="text-[#F40000] hover:text-[#F40000]/80 transition-colors">View</a>
+                        </td>
+                        <td className="border-b border-[#808080]/10 px-2 lg:px-3 py-2 lg:py-3">
+                          <div className="flex items-center justify-center gap-1.5">
+                            <button
+                              onClick={() => {
+                                setEditingEntryId(exp.id);
+                                setForm({
+                                  receiptId: exp.receiptFilePath ?? "",
+                                  receiptFileName: "",
+                                  expenseDate: exp.expenseDate ?? "",
+                                  amount: String(exp.amount ?? ""),
+                                  currency: exp.currency ?? "NZD",
+                                  merchant: exp.merchant ?? "",
+                                  details: exp.details ?? "",
+                                  projectId: exp.projectId ?? "",
+                                });
+                                setPendingFile(null);
+                                setEditModalOpen(true);
+                              }}
+                              className="text-xs text-[#808080] hover:text-[#D9D9D9] transition-colors"
+                              title="Edit expense"
+                            >
+                              ✎
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </>
+          )}
+        </div>
       {/* Edit Modal Popup - moved outside table for correct rendering */}
       {editModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
