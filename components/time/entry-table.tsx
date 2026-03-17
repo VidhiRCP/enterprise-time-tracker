@@ -1,6 +1,6 @@
 "use client";
 
-import { format, startOfWeek, endOfWeek } from "date-fns";
+import { format } from "date-fns";
 import { useState, useTransition, useMemo } from "react";
 import { formatMinutes } from "@/lib/time";
 import { deleteTimeEntry, updateManualEntry } from "@/lib/actions";
@@ -206,26 +206,10 @@ export function EntryTable({
     });
   }, [entries, projectFilter, calendarDate]);
 
-  // Group by week (Monday start)
-  const weekGroups = useMemo(() => {
-    const groups = new Map<string, { weekStart: Date; weekEnd: Date; entries: Entry[]; total: number }>();
-
-    for (const entry of filtered) {
-      const d = new Date(entry.workDate);
-      const ws = startOfWeek(d, { weekStartsOn: 1 });
-      const we = endOfWeek(d, { weekStartsOn: 1 });
-      const key = ws.toISOString();
-      if (!groups.has(key)) {
-        groups.set(key, { weekStart: ws, weekEnd: we, entries: [], total: 0 });
-      }
-      const g = groups.get(key)!;
-      g.entries.push(entry);
-      g.total += effectiveDuration(entry);
-    }
-
-    // Sort weeks descending (most recent first)
-    return Array.from(groups.values()).sort(
-      (a, b) => b.weekStart.getTime() - a.weekStart.getTime()
+  // Sort entries by date descending (most recent first)
+  const sorted = useMemo(() => {
+    return [...filtered].sort(
+      (a, b) => new Date(b.workDate).getTime() - new Date(a.workDate).getTime()
     );
   }, [filtered]);
 
@@ -263,28 +247,18 @@ export function EntryTable({
         </span>
       </div>
 
-      {/* ── Weekly grouped entries ── */}
-      {weekGroups.length === 0 && (
+      {/* ── Empty state ── */}
+      {sorted.length === 0 && (
         <div className="border border-dashed border-[#808080]/30 p-4 text-xs text-[#808080]">
           No entries match filters.
         </div>
       )}
 
-      {weekGroups.map((group) => (
-        <div key={group.weekStart.toISOString()} className="space-y-3">
-          {/* Week header */}
-          <div className="flex items-center justify-between px-1 py-1">
-            <span className="text-xs sm:text-sm font-bold text-[#808080] uppercase tracking-wider">
-              Week of {format(group.weekStart, "MMM d")} – {format(group.weekEnd, "MMM d, yyyy")}
-            </span>
-            <span className="text-xs sm:text-sm font-bold text-[#D9D9D9]">
-              {formatMinutes(group.total)}
-            </span>
-          </div>
-
+      {sorted.length > 0 && (
+        <>
           {/* ── Mobile: stacked cards ── */}
           <div className="space-y-3 md:hidden">
-            {group.entries.map((entry) => (
+            {sorted.map((entry) => (
               <div key={entry.id}>
                 {editingId === entry.id ? (
                   <EditManualRow entry={entry} projects={projects} onClose={() => setEditingId(null)} />
@@ -349,7 +323,7 @@ export function EntryTable({
                 </tr>
               </thead>
               <tbody>
-                {group.entries.map((entry) => (
+                {sorted.map((entry) => (
                   editingId === entry.id ? (
                     <tr key={entry.id}>
                       <td colSpan={8} className="border-b border-[#808080]/10 p-2">
@@ -404,8 +378,8 @@ export function EntryTable({
               </tbody>
             </table>
           </div>
-        </div>
-      ))}
+        </>
+      )}
     </div>
   );
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState, useTransition } from "react";
+import { useEffect, useMemo, useState, useTransition, useCallback } from "react";
 import {
   createOrResumeSession,
   pauseSession,
@@ -9,6 +9,12 @@ import {
   discardSession,
 } from "@/lib/actions";
 import { formatSeconds, localDateInputValue } from "@/lib/time";
+import {
+  broadcastTimerState,
+  onTimerCommand,
+  openTimerPopup,
+  type TimerState,
+} from "@/lib/timer-broadcast";
 
 type ProjectOption = {
   projectId: string;
@@ -94,6 +100,118 @@ export function TimerPanel({
   const hasSession = !!session;
   const selectedProject = projects.find((p) => p.projectId === projectId);
 
+  /* ── Broadcast timer state to popup window ── */
+  const buildBroadcastState = useCallback((): TimerState => ({
+    sessionId: session?.id ?? null,
+    projectId,
+    projectName: selectedProject?.projectName ?? "—",
+    status: session ? session.status : "IDLE",
+    accumulatedSeconds: session?.accumulatedSeconds ?? 0,
+    lastResumedAt: session?.lastResumedAt ?? null,
+    notesDraft,
+    projects,
+  }), [session, projectId, selectedProject, notesDraft, projects]);
+
+  // Broadcast on every meaningful state change
+  useEffect(() => {
+    broadcastTimerState(buildBroadcastState());
+  }, [buildBroadcastState]);
+
+  // Listen for commands from popup
+  useEffect(() => {
+    const unsub = onTimerCommand((cmd) => {
+      switch (cmd.type) {
+        case "requestState":
+          broadcastTimerState(buildBroadcastState());
+          break;
+        case "start":
+          if (!session || session.status === "PAUSED") {
+            // trigger start/resume
+            const pid = cmd.projectId || projectId;
+            setProjectId(pid);
+            const now = new Date().toISOString();
+            setSession((s) => ({
+              id: s?.id ?? "_pending",
+              projectId: pid,
+              notesDraft: cmd.notes ?? notesDraft,
+              accumulatedSeconds: s?.accumulatedSeconds ?? 0,
+              status: "RUNNING",
+              startedAt: s?.startedAt ?? now,
+              lastResumedAt: now,
+            }));
+            startTransition(async () => {
+              try {
+                const result = await createOrResumeSession({ projectId: pid, notes: cmd.notes ?? notesDraft });
+                setSession({
+                  id: result.id,
+                  projectId: result.projectId,
+                  notesDraft: result.notesDraft,
+                  accumulatedSeconds: result.accumulatedSeconds,
+                  status: result.status as "RUNNING" | "PAUSED",
+                  startedAt: result.startedAt.toISOString(),
+                  lastResumedAt: result.lastResumedAt?.toISOString() ?? null,
+                });
+              } catch {}
+            });
+          }
+          break;
+        case "pause":
+          if (session?.status === "RUNNING") {
+            const frozenElapsed = elapsedSeconds;
+            setSession({ ...session, accumulatedSeconds: frozenElapsed, status: "PAUSED", lastResumedAt: null, notesDraft });
+            startTransition(async () => {
+              try {
+                await pauseSession({ sessionId: session.id, elapsedSeconds: frozenElapsed, notesDraft });
+              } catch {}
+            });
+          }
+          break;
+        case "resume":
+          if (session?.status === "PAUSED") {
+            const now = new Date().toISOString();
+            setSession({ ...session, status: "RUNNING", lastResumedAt: now });
+            startTransition(async () => {
+              try {
+                await createOrResumeSession({ projectId, notes: notesDraft });
+              } catch {}
+            });
+          }
+          break;
+        case "save":
+          if (session) {
+            const sid = session.id;
+            const frozenElapsed = elapsedSeconds;
+            const frozenNotes = notesDraft;
+            setSession(null);
+            setNotesDraft("");
+            setLastAutosaved(null);
+            startTransition(async () => {
+              try {
+                await finalizeSession({ sessionId: sid, projectId, elapsedSeconds: frozenElapsed, notesDraft: frozenNotes, workDate: localDateInputValue() });
+              } catch {}
+            });
+          }
+          break;
+        case "discard":
+          if (session) {
+            const sid = session.id;
+            const frozenElapsed = elapsedSeconds;
+            const frozenNotes = notesDraft;
+            setSession(null);
+            setNotesDraft("");
+            setLastAutosaved(null);
+            startTransition(async () => {
+              try {
+                await discardSession({ sessionId: sid, elapsedSeconds: frozenElapsed, notesDraft: frozenNotes });
+              } catch {}
+            });
+          }
+          break;
+      }
+    });
+    return unsub;
+  }, [buildBroadcastState, session, projectId, notesDraft, elapsedSeconds]);
+
   function handleProjectChange(newProjectId: string) {
     if (isRunning && newProjectId !== projectId) {
       if (!confirm("Timer is running. Switch project? The timer will continue.")) return;
@@ -118,7 +236,16 @@ export function TimerPanel({
       {/* ── Row 1: Timer display + action buttons ── */}
       <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
         <div className="min-w-0">
-          <div className="text-sm sm:text-base font-bold">Current timer</div>
+          <div className="flex items-center gap-2">
+            <div className="text-sm sm:text-base font-bold">Current timer</div>
+            <button
+              onClick={() => openTimerPopup()}
+              className="text-xs text-[#808080] hover:text-[#D9D9D9] transition-colors"
+              title="Pop out timer"
+            >
+              ⧉
+            </button>
+          </div>
           <div className="text-3xl sm:text-4xl font-bold tracking-tight tabular-nums mt-1">
             {formatSeconds(elapsedSeconds)}
           </div>
