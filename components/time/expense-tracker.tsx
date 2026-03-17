@@ -36,6 +36,7 @@ export function ExpenseTracker({ projects, userId }: { projects: { projectId: st
       projectId: "",
     });
       const [editingEntryId, setEditingEntryId] = useState<string | null>(null);
+      const [editModalOpen, setEditModalOpen] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [confirmed, setConfirmed] = useState(false);
     const [expenses, setExpenses] = useState<any[]>([]); // TODO: fetch from server
@@ -401,36 +402,36 @@ export function ExpenseTracker({ projects, userId }: { projects: { projectId: st
       {/* Table listing saved expenses */}
       <Card accent>
         <h3 className="app-heading-3 text-[#D9D9D9] mb-4">Saved Expenses</h3>
-        <table className="min-w-full border-collapse text-xs sm:text-sm">
+        <table className="min-w-full border-separate border-spacing-0 text-sm font-normal">
           <thead>
-            <tr>
-              <th className="px-3 py-2 text-left">Date</th>
-              <th className="px-3 py-2 text-left">Amount</th>
-              <th className="px-3 py-2 text-left">Currency</th>
-              <th className="px-3 py-2 text-left">Merchant</th>
-              <th className="px-3 py-2 text-left">Details</th>
-              <th className="px-3 py-2 text-left">Project</th>
-              <th className="px-3 py-2 text-left">Receipt</th>
+            <tr className="bg-[#181818]">
+              <th className="px-4 py-2 text-left font-semibold border-b border-[#232323]/40">Date</th>
+              <th className="px-4 py-2 text-left font-semibold border-b border-[#232323]/40">Amount</th>
+              <th className="px-4 py-2 text-left font-semibold border-b border-[#232323]/40">Currency</th>
+              <th className="px-4 py-2 text-left font-semibold border-b border-[#232323]/40">Merchant</th>
+              <th className="px-4 py-2 text-left font-semibold border-b border-[#232323]/40">Details</th>
+              <th className="px-4 py-2 text-left font-semibold border-b border-[#232323]/40">Project</th>
+              <th className="px-4 py-2 text-left font-semibold border-b border-[#232323]/40">Receipt</th>
+              <th className="px-4 py-2 text-left font-semibold border-b border-[#232323]/40">Action</th>
             </tr>
           </thead>
           <tbody>
             {expenses.length === 0 && (
-              <tr><td colSpan={7} className="text-[#808080] py-4 text-center">No expenses yet.</td></tr>
+              <tr><td colSpan={8} className="text-[#808080] py-4 text-center">No expenses yet.</td></tr>
             )}
             {expenses.map(exp => (
-              <tr key={exp.id}>
-                <td className="px-3 py-2">{exp.expenseDate}</td>
-                <td className="px-3 py-2">{exp.amount}</td>
-                <td className="px-3 py-2">{exp.currency}</td>
-                <td className="px-3 py-2">{exp.merchant}</td>
-                <td className="px-3 py-2">{exp.details}</td>
-                <td className="px-3 py-2">{exp.projectName}</td>
-                <td className="px-3 py-2"><a href={exp.publicUrl ?? exp.receiptFilePath} target="_blank" rel="noopener" className="text-[#F40000] underline">View</a></td>
-                <td className="px-3 py-2">
+              <tr key={exp.id} className="border-b border-[#232323]/20">
+                <td className="px-4 py-2 align-middle">{exp.expenseDate}</td>
+                <td className="px-4 py-2 align-middle">{exp.amount}</td>
+                <td className="px-4 py-2 align-middle">{exp.currency}</td>
+                <td className="px-4 py-2 align-middle">{exp.merchant}</td>
+                <td className="px-4 py-2 align-middle">{exp.details}</td>
+                <td className="px-4 py-2 align-middle">{exp.projectName}</td>
+                <td className="px-4 py-2 align-middle"><a href={exp.publicUrl ?? exp.receiptFilePath} target="_blank" rel="noopener" className="text-[#F40000] underline">View</a></td>
+                <td className="px-4 py-2 align-middle">
                   <div className="flex items-center gap-2">
                     <button
                       onClick={() => {
-                        // populate form for editing
                         setEditingEntryId(exp.id);
                         setForm({
                           receiptId: exp.receiptFilePath ?? "",
@@ -442,12 +443,10 @@ export function ExpenseTracker({ projects, userId }: { projects: { projectId: st
                           details: exp.details ?? "",
                           projectId: exp.projectId ?? "",
                         });
-                        // clear any pendingFile state
                         setPendingFile(null);
-                        // scroll to top so the edit form is visible
-                        try { window.scrollTo({ top: 0, behavior: 'smooth' }); } catch {}
+                        setEditModalOpen(true);
                       }}
-                      className="text-xs text-[#808080] hover:text-[#D9D9D9]"
+                      className="btn btn-sm btn-primary"
                     >
                       Edit
                     </button>

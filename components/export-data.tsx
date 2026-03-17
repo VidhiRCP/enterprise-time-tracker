@@ -70,7 +70,7 @@ export function ExportData() {
     <div className="inline-block">
       <button
         onClick={() => setOpen(true)}
-        className="border border-[#808080]/30 px-3 py-2 text-sm text-[#D9D9D9] hover:text-[#F8F8F8] transition-colors"
+        className="btn btn-md btn-primary"
       >
         Export Data
       </button>
@@ -80,7 +80,7 @@ export function ExportData() {
           <div className="bg-black border border-[#808080]/30 p-4 w-full max-w-lg">
             <div className="flex items-center justify-between mb-3">
               <h3 className="app-heading-3">Export Data</h3>
-              <button onClick={() => setOpen(false)} className="text-sm text-[#808080]">✕</button>
+              <button onClick={() => setOpen(false)} className="btn btn-sm btn-ghost">✕</button>
             </div>
 
             <div className="space-y-3 text-sm">
