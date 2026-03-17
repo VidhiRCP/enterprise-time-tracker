@@ -456,6 +456,58 @@ export function ExpenseTracker({ projects, userId }: { projects: { projectId: st
             ))}
           </tbody>
         </table>
+      {/* Edit Modal Popup - moved outside table for correct rendering */}
+      {editModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
+          <div className="bg-[#181818] border border-[#808080]/30 p-6 w-full max-w-md rounded-md shadow-lg">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="app-heading-3">Edit Expense</h3>
+              <button onClick={() => { setEditModalOpen(false); setEditingEntryId(null); }} className="btn btn-sm btn-ghost">✕</button>
+            </div>
+            <form className="space-y-4">
+              <div>
+                <label className="text-xs font-bold mb-1 block">Date</label>
+                <DateInput value={form.expenseDate} onChange={(v) => setForm(prev => ({ ...prev, expenseDate: v }))} placeholder="Date" />
+              </div>
+              <div>
+                <label className="text-xs font-bold mb-1 block">Amount</label>
+                <input type="text" name="amount" value={form.amount} onChange={handleFormChange} className="app-input w-full" />
+              </div>
+              <div>
+                <label className="text-xs font-bold mb-1 block">Currency</label>
+                <input type="text" name="currency" value={form.currency} onChange={handleFormChange} className="app-input w-full" />
+              </div>
+              <div>
+                <label className="text-xs font-bold mb-1 block">Merchant</label>
+                <input type="text" name="merchant" value={form.merchant} onChange={handleFormChange} className="app-input w-full" />
+              </div>
+              <div>
+                <label className="text-xs font-bold mb-1 block">Details</label>
+                <textarea name="details" value={form.details} onChange={handleFormChange} className="app-input w-full" />
+              </div>
+              <div>
+                <label className="text-xs font-bold mb-1 block">Project</label>
+                <select name="projectId" value={form.projectId} onChange={handleFormChange} className="app-input w-full">
+                  <option value="">-- Select project --</option>
+                  {projects.map(p => <option key={p.projectId} value={p.projectId}>{p.projectName} ({p.projectId})</option>)}
+                </select>
+              </div>
+              {error && <div className="text-xs text-[#F40000]">{error}</div>}
+              <div className="flex items-center justify-end gap-2 mt-4">
+                <button type="button" onClick={() => { setEditModalOpen(false); setEditingEntryId(null); }} className="btn btn-sm btn-ghost">Cancel</button>
+                <button type="button" onClick={async () => { await handleSave(); setEditModalOpen(false); }} className="btn btn-sm btn-primary">Save</button>
+              </div>
+            </form>
+            {/* Extracted JSON section */}
+            {extraction && (
+              <div className="mt-6 bg-[#222222] rounded-lg p-3 text-xs text-[#D9D9D9]">
+                <div className="font-bold mb-2">Extracted JSON</div>
+                <pre className="overflow-x-auto whitespace-pre-wrap break-all text-xs" style={{ maxHeight: 180 }}>{JSON.stringify(extraction, null, 2)}</pre>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
       </Card>
     </div>
   );
