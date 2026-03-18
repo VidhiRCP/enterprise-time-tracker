@@ -20,15 +20,14 @@ function fmtDuration(minutes: number): string {
 }
 
 function exportTypeLabel(types: string[]): string {
-  if (types.length === 0) return "combo";
-  const sorted = [...types].sort();
-  if (sorted.length === 1) {
-    if (sorted[0] === "activities") return "activity";
-    if (sorted[0] === "timesheets") return "timesheet";
-    if (sorted[0] === "expenses") return "expenses";
-    return sorted[0];
-  }
-  return "combo";
+  if (types.length === 0) return "all";
+  const names = types.map((t) => {
+    if (t === "activities") return "activities";
+    if (t === "timesheets") return "timesheets";
+    if (t === "expenses") return "expenses";
+    return t;
+  });
+  return names.sort().join("_");
 }
 
 function buildCsv(headers: string[], rows: Array<Record<string, any>>) {
@@ -280,76 +279,138 @@ export async function POST(req: Request) {
       });
     }
 
-    /* ── PDF ── */
+    /* ── PDF (using pdf-lib — works in serverless without .afm files) ── */
     if (format === "pdf") {
-      // @ts-ignore
-      const PDFKit: any = await import("pdfkit");
-      const doc = new PDFKit.default({
-        margin: 40,
-        size: "A4",
-        layout: "landscape",
-      });
-      const chunks: any[] = [];
-      doc.on("data", (c: Buffer) => chunks.push(c));
-      const finished = new Promise<Buffer>((resolve, reject) => {
-        doc.on("end", () => resolve(Buffer.concat(chunks)));
-        doc.on("error", (err: any) => reject(err));
-      });
+      const { PDFDocument, StandardFonts, rgb } = await import("pdf-lib");
 
-      doc.fontSize(16).fillColor("black").text("Export Report", { align: "center" });
-      doc.moveDown(0.3);
-      doc.fontSize(9).fillColor("gray").text(`Generated: ${todayStr}`, { align: "center" });
-      doc.moveDown(1);
+      const pdfDoc = await PDFDocument.create();
+      const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
+      const fontBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
 
-      function drawTable(
-        title: string,
-        headers: string[],
-        rows: string[][]
-      ) {
-        doc
-          .fontSize(13)
-          .fillColor("black")
-          .text(title, { underline: true });
-        doc.moveDown(0.4);
+      const MARGIN = 40;
+      const ROW_H = 16;
+      const HDR_H = 20;
+      const PAGE_W = 841.89; // A4 landscape
+      const PAGE_H = 595.28;
+      const usable = PAGE_W - MARGIN * 2;
+
+      let page = pdfDoc.addPage([PAGE_W, PAGE_H]);
+      let curY = PAGE_H - MARGIN;
+
+      /* ── Title ── */
+      const titleW = fontBold.widthOfTextAtSize("Export Report", 18);
+      page.drawText("Export Report", {
+        x: (PAGE_W - titleW) / 2,
+        y: curY,
+        size: 18,
+        font: fontBold,
+        color: rgb(0.15, 0.15, 0.15),
+      });
+      curY -= 16;
+      const subW = font.widthOfTextAtSize(`Generated: ${todayStr}`, 9);
+      page.drawText(`Generated: ${todayStr}`, {
+        x: (PAGE_W - subW) / 2,
+        y: curY,
+        size: 9,
+        font,
+        color: rgb(0.5, 0.5, 0.5),
+      });
+      curY -= 28;
+
+      function ensureSpace(needed: number) {
+        if (curY - needed < MARGIN) {
+          page = pdfDoc.addPage([PAGE_W, PAGE_H]);
+          curY = PAGE_H - MARGIN;
+        }
+      }
+
+      function drawTable(title: string, headers: string[], rows: string[][]) {
+        ensureSpace(HDR_H + ROW_H + 30);
+
+        /* section title */
+        page.drawText(title, {
+          x: MARGIN,
+          y: curY,
+          size: 13,
+          font: fontBold,
+          color: rgb(0.1, 0.1, 0.1),
+        });
+        curY -= 6;
+        page.drawLine({
+          start: { x: MARGIN, y: curY },
+          end: { x: PAGE_W - MARGIN, y: curY },
+          thickness: 0.5,
+          color: rgb(0.3, 0.3, 0.3),
+        });
+        curY -= 4;
+
         const colCount = headers.length;
-        const pageWidth =
-          doc.page.width - doc.page.margins.left - doc.page.margins.right;
-        const colWidth = pageWidth / colCount;
-        const startX = doc.page.margins.left;
-        let y = doc.y;
+        const colWidth = usable / colCount;
 
-        /* header row */
-        doc.rect(startX, y, pageWidth, 18).fill("#333333");
-        doc.fillColor("white").fontSize(8);
-        headers.forEach((h: string, i: number) => {
-          doc.text(h, startX + i * colWidth + 4, y + 4, {
-            width: colWidth - 8,
-            lineBreak: false,
+        /* header row background */
+        page.drawRectangle({
+          x: MARGIN,
+          y: curY - HDR_H + 2,
+          width: usable,
+          height: HDR_H,
+          color: rgb(0.2, 0.2, 0.2),
+        });
+
+        headers.forEach((h, i) => {
+          const truncated = truncText(h, fontBold, 8, colWidth - 8);
+          page.drawText(truncated, {
+            x: MARGIN + i * colWidth + 4,
+            y: curY - HDR_H + 8,
+            size: 8,
+            font: fontBold,
+            color: rgb(1, 1, 1),
           });
         });
-        y += 18;
+        curY -= HDR_H + 2;
 
         /* data rows */
-        doc.fillColor("black").fontSize(8);
-        rows.forEach((row: string[], ri: number) => {
-          if (y + 16 > doc.page.height - doc.page.margins.bottom) {
-            doc.addPage();
-            y = doc.page.margins.top;
-          }
+        rows.forEach((row, ri) => {
+          ensureSpace(ROW_H + 4);
+
+          /* zebra stripe */
           if (ri % 2 === 0) {
-            doc.rect(startX, y, pageWidth, 16).fill("#f5f5f5");
+            page.drawRectangle({
+              x: MARGIN,
+              y: curY - ROW_H + 2,
+              width: usable,
+              height: ROW_H,
+              color: rgb(0.96, 0.96, 0.96),
+            });
           }
-          doc.fillColor("black");
-          row.forEach((cell: string, ci: number) => {
-            doc.text(String(cell ?? ""), startX + ci * colWidth + 4, y + 3, {
-              width: colWidth - 8,
-              lineBreak: false,
+
+          row.forEach((cell, ci) => {
+            const truncated = truncText(String(cell ?? ""), font, 7.5, colWidth - 8);
+            page.drawText(truncated, {
+              x: MARGIN + ci * colWidth + 4,
+              y: curY - ROW_H + 6,
+              size: 7.5,
+              font,
+              color: rgb(0.1, 0.1, 0.1),
             });
           });
-          y += 16;
+          curY -= ROW_H;
         });
-        doc.y = y + 12;
-        doc.moveDown(0.5);
+        curY -= 16;
+      }
+
+      /* truncate text to fit in column */
+      function truncText(text: string, f: typeof font, size: number, maxW: number): string {
+        if (!text) return "";
+        let t = text.replace(/[\n\r]/g, " ");
+        try {
+          if (f.widthOfTextAtSize(t, size) <= maxW) return t;
+          while (t.length > 1 && f.widthOfTextAtSize(t + "…", size) > maxW) {
+            t = t.slice(0, -1);
+          }
+          return t + "…";
+        } catch {
+          return t.slice(0, 30);
+        }
       }
 
       if (activitiesRows.length) {
@@ -382,9 +443,8 @@ export async function POST(req: Request) {
         drawTable("Expenses", h, r);
       }
 
-      doc.end();
-      const pdfBuffer = await finished;
-      return new NextResponse(pdfBuffer as any, {
+      const pdfBytes = await pdfDoc.save();
+      return new NextResponse(Buffer.from(pdfBytes), {
         status: 200,
         headers: {
           "Content-Type": "application/pdf",

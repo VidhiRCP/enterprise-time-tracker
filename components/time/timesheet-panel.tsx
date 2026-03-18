@@ -179,7 +179,7 @@ export function TimesheetPanel({
         <div>
           <h2 className="app-heading-2">Meeting Tracker</h2>
           <p className="mt-0.5 text-xs sm:text-sm text-[#D9D9D9]">
-            This week&apos;s non-private calendar events. Allocate each to a project.
+            Below are the events from your calendar. Please assign projects to any entries that do not yet have one.
           </p>
         </div>
         <div className="flex items-center gap-3">

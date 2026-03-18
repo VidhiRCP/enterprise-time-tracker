@@ -41,7 +41,7 @@ export function ExportData() {
       const yyyy = now.getFullYear();
       const dateStr = `${dd}-${mm}-${yyyy}`;
       const selectedTypes = Object.keys(types).filter((k) => types[k]);
-      const typeLabel = selectedTypes.length === 1 ? (selectedTypes[0] === "activities" ? "activity" : selectedTypes[0] === "timesheets" ? "timesheet" : selectedTypes[0]) : "combo";
+      const typeLabel = selectedTypes.join("_");
       a.href = url;
       a.download = `${dateStr}_${typeLabel}.${ext}`;
       document.body.appendChild(a);
@@ -77,10 +77,10 @@ export function ExportData() {
     <div className="inline-block">
       <button
         onClick={() => setOpen(true)}
-        className="btn btn-md btn-primary"
+        className="border border-[#808080]/30 px-4 py-2 text-sm text-[#D9D9D9] hover:text-[#F8F8F8] transition-colors flex items-center gap-1.5"
       >
-        <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 mr-1.5 inline-block" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="square" strokeLinejoin="miter" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5 5-5M12 15V3" /></svg>
-        Export Data
+        <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="square" strokeLinejoin="miter" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5 5-5M12 15V3" /></svg>
+        <span className="hidden sm:inline">Export Data</span>
       </button>
 
       {open && (

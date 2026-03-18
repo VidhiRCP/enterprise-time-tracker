@@ -155,7 +155,7 @@ export default async function HomePage() {
         {/* Header */}
         <div className="flex flex-col gap-2 border border-[#808080]/30 p-4 sm:p-5 md:flex-row md:items-center md:justify-between">
           <div className="min-w-0">
-            <h1 className="app-heading-1">RCP Time Tracker</h1>
+            <h1 className="app-heading-1">RCP Pulse</h1>
             <p className="text-xs sm:text-sm text-[#D9D9D9] truncate">{session.user.email}</p>
           </div>
           <div className="flex items-center gap-2">
