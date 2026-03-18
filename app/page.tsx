@@ -119,10 +119,8 @@ export default async function HomePage() {
 
   if (!session?.user?.email) {
     return (
-      <main className="min-h-screen p-4 sm:p-6 md:p-8">
-        <div className="mx-auto max-w-3xl pt-8 sm:pt-12 md:pt-16">
-          <SignInCard />
-        </div>
+      <main className="min-h-screen bg-black">
+        <SignInCard />
       </main>
     );
   }
