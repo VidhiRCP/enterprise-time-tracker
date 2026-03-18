@@ -4,9 +4,9 @@ import Image from "next/image";
 export function SignInCard() {
   return (
     <form action={async () => { "use server"; await signIn("microsoft-entra-id"); }}>
-      <div className="flex items-center justify-center min-h-screen w-full bg-black overflow-hidden">
-        {/* Red diamond image — left side, 50% opacity */}
-        <div className="absolute left-0 top-0 h-full w-[55%] flex items-center justify-center pointer-events-none select-none">
+      <div className="flex items-center min-h-screen w-full bg-black overflow-hidden">
+        {/* Red diamond image — left 60% */}
+        <div className="relative w-[60%] h-screen flex items-center justify-center pointer-events-none select-none">
           <Image
             src="/RCP Icon.png"
             alt=""
@@ -18,8 +18,8 @@ export function SignInCard() {
           />
         </div>
 
-        {/* Centered content */}
-        <div className="relative z-10 flex flex-col items-center text-center">
+        {/* Text content — right 40% */}
+        <div className="w-[40%] flex flex-col items-center text-center px-8">
           <h1
             className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-bold text-white leading-none"
             style={{ textShadow: "2px 2px 0 #dc2626, 0 6px 20px rgba(0,0,0,0.6)" }}
