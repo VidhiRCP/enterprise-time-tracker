@@ -96,6 +96,8 @@ export function InsightsPanel({ data }: { data?: InsightsData }) {
   const [entries, setEntries] = useState(initialEntries);
   const [allocations, setAllocations] = useState(initialAllocs);
   const [loading, setLoading] = useState(false);
+  const [narrative, setNarrative] = useState<string | null>(null);
+  const [narrativeLoading, setNarrativeLoading] = useState(false);
   const [exportMenuOpen, setExportMenuOpen] = useState(false);
 
   // Compute selected week boundaries from context
@@ -137,6 +139,21 @@ export function InsightsPanel({ data }: { data?: InsightsData }) {
         if (cancelled) return;
         setEntries(json.entries ?? []);
         setAllocations(json.allocations ?? []);
+        // Fetch narrative in parallel
+        setNarrativeLoading(true);
+        try {
+          const nresp = await fetch('/api/insights/narrative', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ weekStart: new Date(weekStart + 'T00:00:00').toISOString() }) });
+          if (nresp.ok) {
+            const nj = await nresp.json();
+            if (!cancelled) setNarrative(nj.narrative ?? null);
+          } else {
+            if (!cancelled) setNarrative(null);
+          }
+        } catch (e) {
+          if (!cancelled) setNarrative(null);
+        } finally {
+          if (!cancelled) setNarrativeLoading(false);
+        }
       } catch (err) {
         console.error(err);
       } finally {
@@ -408,15 +425,28 @@ export function InsightsPanel({ data }: { data?: InsightsData }) {
           <div className="brand-border brand-soft px-5 py-4 sm:px-6 sm:py-5 mt-4" style={{ borderStyle: 'solid', borderWidth: 1 }}>
             <div className="flex items-start gap-2">
               <span className="text-sm">✨</span>
-              <div className="text-xs sm:text-sm text-[#D9D9D9] space-y-0.5">
+              <div className="text-xs sm:text-sm text-[#D9D9D9] space-y-1 w-full">
+                {/* fallback short summary based on metrics */}
                 <p>
-                  You tracked <span className="font-bold text-[#F8F8F8]">{fmtMin(totalMinutes)}</span> across{" "}
-                  <span className="font-bold text-[#F8F8F8]">{projectTotals.length}</span> project{projectTotals.length !== 1 ? "s" : ""}.
+                  You tracked <span className="font-bold text-[#F8F8F8]">{fmtMin(totalMinutes)}</span> across <span className="font-bold text-[#F8F8F8]">{projectTotals.length}</span> project{projectTotals.length !== 1 ? "s" : ""}.
                   {topProject && (
                     <> Top: <span className="font-bold text-[#F8F8F8]">{topProject.projectName}</span> ({fmtMin(topProject.totalMin)}).</>
                   )}
-                  {meetingPct > 0 && <> Meetings: <span className="font-bold text-[#F8F8F8]">{meetingPct}%</span>.</>}
                 </p>
+
+                {/* Narrative from AI */}
+                <div>
+                  {narrativeLoading ? (
+                    <div className="text-xs text-[#808080] flex items-center gap-2">
+                      <div className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-[#808080]/30 border-t-[#F40000]" />
+                      Loading weekly summary…
+                    </div>
+                  ) : narrative ? (
+                    <p className="text-sm text-[#D9D9D9]">{narrative}</p>
+                  ) : (
+                    <p className="text-xs text-[#808080]">No narrative available for this week.</p>
+                  )}
+                </div>
               </div>
             </div>
           </div>

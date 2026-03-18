@@ -20,6 +20,7 @@ import {
   type SuggestionEntry,
 } from "@/lib/hooks/use-project-suggestion";
 import { ProjectSuggestion } from "@/components/time/project-suggestion";
+import { NoteImprovement } from "@/components/time/note-improvement";
 
 type ProjectOption = {
   projectId: string;
@@ -408,9 +409,9 @@ export function TimerPanel({
 
         <div className="space-y-1">
           <label className="text-sm font-medium text-[#D9D9D9]">Notes</label>
-          <textarea
-            value={notesDraft}
-            onChange={(e) => { setNotesDraft(e.target.value); setNotesError(""); resetDismiss(); }}
+            <textarea
+              value={notesDraft}
+              onChange={(e) => { setNotesDraft(e.target.value); setNotesError(""); resetDismiss(); }}
             rows={2}
             className={`w-full border bg-black px-2.5 py-1.5 text-sm focus:border-[#F40000] focus:outline-none app-input ${
               notesError ? "border-[#F40000]" : "border-[#808080]/30"
@@ -431,6 +432,12 @@ export function TimerPanel({
           dismissSuggestion();
         }}
         onDismiss={dismissSuggestion}
+      />
+      {/* Note quality improvement */}
+      <NoteImprovement
+        note={notesDraft}
+        projectId={projectId}
+        onAccept={(s) => setNotesDraft(s)}
       />
     </div>
   );

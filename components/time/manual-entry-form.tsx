@@ -9,6 +9,7 @@ import {
   type SuggestionEntry,
 } from "@/lib/hooks/use-project-suggestion";
 import { ProjectSuggestion } from "@/components/time/project-suggestion";
+import { NoteImprovement } from "@/components/time/note-improvement";
 
 type ProjectOption = {
   projectId: string;
@@ -187,15 +188,15 @@ export function ManualEntryForm({
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
         <div className="flex-1 space-y-1">
           <label className="text-sm font-medium text-[#D9D9D9]">Notes</label>
-          <input
-            type="text"
-            value={notes}
-            onChange={(e) => { setNotes(e.target.value); setError(""); resetDismiss(); }}
-             className={`w-full border bg-black px-3 py-2 text-sm focus:border-[#F40000] focus:outline-none app-input ${
-               "border-[#808080]/30"
-             }`}
-            placeholder="Describe the work done"
-          />
+            <input
+              type="text"
+              value={notes}
+              onChange={(e) => { setNotes(e.target.value); setError(""); resetDismiss(); }}
+               className={`w-full border bg-black px-3 py-2 text-sm focus:border-[#F40000] focus:outline-none app-input ${
+                 "border-[#808080]/30"
+               }`}
+              placeholder="Describe the work done"
+            />
         </div>
         <button
           type="button"
@@ -216,6 +217,8 @@ export function ManualEntryForm({
         }}
         onDismiss={dismissSuggestion}
       />
+      {/* Note quality improvement */}
+      <NoteImprovement note={notes} projectId={projectId} onAccept={(s) => setNotes(s)} />
 
       {/* Error / Success messages */}
       {error && (
