@@ -142,6 +142,17 @@ export default async function HomePage() {
     aliases: a.aliases ?? "",
   }));
 
+  // Build suggestion data for project auto-suggest
+  const suggestionAssignments = data.assignments.map((a) => ({
+    projectId: a.projectId,
+    projectName: a.project.projectName,
+    aliases: a.aliases ?? "",
+  }));
+  const suggestionEntries = data.entries.map((e) => ({
+    projectId: e.projectId,
+    notes: e.notes,
+  }));
+
   const statsData = computeDashboardStats(data);
   const entryDateStrings = [...new Set(
     data.entries.map((e) => new Date(e.workDate).toISOString().slice(0, 10)),
@@ -204,6 +215,8 @@ export default async function HomePage() {
                 }
                 entries={data.entries}
                 hasRecoveredSession={!!data.session}
+                assignments={suggestionAssignments}
+                recentEntries={suggestionEntries}
               />
             )
           }

@@ -3,13 +3,27 @@
 import { useState, useTransition } from "react";
 import { createManualEntry } from "@/lib/actions";
 import { localDateInputValue, formatMinutes } from "@/lib/time";
+import {
+  useProjectSuggestion,
+  type SuggestionAssignment,
+  type SuggestionEntry,
+} from "@/lib/hooks/use-project-suggestion";
+import { ProjectSuggestion } from "@/components/time/project-suggestion";
 
 type ProjectOption = {
   projectId: string;
   projectName: string;
 };
 
-export function ManualEntryForm({ projects }: { projects: ProjectOption[] }) {
+export function ManualEntryForm({
+  projects,
+  assignments,
+  recentEntries,
+}: {
+  projects: ProjectOption[];
+  assignments: SuggestionAssignment[];
+  recentEntries: SuggestionEntry[];
+}) {
   const [projectId, setProjectId] = useState(projects[0]?.projectId ?? "");
   const workDate = localDateInputValue();
   const [mode, setMode] = useState<"duration" | "range">("range");
@@ -20,6 +34,14 @@ export function ManualEntryForm({ projects }: { projects: ProjectOption[] }) {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
   const [isPending, startTransition] = useTransition();
+
+  // Project auto-suggestion
+  const { suggestion, dismiss: dismissSuggestion, resetDismiss } = useProjectSuggestion({
+    notes,
+    assignments,
+    recentEntries,
+    currentProjectId: projectId,
+  });
 
   // Auto-calculate duration from range
   const computedDuration = (() => {
@@ -168,7 +190,7 @@ export function ManualEntryForm({ projects }: { projects: ProjectOption[] }) {
           <input
             type="text"
             value={notes}
-            onChange={(e) => { setNotes(e.target.value); setError(""); }}
+            onChange={(e) => { setNotes(e.target.value); setError(""); resetDismiss(); }}
              className={`w-full border bg-black px-3 py-2 text-sm focus:border-[#F40000] focus:outline-none app-input ${
                "border-[#808080]/30"
              }`}
@@ -184,6 +206,16 @@ export function ManualEntryForm({ projects }: { projects: ProjectOption[] }) {
           {isPending ? "Saving…" : "Save entry"}
         </button>
       </div>
+
+      {/* ── Project auto-suggestion ── */}
+      <ProjectSuggestion
+        suggestion={suggestion}
+        onAccept={(pid) => {
+          setProjectId(pid);
+          dismissSuggestion();
+        }}
+        onDismiss={dismissSuggestion}
+      />
 
       {/* Error / Success messages */}
       {error && (

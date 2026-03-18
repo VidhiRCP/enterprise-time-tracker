@@ -14,6 +14,12 @@ import {
   onTimerCommand,
   type TimerState,
 } from "@/lib/timer-broadcast";
+import {
+  useProjectSuggestion,
+  type SuggestionAssignment,
+  type SuggestionEntry,
+} from "@/lib/hooks/use-project-suggestion";
+import { ProjectSuggestion } from "@/components/time/project-suggestion";
 
 type ProjectOption = {
   projectId: string;
@@ -33,9 +39,13 @@ type SessionData = {
 export function TimerPanel({
   projects,
   activeSession,
+  assignments,
+  recentEntries,
 }: {
   projects: ProjectOption[];
   activeSession: SessionData | null;
+  assignments: SuggestionAssignment[];
+  recentEntries: SuggestionEntry[];
 }) {
   const [projectId, setProjectId] = useState(activeSession?.projectId ?? projects[0]?.projectId ?? "");
   const [notesDraft, setNotesDraft] = useState(activeSession?.notesDraft ?? "");
@@ -44,6 +54,15 @@ export function TimerPanel({
   const [tick, setTick] = useState(0);
   const [lastAutosaved, setLastAutosaved] = useState<Date | null>(null);
   const [notesError, setNotesError] = useState("");
+
+  // Project auto-suggestion
+  const { suggestion, dismiss: dismissSuggestion, resetDismiss } = useProjectSuggestion({
+    notes: notesDraft,
+    assignments,
+    recentEntries,
+    currentProjectId: projectId,
+    enabled: !session, // only suggest when no active session
+  });
 
   // Tick every second for live timer
   useEffect(() => {
@@ -391,7 +410,7 @@ export function TimerPanel({
           <label className="text-sm font-medium text-[#D9D9D9]">Notes</label>
           <textarea
             value={notesDraft}
-            onChange={(e) => { setNotesDraft(e.target.value); setNotesError(""); }}
+            onChange={(e) => { setNotesDraft(e.target.value); setNotesError(""); resetDismiss(); }}
             rows={2}
             className={`w-full border bg-black px-2.5 py-1.5 text-sm focus:border-[#F40000] focus:outline-none app-input ${
               notesError ? "border-[#F40000]" : "border-[#808080]/30"
@@ -403,6 +422,16 @@ export function TimerPanel({
           )}
         </div>
       </div>
+
+      {/* ── Project auto-suggestion ── */}
+      <ProjectSuggestion
+        suggestion={suggestion}
+        onAccept={(pid) => {
+          setProjectId(pid);
+          dismissSuggestion();
+        }}
+        onDismiss={dismissSuggestion}
+      />
     </div>
   );
 }

@@ -8,6 +8,8 @@ import { ManualEntryForm } from "@/components/time/manual-entry-form";
 import { EntryTable } from "@/components/time/entry-table";
 import { Card } from "@/components/ui/card";
 
+import type { SuggestionAssignment, SuggestionEntry } from "@/lib/hooks/use-project-suggestion";
+
 type ProjectOption = { projectId: string; projectName: string };
 
 type SessionData = {
@@ -77,6 +79,8 @@ export function ActivityContent({
   activeSession,
   entries,
   hasRecoveredSession,
+  assignments,
+  recentEntries,
 }: {
   statsData: DashboardStatsData;
   entryDateStrings: string[];
@@ -84,6 +88,8 @@ export function ActivityContent({
   activeSession: SessionData | null;
   entries: Entry[];
   hasRecoveredSession: boolean;
+  assignments: SuggestionAssignment[];
+  recentEntries: SuggestionEntry[];
 }) {
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [statsCollapsed, setStatsCollapsed] = useState(false);
@@ -157,7 +163,7 @@ export function ActivityContent({
               noBox
             >
               <div className="px-0">{/* keep padding consistent when noBox is used */}
-                <TimerPanel projects={projectOptions} activeSession={activeSession} />
+                <TimerPanel projects={projectOptions} activeSession={activeSession} assignments={assignments} recentEntries={recentEntries} />
               </div>
             </CollapsibleSection>
           </Card>
@@ -171,7 +177,7 @@ export function ActivityContent({
               noBox
             >
               <div className="px-0">
-                <ManualEntryForm projects={projectOptions} />
+                <ManualEntryForm projects={projectOptions} assignments={assignments} recentEntries={recentEntries} />
               </div>
             </CollapsibleSection>
           </Card>
