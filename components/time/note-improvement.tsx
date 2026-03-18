@@ -32,6 +32,7 @@ export function NoteImprovement({
     setSuggestion(null);
     setDismissed(false);
     if (!isVague) return;
+    // Give the user a couple seconds to finish typing before prompting
     const id = setTimeout(async () => {
       setLoading(true);
       try {
@@ -44,7 +45,7 @@ export function NoteImprovement({
       } finally {
         if (!cancelled) setLoading(false);
       }
-    }, 600);
+    }, 2000);
     return () => { cancelled = true; clearTimeout(id); };
   }, [note, projectId]);
 
