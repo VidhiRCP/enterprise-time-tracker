@@ -217,6 +217,7 @@ export default async function HomePage() {
                 hasRecoveredSession={!!data.session}
                 assignments={suggestionAssignments}
                 recentEntries={suggestionEntries}
+                workPatterns={data.workPatterns}
               />
             )
           }

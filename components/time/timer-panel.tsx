@@ -18,6 +18,7 @@ import {
   useProjectSuggestion,
   type SuggestionAssignment,
   type SuggestionEntry,
+  type SuggestionWorkPattern,
 } from "@/lib/hooks/use-project-suggestion";
 import { ProjectSuggestion } from "@/components/time/project-suggestion";
 import { NoteImprovement } from "@/components/time/note-improvement";
@@ -42,11 +43,13 @@ export function TimerPanel({
   activeSession,
   assignments,
   recentEntries,
+  workPatterns = [],
 }: {
   projects: ProjectOption[];
   activeSession: SessionData | null;
   assignments: SuggestionAssignment[];
   recentEntries: SuggestionEntry[];
+  workPatterns?: SuggestionWorkPattern[];
 }) {
   const [projectId, setProjectId] = useState(activeSession?.projectId ?? projects[0]?.projectId ?? "");
   const [notesDraft, setNotesDraft] = useState(activeSession?.notesDraft ?? "");
@@ -61,6 +64,7 @@ export function TimerPanel({
     notes: notesDraft,
     assignments,
     recentEntries,
+    workPatterns,
     currentProjectId: projectId,
     enabled: !session, // only suggest when no active session
   });

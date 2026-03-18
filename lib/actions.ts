@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { ensureProjectAccess } from "@/lib/authz";
+import { captureSignal } from "@/lib/work-patterns";
 
 async function requireEmail() {
   const session = await auth();
@@ -57,6 +58,11 @@ export async function createManualEntry(input: {
       status: "SAVED",
     },
   });
+
+  // Learn from confirmed save — capture note keywords → project association
+  if (input.notes?.trim()) {
+    captureSignal(email, "note", input.notes, input.projectId).catch(() => {});
+  }
 
   revalidatePath("/");
   return {};
@@ -194,6 +200,11 @@ export async function finalizeSession(input: {
     }),
   ]);
 
+  // Learn from confirmed save — capture note keywords → project association
+  if (input.notesDraft?.trim()) {
+    captureSignal(email, "note", input.notesDraft, input.projectId).catch(() => {});
+  }
+
   revalidatePath("/");
 }
 
@@ -329,6 +340,11 @@ export async function allocateCalendarEvent(input: {
       durationMin: input.durationMin,
     },
   });
+
+  // Learn from confirmed allocation — capture meeting subject → project association
+  if (input.eventSubject?.trim()) {
+    captureSignal(email, "meeting", input.eventSubject, input.projectId).catch(() => {});
+  }
 
   revalidatePath("/");
 }

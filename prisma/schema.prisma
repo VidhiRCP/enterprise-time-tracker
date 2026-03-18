@@ -38,6 +38,7 @@ model User {
   calendarAllocations CalendarAllocation[]
   expenseReceipts     ExpenseReceipt[]
   expenseEntries      ExpenseEntry[]
+  workPatterns        UserWorkPattern[]
 }
 
 model Project {
@@ -159,4 +160,21 @@ model ExpenseEntry {
   user            User            @relation(fields: [userId], references: [id])
   project         Project         @relation(fields: [projectId], references: [projectId])
   receipt         ExpenseReceipt? @relation(fields: [receiptId], references: [id])
+}
+
+model UserWorkPattern {
+  id              String   @id @default(cuid())
+  userId          String
+  signalType      String   // 'note' | 'meeting' | 'merchant'
+  signalValue     String   // normalized string
+  projectId       String
+  count           Int      @default(1)
+  confidenceScore Float    @default(0.1)
+  lastUsedAt      DateTime @default(now())
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, signalType, signalValue, projectId])
+  @@index([userId, signalType])
 }

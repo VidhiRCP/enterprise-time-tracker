@@ -6,9 +6,10 @@ import { SidebarCalendar } from "@/components/time/sidebar-calendar";
 import { TimerPanel } from "@/components/time/timer-panel";
 import { ManualEntryForm } from "@/components/time/manual-entry-form";
 import { EntryTable } from "@/components/time/entry-table";
+import { OverlapWarning } from "@/components/time/overlap-warning";
 import { Card } from "@/components/ui/card";
 
-import type { SuggestionAssignment, SuggestionEntry } from "@/lib/hooks/use-project-suggestion";
+import type { SuggestionAssignment, SuggestionEntry, SuggestionWorkPattern } from "@/lib/hooks/use-project-suggestion";
 
 type ProjectOption = { projectId: string; projectName: string };
 
@@ -81,6 +82,7 @@ export function ActivityContent({
   hasRecoveredSession,
   assignments,
   recentEntries,
+  workPatterns = [],
 }: {
   statsData: DashboardStatsData;
   entryDateStrings: string[];
@@ -90,6 +92,7 @@ export function ActivityContent({
   hasRecoveredSession: boolean;
   assignments: SuggestionAssignment[];
   recentEntries: SuggestionEntry[];
+  workPatterns?: SuggestionWorkPattern[];
 }) {
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [statsCollapsed, setStatsCollapsed] = useState(false);
@@ -114,6 +117,9 @@ export function ActivityContent({
           Recovered an unfinished timer session. Resume, pause, save, or discard it.
         </div>
       )}
+
+      {/* Overlap / double-session warning */}
+      <OverlapWarning />
 
       <div className="grid gap-10 lg:grid-cols-[360px_1fr]">
         {/* ── Left sidebar ── */}
@@ -163,7 +169,7 @@ export function ActivityContent({
               noBox
             >
               <div className="px-0">{/* keep padding consistent when noBox is used */}
-                <TimerPanel projects={projectOptions} activeSession={activeSession} assignments={assignments} recentEntries={recentEntries} />
+                <TimerPanel projects={projectOptions} activeSession={activeSession} assignments={assignments} recentEntries={recentEntries} workPatterns={workPatterns} />
               </div>
             </CollapsibleSection>
           </Card>
@@ -177,7 +183,7 @@ export function ActivityContent({
               noBox
             >
               <div className="px-0">
-                <ManualEntryForm projects={projectOptions} assignments={assignments} recentEntries={recentEntries} />
+                <ManualEntryForm projects={projectOptions} assignments={assignments} recentEntries={recentEntries} workPatterns={workPatterns} />
               </div>
             </CollapsibleSection>
           </Card>

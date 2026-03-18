@@ -6,6 +6,7 @@ import { z } from "zod";
 import { createClient } from "@supabase/supabase-js";
 import { revalidatePath } from "next/cache";
 import { ensureProjectAccess } from "@/lib/authz";
+import { captureSignal } from "@/lib/work-patterns";
 
 async function requireUser() {
   const session = await auth();
@@ -540,6 +541,11 @@ export async function saveExpenseReview(input: {
   // attach project to receipt if not set
   if (!receipt.projectId) {
     await prisma.expenseReceipt.update({ where: { id: receipt.id }, data: { projectId: input.projectId } });
+  }
+
+  // Learn from confirmed expense — capture merchant name → project association
+  if (input.merchant?.trim()) {
+    captureSignal(userEmail, "merchant", input.merchant, input.projectId).catch(() => {});
   }
 
   revalidatePath("/");

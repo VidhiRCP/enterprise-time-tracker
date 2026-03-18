@@ -7,6 +7,7 @@ import {
   useProjectSuggestion,
   type SuggestionAssignment,
   type SuggestionEntry,
+  type SuggestionWorkPattern,
 } from "@/lib/hooks/use-project-suggestion";
 import { ProjectSuggestion } from "@/components/time/project-suggestion";
 import { NoteImprovement } from "@/components/time/note-improvement";
@@ -20,10 +21,12 @@ export function ManualEntryForm({
   projects,
   assignments,
   recentEntries,
+  workPatterns = [],
 }: {
   projects: ProjectOption[];
   assignments: SuggestionAssignment[];
   recentEntries: SuggestionEntry[];
+  workPatterns?: SuggestionWorkPattern[];
 }) {
   const [projectId, setProjectId] = useState(projects[0]?.projectId ?? "");
   const workDate = localDateInputValue();
@@ -41,6 +44,7 @@ export function ManualEntryForm({
     notes,
     assignments,
     recentEntries,
+    workPatterns,
     currentProjectId: projectId,
   });
 

@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { scoreTextAgainstPatterns, type WorkPattern } from "@/lib/work-patterns";
 
 export type CalendarEvent = {
   id: string;
@@ -126,9 +127,53 @@ export async function getCalendarEvents(
     }
   }
 
+  // Fetch learned meeting patterns for this user
+  let meetingPatterns: WorkPattern[] = [];
+  if (user) {
+    meetingPatterns = (
+      await prisma.userWorkPattern.findMany({
+        where: { userId: user.id, signalType: "meeting" },
+        select: {
+          signalType: true,
+          signalValue: true,
+          projectId: true,
+          confidenceScore: true,
+          count: true,
+        },
+        orderBy: { confidenceScore: "desc" },
+      })
+    );
+  }
+
+  // Build a projectId → projectName lookup from assignments
+  const projectNameMap = new Map<string, string>(
+    assignments.map((a: { projectId: string; project: { projectName: string } }) => [
+      a.projectId,
+      a.project.projectName,
+    ]),
+  );
+
   function suggestProject(subject: string): { projectId: string; projectName: string } | null {
+    // 1. Check learned meeting patterns first (highest priority)
+    if (meetingPatterns.length > 0) {
+      const patternScores = scoreTextAgainstPatterns(subject, meetingPatterns, "meeting");
+      // Find best match with confidence ≥ 0.4
+      let bestPatternId: string | null = null;
+      let bestPatternScore = 0;
+      for (const [projectId, confidence] of patternScores) {
+        if (confidence >= 0.4 && confidence > bestPatternScore) {
+          bestPatternId = projectId;
+          bestPatternScore = confidence;
+        }
+      }
+      if (bestPatternId) {
+        const name = projectNameMap.get(bestPatternId);
+        if (name) return { projectId: bestPatternId, projectName: name };
+      }
+    }
+
+    // 2. Fall back to alias keyword matching
     const lower = subject.toLowerCase();
-    // Try exact substring match first, longest keyword wins
     const sorted = [...aliasEntries].sort((a, b) => b.keyword.length - a.keyword.length);
     for (const entry of sorted) {
       if (lower.includes(entry.keyword)) {

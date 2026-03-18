@@ -19,6 +19,15 @@ export type SuggestionEntry = {
   notes: string | null;
 };
 
+/** Learned work-pattern row (from UserWorkPattern table) */
+export type SuggestionWorkPattern = {
+  signalType: string;
+  signalValue: string;
+  projectId: string;
+  confidenceScore: number;
+  count: number;
+};
+
 export type ProjectSuggestionResult = {
   projectId: string;
   projectName: string;
@@ -28,6 +37,11 @@ export type ProjectSuggestionResult = {
 } | null;
 
 /* ── Scoring constants ── */
+const PATTERN_HIGH_CONFIDENCE_SCORE = 70;   // pattern confidence ≥ 0.7
+const PATTERN_MEDIUM_CONFIDENCE_SCORE = 40; // pattern confidence 0.4–0.7
+const PATTERN_CONFIDENCE_HIGH = 0.7;
+const PATTERN_CONFIDENCE_MEDIUM = 0.4;
+
 const ALIAS_BASE = 30;
 const ALIAS_LENGTH_BONUS_PER_CHAR = 2;
 const ALIAS_LENGTH_BONUS_CAP = 20;
@@ -53,12 +67,46 @@ function scoreProject(
   notesText: string,
   assignment: SuggestionAssignment,
   recentEntries: SuggestionEntry[],
+  workPatterns: SuggestionWorkPattern[],
 ): { score: number; reason: string } {
   const lower = notesText.toLowerCase().trim();
   if (!lower) return { score: 0, reason: "" };
 
   let score = 0;
   const reasons: string[] = [];
+
+  /* 0. Learned work-pattern matching — highest priority signal */
+  const inputKeywords = lower
+    .replace(/[^a-z0-9\s]/g, " ")
+    .split(/\s+/)
+    .filter((w) => w.length >= 3 && !STOPWORDS.has(w));
+
+  const projectPatterns = workPatterns.filter(
+    (p) => p.projectId === assignment.projectId && p.signalType === "note",
+  );
+
+  if (projectPatterns.length > 0 && inputKeywords.length > 0) {
+    // Find the best matching pattern confidence for this project
+    let bestConfidence = 0;
+    let matchedKeyword = "";
+    for (const kw of inputKeywords) {
+      for (const p of projectPatterns) {
+        if (p.signalValue === kw && p.confidenceScore > bestConfidence) {
+          bestConfidence = p.confidenceScore;
+          matchedKeyword = kw;
+        }
+      }
+    }
+
+    if (bestConfidence >= PATTERN_CONFIDENCE_HIGH) {
+      score += PATTERN_HIGH_CONFIDENCE_SCORE;
+      reasons.push(`learned pattern "${matchedKeyword}"`);
+    } else if (bestConfidence >= PATTERN_CONFIDENCE_MEDIUM) {
+      score += PATTERN_MEDIUM_CONFIDENCE_SCORE;
+      reasons.push(`learned pattern "${matchedKeyword}"`);
+    }
+    // < 0.4 → ignore
+  }
 
   /* 1. Alias keyword matching — highest signal */
   const aliasKeywords = assignment.aliases
@@ -91,11 +139,7 @@ function scoreProject(
   }
 
   /* 3. Notes text similarity — word overlap with past entries */
-  const inputWords = lower
-    .split(/[\s,.\-/;:!?()]+/)
-    .filter((w) => w.length >= 3 && !STOPWORDS.has(w));
-
-  if (inputWords.length > 0) {
+  if (inputKeywords.length > 0) {
     // Build a word set from all past notes for this project
     const pastWords = new Set<string>();
     for (const entry of projectEntries) {
@@ -107,7 +151,7 @@ function scoreProject(
     }
 
     let matchCount = 0;
-    for (const word of inputWords) {
+    for (const word of inputKeywords) {
       if (pastWords.has(word)) matchCount++;
     }
 
@@ -122,7 +166,7 @@ function scoreProject(
 
   /* 4. Project name substring match — secondary signal */
   const projNameLower = assignment.projectName.toLowerCase();
-  for (const word of inputWords) {
+  for (const word of inputKeywords) {
     if (word.length >= 4 && projNameLower.includes(word)) {
       score += 15;
       reasons.push("project name");
@@ -139,12 +183,14 @@ export function useProjectSuggestion({
   notes,
   assignments,
   recentEntries,
+  workPatterns = [],
   currentProjectId,
   enabled = true,
 }: {
   notes: string;
   assignments: SuggestionAssignment[];
   recentEntries: SuggestionEntry[];
+  workPatterns?: SuggestionWorkPattern[];
   currentProjectId: string;
   enabled?: boolean;
 }): {
@@ -161,7 +207,7 @@ export function useProjectSuggestion({
     let best: { projectId: string; projectName: string; score: number; reason: string } | null = null;
 
     for (const assignment of assignments) {
-      const { score, reason } = scoreProject(notes, assignment, recentEntries);
+      const { score, reason } = scoreProject(notes, assignment, recentEntries, workPatterns);
       if (score > (best?.score ?? 0)) {
         best = {
           projectId: assignment.projectId,
@@ -187,7 +233,7 @@ export function useProjectSuggestion({
       score: best.score,
       matchReason: best.reason,
     };
-  }, [notes, assignments, recentEntries, currentProjectId, enabled]);
+  }, [notes, assignments, recentEntries, workPatterns, currentProjectId, enabled]);
 
   // Track dismissal — dismissed for a specific suggestion
   const dismissed = dismissedFor !== "" && suggestion?.projectId === dismissedFor;

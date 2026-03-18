@@ -1,11 +1,16 @@
 "use server";
 
 import { prisma } from "./prisma";
+import { detectOverlaps } from "./overlap-detection";
 
-type WeeklyMetrics = {
+export type WeeklyMetrics = {
   weekStart: string; // YYYY-MM-DD
   weekEnd: string;   // YYYY-MM-DD
   totalMinutes: number;
+  totalActivityMinutes: number;
+  totalMeetingMinutes: number;
+  coveragePercent: number; // tracked / expected (5 × 8h)
+  estimatedUntrackedMinutes: number;
   projectTotals: { projectId: string; projectName: string; minutes: number }[];
   meetingMinutes: number;
   meetingMinutesPrevWeek: number | null;
@@ -13,6 +18,12 @@ type WeeklyMetrics = {
   lowActivityDays: { date: string; minutes: number }[]; // < 30 min
   inactiveProjects: { projectId: string; projectName: string }[];
   expenseSummary: { totalAmount: string; currency: string | null; count: number } | null;
+  assignedProjectCount: number;
+  activeDays: number;
+  overlapTotalMinutes: number;
+  overlapCount: number;
+  overlapAffectedDays: number;
+  prevWeekTotalMinutes: number | null;
 };
 
 // Simple in-memory cache (TTL 15 minutes). Suitable for dev and short-lived server runtimes.
@@ -128,10 +139,35 @@ export async function getWeeklyMetrics(email: string, weekStartISO: string): Pro
     expenseSummary = { totalAmount: String(total), currency, count: expenses.length };
   }
 
+  // Activity-only minutes (excluding meetings)
+  const totalActivityMinutes = timeEntries.reduce((s, e) => s + e.durationMinutes, 0);
+
+  // Coverage: tracked / expected (5 weekdays × 8h = 2400 min)
+  const expectedMinutes = 5 * 8 * 60;
+  const coveragePercent = expectedMinutes > 0 ? Math.round((totalMinutes / expectedMinutes) * 100) : 0;
+  const estimatedUntrackedMinutes = Math.max(0, expectedMinutes - totalMinutes);
+
+  // Active days count
+  const activeDays = 7 - zeroActivityDays.length;
+
+  // Overlap detection for the week
+  const overlapResult = await detectOverlaps(email, weekStart.toISOString(), weekEnd.toISOString());
+
+  // Previous week total minutes for comparison
+  const prevTimeEntries = await prisma.timeEntry.findMany({
+    where: { userId: user.id, workDate: { gte: prevStart, lte: prevEnd } },
+  });
+  const prevWeekActivityMin = prevTimeEntries.reduce((s, e) => s + e.durationMinutes, 0);
+  const prevWeekTotalMinutes = prevWeekActivityMin + meetingMinutesPrevWeek;
+
   const metrics: WeeklyMetrics = {
     weekStart: dateOnlyISO(weekStart),
     weekEnd: dateOnlyISO(weekEnd),
     totalMinutes,
+    totalActivityMinutes,
+    totalMeetingMinutes: meetingMinutes,
+    coveragePercent,
+    estimatedUntrackedMinutes,
     projectTotals,
     meetingMinutes,
     meetingMinutesPrevWeek: typeof meetingMinutesPrevWeek === 'number' ? meetingMinutesPrevWeek : null,
@@ -139,10 +175,14 @@ export async function getWeeklyMetrics(email: string, weekStartISO: string): Pro
     lowActivityDays,
     inactiveProjects,
     expenseSummary,
+    assignedProjectCount: assignments.length,
+    activeDays,
+    overlapTotalMinutes: overlapResult.totalOverlapMinutes,
+    overlapCount: overlapResult.overlaps.length,
+    overlapAffectedDays: overlapResult.affectedDays,
+    prevWeekTotalMinutes,
   };
 
   cache.set(key, { ts: Date.now(), metrics });
   return metrics;
 }
-
-export type { WeeklyMetrics };

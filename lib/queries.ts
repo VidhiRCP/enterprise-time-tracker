@@ -51,7 +51,23 @@ export async function getDashboardData(email: string) {
     }),
   ]);
 
-  return { projects, entries, session, assignments };
+  // Fetch learned work patterns for suggestion scoring
+  const user = await prisma.user.findUnique({ where: { email: email.toLowerCase() } });
+  const workPatterns = user
+    ? await prisma.userWorkPattern.findMany({
+        where: { userId: user.id },
+        select: {
+          signalType: true,
+          signalValue: true,
+          projectId: true,
+          confidenceScore: true,
+          count: true,
+        },
+        orderBy: { confidenceScore: "desc" },
+      })
+    : [];
+
+  return { projects, entries, session, assignments, workPatterns };
 }
 
 export type ProjectAlias = {
