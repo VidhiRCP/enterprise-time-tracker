@@ -287,7 +287,7 @@ export function ExpenseTracker({ projects, userId }: { projects: { projectId: st
           </label>
         </div>
         {/* Extraction loading state */}
-        {uploading && <div className="text-xs text-[#808080] mb-4">Extracting data from receipt...</div>}
+        {uploading && <div className="text-xs text-[#808080] mb-4 flex items-center gap-2"><div className="inline-block h-4 w-4 animate-spin border-2 border-[#808080]/30 border-t-[#F40000]" /> Extracting data from receipt…</div>}
         {/* Editable review form + receipt preview */}
         {file && (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -398,7 +398,7 @@ export function ExpenseTracker({ projects, userId }: { projects: { projectId: st
 
           {loadingExpenses ? (
             <div className="border border-dashed border-[#808080]/30 p-6 text-center">
-              <div className="inline-block h-5 w-5 animate-spin rounded-full border-2 border-[#808080]/30 border-t-[#F40000]" />
+              <div className="inline-block h-5 w-5 animate-spin border-2 border-[#808080]/30 border-t-[#F40000]" />
               <p className="mt-2 text-xs sm:text-sm text-[#808080]">Loading expenses…</p>
             </div>
           ) : expenses.length === 0 ? (

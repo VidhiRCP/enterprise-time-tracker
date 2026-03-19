@@ -61,7 +61,7 @@ export function MeetingsLoader({
   if (loading) {
     return (
       <div className="border border-dashed border-[#808080]/30 p-6 text-center">
-        <div className="inline-block h-5 w-5 animate-spin rounded-full border-2 border-[#808080]/30 border-t-[#F40000]" />
+        <div className="inline-block h-5 w-5 animate-spin border-2 border-[#808080]/30 border-t-[#F40000]" />
         <p className="mt-2 text-xs sm:text-sm text-[#808080]">Loading calendar events…</p>
       </div>
     );
