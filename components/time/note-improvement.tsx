@@ -104,7 +104,7 @@ export function NoteImprovement({
       <div className="flex-1 min-w-0">
         {loading ? (
           <div className="text-xs text-[#808080] flex items-center gap-2">
-            <div className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-[#808080]/30 border-t-[#F40000]" /> Rephrasing…
+            <div className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-[#808080]/30 border-t-[#F40000]" /> Improving…
           </div>
         ) : suggestion ? (
           <div className="text-sm text-[#D9D9D9]">{suggestion}</div>

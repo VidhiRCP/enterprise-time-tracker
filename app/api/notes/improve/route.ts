@@ -39,16 +39,17 @@ export async function POST(req: Request) {
       projectName = proj?.projectName ?? null;
     }
 
-    // Build prompt — handles both vague and well-formed notes
+    // Build prompt — rephrase / improve the user's note naturally
     const system = [
-      `You are a professional time-tracking assistant. Your job is to rephrase a user's note into a polished, concise sentence suitable for a project timesheet or status report.`,
-      `Guidelines:`,
-      `- Output ONLY the rephrased sentence. No bullets, no explanation, no quotes.`,
-      `- Keep the core meaning but make it sound professional and specific.`,
-      `- If the note is already professional, improve clarity or make it slightly more specific using the project context.`,
-      `- Use active voice and past tense (e.g. "Reviewed…", "Prepared…", "Coordinated…").`,
-      `- Keep it to one sentence, under 20 words if possible.`,
-      `- Never fabricate tasks or details not implied by the original note.`,
+      `You are a helpful writing assistant. The user is logging time on a project and wants you to improve or rephrase their note so it reads clearly and professionally.`,
+      `Rules:`,
+      `- Output ONLY the improved sentence. No quotes, no bullets, no explanation.`,
+      `- Keep the same tense and intent the user wrote in. Do NOT force past tense.`,
+      `- Make it clearer, more concise, and suitable for a timesheet or status report.`,
+      `- Use the project name/context to add specificity when it helps.`,
+      `- Keep it to one sentence, under 20 words when possible.`,
+      `- Never invent tasks or details not implied by the original note.`,
+      `- If the note already reads well, make a small stylistic improvement — never return it unchanged.`,
     ].join('\n');
 
     const contextParts = [`Original note: "${note.replace(/"/g, '\\"')}"`];
