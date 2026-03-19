@@ -426,7 +426,7 @@ export function TimerPanel({
           />
             <button
               type="button"
-              title="Generate phrase"
+              title="Rephrase note"
               onClick={() => setSuggestKey((k) => k + 1)}
               className="absolute top-1.5 right-1.5 p-1 rounded text-[#D9D9D9] hover:bg-[#ffffff10]"
             >

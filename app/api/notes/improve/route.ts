@@ -29,12 +29,33 @@ export async function POST(req: Request) {
 
     const recentNotes = recent.map((r) => r.notes).filter(Boolean).slice(0, 5);
 
-    // Build prompt
-    const system = `You are a terse professional assistant that rewrites short vague time-tracking notes into a single concise, specific, and professional sentence suitable for a project timesheet. Use project context if provided. Return only the rewritten note (one sentence), no bullets, no explanation.`;
+    // Fetch the project name for richer context
+    let projectName: string | null = null;
+    if (projectId) {
+      const proj = await prisma.project.findUnique({
+        where: { projectId },
+        select: { projectName: true },
+      });
+      projectName = proj?.projectName ?? null;
+    }
 
-    const userText = `Original note: "${note.replace(/"/g, '\\"')}"\n` +
-      (projectId ? `Project ID: ${projectId}\n` : "") +
-      (recentNotes.length ? `Recent notes: ${JSON.stringify(recentNotes)}\n` : "");
+    // Build prompt — handles both vague and well-formed notes
+    const system = [
+      `You are a professional time-tracking assistant. Your job is to rephrase a user's note into a polished, concise sentence suitable for a project timesheet or status report.`,
+      `Guidelines:`,
+      `- Output ONLY the rephrased sentence. No bullets, no explanation, no quotes.`,
+      `- Keep the core meaning but make it sound professional and specific.`,
+      `- If the note is already professional, improve clarity or make it slightly more specific using the project context.`,
+      `- Use active voice and past tense (e.g. "Reviewed…", "Prepared…", "Coordinated…").`,
+      `- Keep it to one sentence, under 20 words if possible.`,
+      `- Never fabricate tasks or details not implied by the original note.`,
+    ].join('\n');
+
+    const contextParts = [`Original note: "${note.replace(/"/g, '\\"')}"`];
+    if (projectId) contextParts.push(`Project ID: ${projectId}`);
+    if (projectName) contextParts.push(`Project name: ${projectName}`);
+    if (recentNotes.length) contextParts.push(`User's recent notes on this project for context: ${JSON.stringify(recentNotes)}`);
+    const userText = contextParts.join('\n');
 
     const openaiKey = process.env.OPENAI_API_KEY;
     if (!openaiKey) return NextResponse.json({ error: 'OpenAI API key not configured' }, { status: 500 });

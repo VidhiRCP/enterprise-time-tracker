@@ -203,7 +203,7 @@ export function ManualEntryForm({
             />
             <button
               type="button"
-              title="Generate phrase"
+              title="Rephrase note"
               onClick={() => setSuggestKey((k) => k + 1)}
               className="flex-shrink-0 p-1 rounded text-[#D9D9D9] hover:bg-[#ffffff10]"
             >
