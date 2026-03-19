@@ -43,11 +43,12 @@ export async function POST(req: Request) {
     const system = [
       `You are a helpful writing assistant. The user is logging time on a project and wants you to improve or rephrase their note so it reads clearly and professionally.`,
       `Rules:`,
-      `- Output ONLY the improved sentence. No quotes, no bullets, no explanation.`,
+      `- Output ONLY the improved note. No quotes, no bullets, no labels, no explanation.`,
       `- Keep the same tense and intent the user wrote in. Do NOT force past tense.`,
+      `- Fix any typos or grammar issues.`,
       `- Make it clearer, more concise, and suitable for a timesheet or status report.`,
       `- Use the project name/context to add specificity when it helps.`,
-      `- Keep it to one sentence, under 20 words when possible.`,
+      `- Match the length of the original — short notes stay short, detailed notes stay detailed.`,
       `- Never invent tasks or details not implied by the original note.`,
       `- If the note already reads well, make a small stylistic improvement — never return it unchanged.`,
     ].join('\n');
@@ -63,36 +64,29 @@ export async function POST(req: Request) {
 
     const model = process.env.OPENAI_MODEL ?? 'gpt-4o-mini';
 
-    const resp = await fetch('https://api.openai.com/v1/responses', {
+    const resp = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${openaiKey}` },
-      body: JSON.stringify({ model, input: [ { role: 'user', content: [ { type: 'input_text', text: system }, { type: 'input_text', text: userText } ] } ], max_output_tokens: 120 }),
+      body: JSON.stringify({
+        model,
+        messages: [
+          { role: 'system', content: system },
+          { role: 'user', content: userText },
+        ],
+        max_tokens: 256,
+        temperature: 0.7,
+      }),
     });
 
     if (!resp.ok) {
       const txt = await resp.text();
+      console.error('OpenAI error', resp.status, txt);
       return NextResponse.json({ error: 'OpenAI request failed', detail: txt }, { status: 502 });
     }
 
     const data = await resp.json();
-    let suggestion: string | null = null;
-    try {
-      if (Array.isArray(data.output)) {
-        for (const out of data.output) {
-          if (!out || !Array.isArray(out.content)) continue;
-          for (const c of out.content) {
-            if (c && typeof c.text === 'string') {
-              suggestion = (suggestion ? suggestion + '\n' : '') + c.text;
-            }
-          }
-        }
-      }
-    } catch (_e) {
-      suggestion = null;
-    }
-
-    if (!suggestion) suggestion = data?.output?.[0]?.content?.[0]?.text ?? null;
-    if (suggestion) suggestion = suggestion.trim().replace(/\s+/g, ' ');
+    let suggestion: string | null = data?.choices?.[0]?.message?.content?.trim() ?? null;
+    if (suggestion) suggestion = suggestion.replace(/^["']|["']$/g, '').trim();
 
     // Ensure we don't return the same text
     if (suggestion && suggestion.toLowerCase() === note.toLowerCase()) suggestion = null;
