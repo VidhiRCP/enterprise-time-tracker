@@ -59,7 +59,6 @@ export function TimerPanel({
   const [lastAutosaved, setLastAutosaved] = useState<Date | null>(null);
   const [notesError, setNotesError] = useState("");
   const [suggestKey, setSuggestKey] = useState<number>(0);
-  const [showManualSuggest, setShowManualSuggest] = useState(false);
 
   // Project auto-suggestion
   const { suggestion, dismiss: dismissSuggestion, resetDismiss } = useProjectSuggestion({
@@ -428,7 +427,7 @@ export function TimerPanel({
             <button
               type="button"
               title="Generate phrase"
-              onClick={() => { setShowManualSuggest(true); setSuggestKey((k) => k + 1); }}
+              onClick={() => setSuggestKey((k) => k + 1)}
               className="absolute top-1.5 right-1.5 p-1 rounded text-[#D9D9D9] hover:bg-[#ffffff10]"
             >
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="block">
@@ -458,8 +457,7 @@ export function TimerPanel({
       <NoteImprovement
         note={notesDraft}
         projectId={projectId}
-        onAccept={(s) => { setNotesDraft(s); setShowManualSuggest(false); }}
-        forceVisible={showManualSuggest}
+        onAccept={(s) => setNotesDraft(s)}
         triggerKey={suggestKey}
       />
     </div>
