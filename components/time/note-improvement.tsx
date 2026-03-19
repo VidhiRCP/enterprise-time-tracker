@@ -6,10 +6,14 @@ export function NoteImprovement({
   note,
   projectId,
   onAccept,
+  forceVisible,
+  triggerKey,
 }: {
   note: string;
   projectId?: string | null;
   onAccept: (s: string) => void;
+  forceVisible?: boolean;
+  triggerKey?: number;
 }) {
   const [suggestion, setSuggestion] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -26,13 +30,16 @@ export function NoteImprovement({
     }
     return false;
   })();
-
   useEffect(() => {
     let cancelled = false;
     setSuggestion(null);
     setDismissed(false);
-    if (!isVague) return;
-    // Give the user a couple seconds to finish typing before prompting
+
+    const manualRequested = (triggerKey !== undefined && triggerKey !== null) || !!forceVisible;
+    if (!isVague && !manualRequested) return;
+
+    const delay = isVague && !manualRequested ? 2000 : 0;
+
     const id = setTimeout(async () => {
       setLoading(true);
       try {
@@ -45,11 +52,13 @@ export function NoteImprovement({
       } finally {
         if (!cancelled) setLoading(false);
       }
-    }, 2000);
-    return () => { cancelled = true; clearTimeout(id); };
-  }, [note, projectId]);
+    }, delay);
 
-  if (!isVague || dismissed || (!suggestion && !loading)) return null;
+    return () => { cancelled = true; clearTimeout(id); };
+  }, [note, projectId, triggerKey, forceVisible]);
+
+  const visible = (isVague || !!forceVisible || (triggerKey !== undefined && triggerKey !== null)) && !dismissed;
+  if (!visible || (!suggestion && !loading)) return null;
 
   return (
     <div className="mt-2 flex items-start gap-3 px-3 py-2 border border-[#808080]/20 bg-[#0f0f0f] rounded">
@@ -72,6 +81,26 @@ export function NoteImprovement({
           className="border border-[#F40000]/40 px-2 py-1 text-xs font-bold text-[#F8F8F8] hover:bg-[#F40000]/20"
         >
           Accept
+        </button>
+        <button
+          type="button"
+          disabled={loading}
+          onClick={async () => {
+            setLoading(true);
+            try {
+              const resp = await fetch('/api/notes/improve', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ note, projectId }) });
+              if (!resp.ok) throw new Error('failed');
+              const j = await resp.json();
+              setSuggestion(j.suggestion ?? null);
+            } catch (e) {
+              setSuggestion(null);
+            } finally {
+              setLoading(false);
+            }
+          }}
+          className="border border-[#808080]/30 px-2 py-1 text-xs text-[#808080] hover:text-[#D9D9D9]"
+        >
+          Regenerate
         </button>
         <button
           type="button"

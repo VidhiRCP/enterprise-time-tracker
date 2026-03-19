@@ -22,7 +22,7 @@ export function SignInCard() {
         <div className="w-[40%] flex flex-col items-center text-center px-8">
           <h1
             className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-bold text-white leading-none"
-            style={{ textShadow: "2px 2px 0 #dc2626, 0 6px 20px rgba(0,0,0,0.6)" }}
+            style={{ textShadow: "2px 2px 0 #F40000, 0 6px 20px rgba(0,0,0,0.6)" }}
           >
             RCP Pulse
           </h1>

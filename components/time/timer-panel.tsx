@@ -58,6 +58,8 @@ export function TimerPanel({
   const [tick, setTick] = useState(0);
   const [lastAutosaved, setLastAutosaved] = useState<Date | null>(null);
   const [notesError, setNotesError] = useState("");
+  const [suggestKey, setSuggestKey] = useState<number>(0);
+  const [showManualSuggest, setShowManualSuggest] = useState(false);
 
   // Project auto-suggestion
   const { suggestion, dismiss: dismissSuggestion, resetDismiss } = useProjectSuggestion({
@@ -413,15 +415,30 @@ export function TimerPanel({
 
         <div className="space-y-1">
           <label className="text-sm font-medium text-[#D9D9D9]">Notes</label>
+          <div className="relative">
             <textarea
               value={notesDraft}
               onChange={(e) => { setNotesDraft(e.target.value); setNotesError(""); resetDismiss(); }}
             rows={2}
-            className={`w-full border bg-black px-2.5 py-1.5 text-sm focus:border-[#F40000] focus:outline-none app-input ${
+            className={`w-full border bg-black px-2.5 py-1.5 pr-8 text-sm focus:border-[#F40000] focus:outline-none app-input ${
               notesError ? "border-[#F40000]" : "border-[#808080]/30"
             }`}
             placeholder="What are you working on?"
           />
+            <button
+              type="button"
+              title="Generate phrase"
+              onClick={() => { setShowManualSuggest(true); setSuggestKey((k) => k + 1); }}
+              className="absolute top-1.5 right-1.5 p-1 rounded text-[#D9D9D9] hover:bg-[#ffffff10]"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="block">
+                <path d="M12 2v6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                <path d="M12 22v-6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                <path d="M4.93 4.93l4.24 4.24" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                <path d="M19.07 19.07l-4.24-4.24" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </button>
+          </div>
           {notesError && (
             <p className="text-xs text-[#F40000]">{notesError}</p>
           )}
@@ -441,7 +458,9 @@ export function TimerPanel({
       <NoteImprovement
         note={notesDraft}
         projectId={projectId}
-        onAccept={(s) => setNotesDraft(s)}
+        onAccept={(s) => { setNotesDraft(s); setShowManualSuggest(false); }}
+        forceVisible={showManualSuggest}
+        triggerKey={suggestKey}
       />
     </div>
   );

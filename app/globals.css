@@ -28,6 +28,22 @@
     --text: #F8F8F8;
   }
 
+  /* Ensure all "red" tokens map to the requested brand color */
+  :root {
+    --color-red-100: #F40000;
+    --color-red-200: #F40000;
+    --color-red-300: #F40000;
+    --color-red-400: #F40000;
+    --color-red-500: #F40000;
+    --color-red-600: #F40000;
+    --color-red-700: #F40000;
+    --color-red-800: #F40000;
+    --color-red-900: #F40000;
+    --color-red-1000: #F40000;
+
+    --color-ansi-red: var(--brand);
+    --color-ansi-bright-red: var(--brand);
+  }
   /* Headings */
   .app-heading-1 { @apply text-2xl sm:text-3xl md:text-4xl font-bold; color: var(--text); }
   .app-heading-2 { @apply text-base sm:text-lg font-bold; color: var(--text); }

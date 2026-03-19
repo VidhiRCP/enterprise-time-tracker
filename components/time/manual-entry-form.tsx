@@ -38,6 +38,8 @@ export function ManualEntryForm({
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
   const [isPending, startTransition] = useTransition();
+  const [suggestKey, setSuggestKey] = useState<number>(0);
+  const [showManualSuggest, setShowManualSuggest] = useState(false);
 
   // Project auto-suggestion
   const { suggestion, dismiss: dismissSuggestion, resetDismiss } = useProjectSuggestion({
@@ -192,15 +194,28 @@ export function ManualEntryForm({
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
         <div className="flex-1 space-y-1">
           <label className="text-sm font-medium text-[#D9D9D9]">Notes</label>
+          <div className="w-full border bg-black px-3 py-2 text-sm focus-within:border-[#F40000] focus-within:outline-none app-input flex items-center gap-2 border-[#808080]/30">
             <input
               type="text"
               value={notes}
               onChange={(e) => { setNotes(e.target.value); setError(""); resetDismiss(); }}
-               className={`w-full border bg-black px-3 py-2 text-sm focus:border-[#F40000] focus:outline-none app-input ${
-                 "border-[#808080]/30"
-               }`}
+              className="flex-1 bg-transparent text-sm text-[#D9D9D9] outline-none"
               placeholder="Describe the work done"
             />
+            <button
+              type="button"
+              title="Generate phrase"
+              onClick={() => { setShowManualSuggest(true); setSuggestKey((k) => k + 1); }}
+              className="flex-shrink-0 p-1 rounded text-[#D9D9D9] hover:bg-[#ffffff10]"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="block">
+                <path d="M12 2v6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                <path d="M12 22v-6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                <path d="M4.93 4.93l4.24 4.24" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                <path d="M19.07 19.07l-4.24-4.24" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </button>
+          </div>
         </div>
         <button
           type="button"
@@ -221,8 +236,14 @@ export function ManualEntryForm({
         }}
         onDismiss={dismissSuggestion}
       />
-      {/* Note quality improvement */}
-      <NoteImprovement note={notes} projectId={projectId} onAccept={(s) => setNotes(s)} />
+      {/* Note quality improvement (auto + manual) */}
+      <NoteImprovement
+        note={notes}
+        projectId={projectId}
+        onAccept={(s) => { setNotes(s); setShowManualSuggest(false); }}
+        forceVisible={showManualSuggest}
+        triggerKey={suggestKey}
+      />
 
       {/* Error / Success messages */}
       {error && (

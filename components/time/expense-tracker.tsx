@@ -329,7 +329,7 @@ export function ExpenseTracker({ projects, userId }: { projects: { projectId: st
                 </select>
               </div>
 
-              {error && <div className="text-xs text-red-500">{error}</div>}
+              {error && <div className="text-xs text-[#F40000]">{error}</div>}
 
               <div className="flex items-center gap-3">
                 <label className="inline-flex items-center mr-4">
